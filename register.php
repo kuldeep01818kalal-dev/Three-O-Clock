@@ -191,3 +191,269 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
  * Part 1 Ends Here
  * Part 2 will start with <!DOCTYPE html>
  *******************************************************/
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>User Registration | Three O' Clock Cafe</title>
+
+    <!-- Bootstrap -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <!-- Custom CSS -->
+
+    <link rel="stylesheet"
+          href="assets/css/style.css">
+
+</head>
+
+<body class="bg-light">
+
+<div class="container">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card shadow-lg border-0 mt-5 mb-5">
+
+                <div class="card-body p-5">
+
+                    <h2 class="text-center fw-bold mb-2">
+                        Create Account
+                    </h2>
+
+                    <p class="text-center text-muted mb-4">
+                        Three O' Clock Cafe
+                    </p>
+
+                    <!-- Success Message -->
+
+                    <?php
+                    if (!empty($success)) {
+                    ?>
+
+                    <div class="alert alert-success">
+
+                        <?= htmlspecialchars($success) ?>
+
+                    </div>
+
+                    <?php
+                    }
+                    ?>
+
+                    <!-- Error Messages -->
+
+                    <?php
+                    if (!empty($errors)) {
+                    ?>
+
+                    <div class="alert alert-danger">
+
+                        <ul class="mb-0">
+
+                            <?php
+                            foreach ($errors as $error) {
+                            ?>
+
+                                <li><?= htmlspecialchars($error) ?></li>
+
+                            <?php
+                            }
+                            ?>
+
+                        </ul>
+
+                    </div>
+
+                    <?php
+                    }
+                    ?>
+
+                    <form method="POST"
+                          action=""
+                          id="registerForm">
+
+                        <!-- Full Name -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Full Name
+
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                name="full_name"
+                                id="full_name"
+                                value="<?= htmlspecialchars($full_name) ?>"
+                                required>
+
+                        </div>
+
+                        <!-- Email -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Email Address
+
+                            </label>
+
+                            <input
+                                type="email"
+                                class="form-control"
+                                name="email"
+                                id="email"
+                                value="<?= htmlspecialchars($email) ?>"
+                                required>
+
+                        </div>
+
+                        <!-- Phone -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Mobile Number
+
+                            </label>
+
+                            <input
+                                type="text"
+                                class="form-control"
+                                name="phone"
+                                id="phone"
+                                maxlength="10"
+                                value="<?= htmlspecialchars($phone) ?>"
+                                required>
+
+                        </div>
+
+                        <!-- Password -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label">
+
+                                Password
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    name="password"
+                                    id="password"
+                                    required>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    id="togglePassword">
+
+                                    <i class="bi bi-eye"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Confirm Password -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                Confirm Password
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    name="confirm_password"
+                                    id="confirm_password"
+                                    required>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    id="toggleConfirmPassword">
+
+                                    <i class="bi bi-eye"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Register Button -->
+
+                        <div class="d-grid">
+
+                            <button
+                                type="submit"
+                                class="btn btn-dark btn-lg">
+
+                                Register
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                    <hr>
+
+                    <p class="text-center mb-0">
+
+                        Already have an account?
+
+                        <a href="login.php"
+                           class="text-decoration-none fw-semibold">
+
+                            Login Here
+
+                        </a>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
