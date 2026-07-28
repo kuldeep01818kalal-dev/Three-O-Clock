@@ -633,3 +633,85 @@ PART 2    Hero Section
     }
 
 }
+/*=========================================================
+Fade Animation
+=========================================================*/
+
+.fade-in{
+
+    opacity:1 !important;
+
+    transform:translateY(0) !important;
+
+}
+
+.card,
+.category-card,
+.hero-image,
+.about-image{
+
+    opacity:0;
+
+    transform:translateY(40px);
+
+    transition:.7s ease;
+
+}
+
+/*=========================================================
+Back To Top
+=========================================================*/
+
+#backToTop{
+
+    position:fixed;
+
+    bottom:25px;
+
+    right:25px;
+
+    width:50px;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:var(--coffee);
+
+    color:#fff;
+
+    cursor:pointer;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:.3s;
+
+    z-index:999;
+
+}
+
+#backToTop.show{
+
+    opacity:1;
+
+    visibility:visible;
+
+}
+
+#backToTop:hover{
+
+    background:var(--espresso);
+
+    transform:translateY(-5px);
+
+}
