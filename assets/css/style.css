@@ -869,6 +869,81 @@ Stats Section
 
 }
 /*=========================================================
+Testimonials
+=========================================================*/
+
+.testimonial-card{
+
+    background:#fff;
+
+    padding:30px;
+
+    border-radius:18px;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:.35s;
+
+    height:100%;
+
+}
+
+.testimonial-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.testimonial-header{
+
+    display:flex;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.testimonial-header img{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    margin-right:15px;
+
+    border:3px solid var(--caramel);
+
+}
+
+.testimonial-header h5{
+
+    margin-bottom:2px;
+
+}
+
+.testimonial-header small{
+
+    color:var(--text-light);
+
+}
+
+.stars{
+
+    color:#FFC107;
+
+    font-size:18px;
+
+    margin-bottom:15px;
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
