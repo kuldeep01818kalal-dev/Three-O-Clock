@@ -179,7 +179,27 @@ ul{
     margin-bottom:60px;
 
 }
+.section-title{
 
+    font-size:42px;
+
+    font-weight:700;
+
+    color:var(--espresso);
+
+    margin-bottom:12px;
+
+}
+
+.section-subtitle{
+
+    max-width:650px;
+
+    margin:auto;
+
+    color:#777;
+
+}
 /*=========================================================
     Buttons
 =========================================================*/
@@ -192,7 +212,7 @@ ul{
 
     font-weight:600;
 
-    transition:var(--transition);
+    transition:.35s;
 
     border:none;
 
@@ -204,11 +224,17 @@ ul{
 
     color:var(--white);
 
+    border:none;
+
 }
 
 .btn-primary:hover{
 
     background:var(--espresso);
+
+    color:var(--white);
+
+    transform:translateY(-3px);
 
 }
 
@@ -223,6 +249,8 @@ ul{
 .btn-secondary:hover{
 
     background:#d86d10;
+
+    color:var(--white);
 
 }
 
@@ -1033,6 +1061,25 @@ Gallery Preview
     transform:scale(1.08);
 
 }
+.category-card,
+.menu-card,
+.stats-card,
+.testimonial-card,
+.gallery-card{
+
+    transition:.35s ease;
+
+}
+
+.category-card:hover,
+.menu-card:hover,
+.stats-card:hover,
+.testimonial-card:hover,
+.gallery-card:hover{
+
+    transform:translateY(-10px);
+
+}
 /*=========================================================
     Animation
 =========================================================*/
@@ -1056,5 +1103,70 @@ Gallery Preview
         transform:translateY(0);
 
     }
+
+}
+@media(max-width:991px){
+
+.hero-title{
+
+font-size:42px;
+
+}
+
+.section-title{
+
+font-size:34px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.hero-title{
+
+font-size:34px;
+
+}
+
+.section-title{
+
+font-size:30px;
+
+}
+
+.hero{
+
+padding:80px 0;
+
+}
+
+}
+
+@media(max-width:576px){
+
+.hero-title{
+
+font-size:28px;
+
+}
+
+.section-title{
+
+font-size:26px;
+
+}
+
+.menu-image img{
+
+height:220px;
+
+}
+
+.gallery-card img{
+
+height:220px;
+
+}
 
 }
