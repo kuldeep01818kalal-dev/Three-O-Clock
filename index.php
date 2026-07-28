@@ -549,6 +549,77 @@ require_once 'includes/navbar.php';
     </div>
 
 </section>
+<!-- ==========================================
+     Gallery Preview
+========================================== -->
+
+<section class="gallery-preview section-padding">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+                Our Gallery
+            </h2>
+
+            <p class="section-subtitle">
+                A glimpse of our delicious food, handcrafted coffee, and cozy atmosphere.
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery1.jpg" alt="Coffee">
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery2.jpg" alt="Pizza">
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery3.jpg" alt="Dessert">
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery4.jpg" alt="Cafe Interior">
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery5.jpg" alt="Burger">
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="gallery-card">
+                    <img src="assets/images/gallery/gallery6.jpg" alt="Breakfast">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-5">
+
+            <a href="gallery.php" class="btn btn-primary btn-lg">
+                View Full Gallery
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
 <!-- About -->
 
 <section class="section-padding bg-white">
