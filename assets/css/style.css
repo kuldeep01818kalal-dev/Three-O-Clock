@@ -1,79 +1,106 @@
-/* ==========================================================
-   Three O' Clock Cafe
-   Global Styles
-   ========================================================== */
+/*=========================================================
+    Three O' Clock Cafe
+    Global Styles
+=========================================================*/
 
 /* Google Font */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-/* ==========================
-   Root Variables
-========================== */
+/*=========================================================
+    CSS Variables
+=========================================================*/
 
 :root{
 
-    --primary:#8B4513;
-    --primary-dark:#6F360F;
-    --secondary:#D4A373;
-    --accent:#FFC107;
+    /* Brand Colors */
 
-    --success:#198754;
-    --danger:#DC3545;
-    --warning:#FFC107;
-    --info:#0DCAF0;
+    --espresso:#4B2E2B;
+    --coffee:#6F4E37;
+    --cream:#F8F1E5;
+    --caramel:#C68E4B;
+    --sage:#6B8E6B;
+    --white:#FFFFFF;
+    --charcoal:#2E2E2E;
+    --orange:#E67E22;
 
-    --white:#ffffff;
-    --light:#f8f9fa;
-    --dark:#212529;
-    --gray:#6c757d;
+    /* Text */
 
-    --border:#e5e5e5;
+    --text-dark:#2E2E2E;
+    --text-light:#777777;
 
-    --shadow:0 10px 25px rgba(0,0,0,.08);
+    /* Border */
+
+    --border:#E5DED3;
+
+    /* Background */
+
+    --bg-light:#F8F1E5;
+
+    /* Shadow */
+
+    --shadow-sm:0 2px 8px rgba(0,0,0,.08);
+    --shadow:0 10px 30px rgba(0,0,0,.12);
+
+    /* Radius */
 
     --radius:12px;
+
+    /* Animation */
 
     --transition:.3s ease;
 
 }
 
-/* ==========================
-   Reset
-========================== */
+/*=========================================================
+    Reset
+=========================================================*/
 
 *{
+
     margin:0;
     padding:0;
     box-sizing:border-box;
+
 }
 
 html{
+
     scroll-behavior:smooth;
+
 }
 
 body{
 
     font-family:'Poppins',sans-serif;
 
-    background:var(--light);
+    background:var(--cream);
 
-    color:var(--dark);
+    color:var(--charcoal);
 
-    line-height:1.6;
+    line-height:1.7;
 
     overflow-x:hidden;
 
 }
 
-/* ==========================
-   Common
-========================== */
+/*=========================================================
+    Typography
+=========================================================*/
 
-img{
+h1,h2,h3,h4,h5,h6{
 
-    max-width:100%;
+    font-weight:700;
 
-    display:block;
+    color:var(--espresso);
+
+}
+
+p{
+
+    color:var(--text-light);
+
+    margin-bottom:1rem;
 
 }
 
@@ -83,31 +110,59 @@ a{
 
     transition:var(--transition);
 
+    color:inherit;
+
 }
+
+a:hover{
+
+    color:var(--orange);
+
+}
+
+/*=========================================================
+    Images
+=========================================================*/
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+/*=========================================================
+    Lists
+=========================================================*/
 
 ul{
 
     list-style:none;
 
-    padding:0;
-
     margin:0;
+
+    padding:0;
 
 }
 
+/*=========================================================
+    Section
+=========================================================*/
+
 .section-padding{
 
-    padding:80px 0;
+    padding:90px 0;
 
 }
 
 .section-title{
 
-    font-size:38px;
+    font-size:42px;
 
     font-weight:700;
 
-    text-align:center;
+    color:var(--espresso);
 
     margin-bottom:15px;
 
@@ -115,63 +170,83 @@ ul{
 
 .section-subtitle{
 
-    color:var(--gray);
+    color:var(--text-light);
 
-    text-align:center;
+    max-width:650px;
+
+    margin:auto;
 
     margin-bottom:60px;
 
 }
 
-/* ==========================
-   Buttons
-========================== */
+/*=========================================================
+    Buttons
+=========================================================*/
 
 .btn{
 
     border-radius:50px;
 
-    padding:12px 28px;
-
-    transition:var(--transition);
+    padding:12px 30px;
 
     font-weight:600;
 
-}
-
-.btn-primary{
-
-    background:var(--primary);
+    transition:var(--transition);
 
     border:none;
 
 }
 
+.btn-primary{
+
+    background:var(--coffee);
+
+    color:var(--white);
+
+}
+
 .btn-primary:hover{
 
-    background:var(--primary-dark);
+    background:var(--espresso);
+
+}
+
+.btn-secondary{
+
+    background:var(--orange);
+
+    color:var(--white);
+
+}
+
+.btn-secondary:hover{
+
+    background:#d86d10;
 
 }
 
 .btn-outline-primary{
 
-    border:2px solid var(--primary);
+    border:2px solid var(--coffee);
 
-    color:var(--primary);
+    color:var(--coffee);
+
+    background:transparent;
 
 }
 
 .btn-outline-primary:hover{
 
-    background:var(--primary);
+    background:var(--coffee);
 
-    color:#fff;
+    color:var(--white);
 
 }
 
-/* ==========================
-   Card
-========================== */
+/*=========================================================
+    Cards
+=========================================================*/
 
 .card{
 
@@ -179,7 +254,11 @@ ul{
 
     border-radius:var(--radius);
 
-    box-shadow:var(--shadow);
+    overflow:hidden;
+
+    background:var(--white);
+
+    box-shadow:var(--shadow-sm);
 
     transition:var(--transition);
 
@@ -187,13 +266,15 @@ ul{
 
 .card:hover{
 
-    transform:translateY(-5px);
+    transform:translateY(-8px);
+
+    box-shadow:var(--shadow);
 
 }
 
-/* ==========================
-   Form
-========================== */
+/*=========================================================
+    Forms
+=========================================================*/
 
 .form-control{
 
@@ -201,37 +282,57 @@ ul{
 
     padding:12px 15px;
 
+    border:1px solid var(--border);
+
     box-shadow:none;
 
 }
 
 .form-control:focus{
 
-    border-color:var(--primary);
+    border-color:var(--caramel);
 
     box-shadow:none;
 
 }
 
-/* ==========================
-   Utility
-========================== */
+/*=========================================================
+    Utility Classes
+=========================================================*/
 
-.text-primary{
+.bg-cream{
 
-    color:var(--primary)!important;
-
-}
-
-.bg-primary{
-
-    background:var(--primary)!important;
+    background:var(--cream);
 
 }
 
-.shadow-custom{
+.bg-coffee{
 
-    box-shadow:var(--shadow);
+    background:var(--coffee);
+
+}
+
+.bg-espresso{
+
+    background:var(--espresso);
+
+}
+
+.text-coffee{
+
+    color:var(--coffee);
+
+}
+
+.text-orange{
+
+    color:var(--orange);
+
+}
+
+.text-sage{
+
+    color:var(--sage);
 
 }
 
@@ -241,9 +342,15 @@ ul{
 
 }
 
-/* ==========================
-   Scrollbar
-========================== */
+.shadow-custom{
+
+    box-shadow:var(--shadow);
+
+}
+
+/*=========================================================
+    Scrollbar
+=========================================================*/
 
 ::-webkit-scrollbar{
 
@@ -253,13 +360,13 @@ ul{
 
 ::-webkit-scrollbar-track{
 
-    background:#eee;
+    background:#f1f1f1;
 
 }
 
 ::-webkit-scrollbar-thumb{
 
-    background:var(--primary);
+    background:var(--coffee);
 
     border-radius:20px;
 
@@ -267,6 +374,6 @@ ul{
 
 ::-webkit-scrollbar-thumb:hover{
 
-    background:var(--primary-dark);
+    background:var(--espresso);
 
 }
