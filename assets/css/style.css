@@ -609,31 +609,6 @@ PART 2    Hero Section
 
 }
 /*=========================================================
-    Animation
-=========================================================*/
-
-@keyframes float{
-
-    0%{
-
-        transform:translateY(0);
-
-    }
-
-    50%{
-
-        transform:translateY(-15px);
-
-    }
-
-    100%{
-
-        transform:translateY(0);
-
-    }
-
-}
-/*=========================================================
 Fade Animation
 =========================================================*/
 
@@ -713,5 +688,30 @@ Back To Top
     background:var(--espresso);
 
     transform:translateY(-5px);
+
+}
+/*=========================================================
+    Animation
+=========================================================*/
+
+@keyframes float{
+
+    0%{
+
+        transform:translateY(0);
+
+    }
+
+    50%{
+
+        transform:translateY(-15px);
+
+    }
+
+    100%{
+
+        transform:translateY(0);
+
+    }
 
 }
