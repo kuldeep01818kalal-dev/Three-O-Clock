@@ -786,6 +786,89 @@ Featured Menu
 
 }
 /*=========================================================
+Stats Section
+=========================================================*/
+
+.stats-section{
+
+    background:#ffffff;
+
+}
+
+.stats-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:40px 25px;
+
+    text-align:center;
+
+    transition:.35s;
+
+    box-shadow:var(--shadow-sm);
+
+    height:100%;
+
+}
+
+.stats-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.stats-icon{
+
+    width:80px;
+
+    height:80px;
+
+    margin:auto;
+
+    border-radius:50%;
+
+    background:var(--cream);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    margin-bottom:20px;
+
+}
+
+.stats-icon i{
+
+    font-size:36px;
+
+    color:var(--coffee);
+
+}
+
+.stats-card h2{
+
+    font-size:42px;
+
+    color:var(--espresso);
+
+    margin-bottom:10px;
+
+}
+
+.stats-card p{
+
+    color:var(--text-light);
+
+    margin:0;
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
