@@ -1,0 +1,272 @@
+/* ==========================================================
+   Three O' Clock Cafe
+   Global Styles
+   ========================================================== */
+
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ==========================
+   Root Variables
+========================== */
+
+:root{
+
+    --primary:#8B4513;
+    --primary-dark:#6F360F;
+    --secondary:#D4A373;
+    --accent:#FFC107;
+
+    --success:#198754;
+    --danger:#DC3545;
+    --warning:#FFC107;
+    --info:#0DCAF0;
+
+    --white:#ffffff;
+    --light:#f8f9fa;
+    --dark:#212529;
+    --gray:#6c757d;
+
+    --border:#e5e5e5;
+
+    --shadow:0 10px 25px rgba(0,0,0,.08);
+
+    --radius:12px;
+
+    --transition:.3s ease;
+
+}
+
+/* ==========================
+   Reset
+========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    font-family:'Poppins',sans-serif;
+
+    background:var(--light);
+
+    color:var(--dark);
+
+    line-height:1.6;
+
+    overflow-x:hidden;
+
+}
+
+/* ==========================
+   Common
+========================== */
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+a{
+
+    text-decoration:none;
+
+    transition:var(--transition);
+
+}
+
+ul{
+
+    list-style:none;
+
+    padding:0;
+
+    margin:0;
+
+}
+
+.section-padding{
+
+    padding:80px 0;
+
+}
+
+.section-title{
+
+    font-size:38px;
+
+    font-weight:700;
+
+    text-align:center;
+
+    margin-bottom:15px;
+
+}
+
+.section-subtitle{
+
+    color:var(--gray);
+
+    text-align:center;
+
+    margin-bottom:60px;
+
+}
+
+/* ==========================
+   Buttons
+========================== */
+
+.btn{
+
+    border-radius:50px;
+
+    padding:12px 28px;
+
+    transition:var(--transition);
+
+    font-weight:600;
+
+}
+
+.btn-primary{
+
+    background:var(--primary);
+
+    border:none;
+
+}
+
+.btn-primary:hover{
+
+    background:var(--primary-dark);
+
+}
+
+.btn-outline-primary{
+
+    border:2px solid var(--primary);
+
+    color:var(--primary);
+
+}
+
+.btn-outline-primary:hover{
+
+    background:var(--primary);
+
+    color:#fff;
+
+}
+
+/* ==========================
+   Card
+========================== */
+
+.card{
+
+    border:none;
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    transition:var(--transition);
+
+}
+
+.card:hover{
+
+    transform:translateY(-5px);
+
+}
+
+/* ==========================
+   Form
+========================== */
+
+.form-control{
+
+    border-radius:10px;
+
+    padding:12px 15px;
+
+    box-shadow:none;
+
+}
+
+.form-control:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:none;
+
+}
+
+/* ==========================
+   Utility
+========================== */
+
+.text-primary{
+
+    color:var(--primary)!important;
+
+}
+
+.bg-primary{
+
+    background:var(--primary)!important;
+
+}
+
+.shadow-custom{
+
+    box-shadow:var(--shadow);
+
+}
+
+.rounded-custom{
+
+    border-radius:var(--radius);
+
+}
+
+/* ==========================
+   Scrollbar
+========================== */
+
+::-webkit-scrollbar{
+
+    width:8px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#eee;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:var(--primary);
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:var(--primary-dark);
+
+}
