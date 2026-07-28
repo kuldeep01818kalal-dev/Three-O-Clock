@@ -70,14 +70,16 @@ require_once 'includes/navbar.php';
             </div>
 
             <div class="col-lg-6 text-center">
+                <div class="hero-image">
 
-                <img src="assets/images/hero-coffee.png"
+                    <img src="assets/images/hero-coffee.png"
+                        class="img-fluid"
+                        alt="Coffee">
 
-                     class="img-fluid"
-
-                     alt="Coffee">
+                </div>
 
             </div>
+            
 
         </div>
 
@@ -111,9 +113,9 @@ require_once 'includes/navbar.php';
 
             <div class="col-md-3">
 
-                <div class="card text-center p-4">
+                <div class="category-card">
 
-                    <div class="display-4 mb-3">
+                    <div class="icon">
 
                         ☕
 
@@ -127,9 +129,9 @@ require_once 'includes/navbar.php';
 
             <div class="col-md-3">
 
-                <div class="card text-center p-4">
+                <div class="category-card">
 
-                    <div class="display-4 mb-3">
+                    <div class="icon">
 
                         🍕
 
@@ -143,9 +145,9 @@ require_once 'includes/navbar.php';
 
             <div class="col-md-3">
 
-                <div class="card text-center p-4">
+                <div class="category-card">
 
-                    <div class="display-4 mb-3">
+                    <div class="icon">
 
                         🍔
 
@@ -159,9 +161,9 @@ require_once 'includes/navbar.php';
 
             <div class="col-md-3">
 
-                <div class="card text-center p-4">
+                <div class="category-card">
 
-                    <div class="display-4 mb-3">
+                    <div class="icon">
 
                         🍰
 
@@ -189,11 +191,13 @@ require_once 'includes/navbar.php';
 
             <div class="col-lg-6">
 
-                <img src="assets/images/about-cafe.jpg"
+                <div class="about-image">
 
-                     class="img-fluid rounded-custom shadow-custom"
+                    <img src="assets/images/about-cafe.jpg"
+                        class="img-fluid"
+                        alt="Cafe">
 
-                     alt="Cafe">
+                </div>
 
             </div>
 
@@ -251,7 +255,7 @@ require_once 'includes/navbar.php';
 
     <div class="container">
 
-        <div class="card p-5">
+        <div class="cta-card">
 
             <h2 class="mb-3">
 
