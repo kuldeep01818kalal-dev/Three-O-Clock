@@ -318,6 +318,109 @@ require_once 'includes/navbar.php';
     </div>
 
 </section>
+<!-- ==========================================
+     Statistics
+========================================== -->
+
+<section class="stats-section section-padding">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+
+                Why Customers Love Us
+
+            </h2>
+
+            <p class="section-subtitle">
+
+                Every number tells a story of trust and quality.
+
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="stats-card">
+
+                    <div class="stats-icon">
+
+                        <i class="bi bi-people-fill"></i>
+
+                    </div>
+
+                    <h2>5000+</h2>
+
+                    <p>Happy Customers</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="stats-card">
+
+                    <div class="stats-icon">
+
+                        <i class="bi bi-cup-hot-fill"></i>
+
+                    </div>
+
+                    <h2>15000+</h2>
+
+                    <p>Cups Served</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="stats-card">
+
+                    <div class="stats-icon">
+
+                        <i class="bi bi-star-fill"></i>
+
+                    </div>
+
+                    <h2>4.9</h2>
+
+                    <p>Average Rating</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="stats-card">
+
+                    <div class="stats-icon">
+
+                        <i class="bi bi-award-fill"></i>
+
+                    </div>
+
+                    <h2>8+</h2>
+
+                    <p>Years Experience</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 <!-- About -->
 
 <section class="section-padding bg-white">
