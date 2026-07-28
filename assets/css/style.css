@@ -1081,6 +1081,51 @@ Gallery Preview
 
 }
 /*=========================================================
+About Page
+=========================================================*/
+
+.about-hero{
+
+    background:var(--cream);
+
+}
+
+.mission-card{
+
+    background:#fff;
+
+    padding:40px;
+
+    border-radius:20px;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:.35s;
+
+    text-align:center;
+
+    height:100%;
+
+}
+
+.mission-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.mission-card i{
+
+    font-size:55px;
+
+    color:var(--coffee);
+
+    margin-bottom:20px;
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
