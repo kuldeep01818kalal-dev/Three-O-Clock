@@ -243,7 +243,77 @@ ul{
     color:var(--white);
 
 }
+/*=========================================================
+Sticky Navbar
+=========================================================*/
 
+.navbar{
+
+    transition:all .35s ease;
+
+    padding:16px 0;
+
+    z-index:1000;
+
+}
+
+.navbar.scrolled{
+
+    background:rgba(255,255,255,.97);
+
+    backdrop-filter:blur(10px);
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    padding:10px 0;
+
+}
+
+.navbar-brand{
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+}
+
+.nav-link{
+
+    position:relative;
+
+    font-weight:500;
+
+    margin:0 8px;
+
+}
+
+.nav-link::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+
+    bottom:-5px;
+
+    width:0;
+
+    height:2px;
+
+    background:var(--caramel);
+
+    transition:.3s;
+
+}
+
+.nav-link:hover::after,
+
+.nav-link.active::after{
+
+    width:100%;
+
+}
 /*=========================================================
     Cards
 =========================================================*/
