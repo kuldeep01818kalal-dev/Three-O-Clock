@@ -58,13 +58,11 @@ $page_title = $page_title ?? "Three O' Clock Cafe";
 
     <!-- Website CSS -->
 
-    <link rel="stylesheet"
-          href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 
     <!-- Favicon -->
 
-    <link rel="icon"
-          href="assets/images/favicon.png">
+   <!-- <link rel="icon" href="assets/images/favicon.png"> -->
 
 </head>
 

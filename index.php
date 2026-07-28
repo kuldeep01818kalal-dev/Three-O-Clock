@@ -180,7 +180,144 @@ require_once 'includes/navbar.php';
     </div>
 
 </section>
+<!-- ==========================================
+     Featured Menu
+========================================== -->
 
+<section class="section-padding">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+
+                Featured Menu
+
+            </h2>
+
+            <p class="section-subtitle">
+
+                Freshly prepared favourites loved by our customers
+
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <?php
+
+            $featuredProducts = [
+
+                [
+                    "name"=>"Cappuccino",
+                    "price"=>"199",
+                    "image"=>"assets/images/menu/cappuccino.jpg",
+                    "rating"=>"4.8",
+                    "veg"=>true
+                ],
+
+                [
+                    "name"=>"Margherita Pizza",
+                    "price"=>"349",
+                    "image"=>"assets/images/menu/pizza.jpg",
+                    "rating"=>"4.9",
+                    "veg"=>true
+                ],
+
+                [
+                    "name"=>"Cheese Burger",
+                    "price"=>"259",
+                    "image"=>"assets/images/menu/burger.jpg",
+                    "rating"=>"4.7",
+                    "veg"=>false
+                ],
+
+                [
+                    "name"=>"Chocolate Cake",
+                    "price"=>"179",
+                    "image"=>"assets/images/menu/cake.jpg",
+                    "rating"=>"4.9",
+                    "veg"=>true
+                ]
+
+            ];
+
+            foreach($featuredProducts as $product):
+
+            ?>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="menu-card">
+
+                    <div class="menu-image">
+
+                        <img src="<?= $product['image']; ?>"
+                             alt="<?= $product['name']; ?>">
+
+                        <?php if($product['veg']){ ?>
+
+                            <span class="badge bg-success">
+
+                                Veg
+
+                            </span>
+
+                        <?php } else { ?>
+
+                            <span class="badge bg-danger">
+
+                                Non-Veg
+
+                            </span>
+
+                        <?php } ?>
+
+                    </div>
+
+                    <div class="menu-content">
+
+                        <h4>
+
+                            <?= $product['name']; ?>
+
+                        </h4>
+
+                        <div class="rating">
+
+                            ⭐ <?= $product['rating']; ?>
+
+                        </div>
+
+                        <div class="price">
+
+                            ₹<?= $product['price']; ?>
+
+                        </div>
+
+                        <a href="product.php"
+
+                           class="btn btn-primary w-100 mt-3">
+
+                            View Details
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <?php endforeach; ?>
+
+        </div>
+
+    </div>
+
+</section>
 <!-- About -->
 
 <section class="section-padding bg-white">
