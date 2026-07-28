@@ -421,6 +421,146 @@ require_once 'includes/navbar.php';
     </div>
 
 </section>
+<!-- ==========================================
+     Customer Testimonials
+========================================== -->
+
+<section class="section-padding bg-light">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+
+                What Our Customers Say
+
+            </h2>
+
+            <p class="section-subtitle">
+
+                Hear from the people who enjoy our food and coffee every day.
+
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-4 col-md-6">
+
+                <div class="testimonial-card">
+
+                    <div class="testimonial-header">
+
+                        <img src="assets/images/customers/customer1.jpg"
+                             alt="Customer">
+
+                        <div>
+
+                            <h5>Rahul Sharma</h5>
+
+                            <small>Ahmedabad</small>
+
+                        </div>
+
+                    </div>
+
+                    <div class="stars">
+
+                        ★★★★★
+
+                    </div>
+
+                    <p>
+
+                        Amazing coffee and excellent ambience.
+                        The food quality is outstanding and the
+                        service is always fast.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+
+                <div class="testimonial-card">
+
+                    <div class="testimonial-header">
+
+                        <img src="assets/images/customers/customer2.jpg"
+                             alt="Customer">
+
+                        <div>
+
+                            <h5>Priya Patel</h5>
+
+                            <small>Gandhinagar</small>
+
+                        </div>
+
+                    </div>
+
+                    <div class="stars">
+
+                        ★★★★★
+
+                    </div>
+
+                    <p>
+
+                        Beautiful cafe with delicious desserts.
+                        Perfect place for family and friends.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+
+                <div class="testimonial-card">
+
+                    <div class="testimonial-header">
+
+                        <img src="assets/images/customers/customer3.jpg"
+                             alt="Customer">
+
+                        <div>
+
+                            <h5>Amit Verma</h5>
+
+                            <small>Vadodara</small>
+
+                        </div>
+
+                    </div>
+
+                    <div class="stars">
+
+                        ★★★★★
+
+                    </div>
+
+                    <p>
+
+                        One of the best cafes I've visited.
+                        Highly recommended for coffee lovers.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 <!-- About -->
 
 <section class="section-padding bg-white">
