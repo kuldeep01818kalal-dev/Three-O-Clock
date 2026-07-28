@@ -473,18 +473,20 @@ PART 2    Hero Section
 }
 
 /*=========================================================
-    About Section
+    About Image
 =========================================================*/
 
 .about-image{
 
     overflow:hidden;
 
-    border-radius:18px;
+    border-radius:20px;
 
 }
 
 .about-image img{
+
+    width:100%;
 
     transition:.5s;
 
@@ -579,7 +581,33 @@ PART 2    Hero Section
     transform:translateY(-4px);
 
 }
+/*=========================================================
+    Hero Image
+=========================================================*/
 
+.hero-image{
+
+    overflow:hidden;
+
+    border-radius:20px;
+
+}
+
+.hero-image img{
+
+    width:100%;
+
+    transition:.5s;
+
+    animation:float 4s ease-in-out infinite;
+
+}
+
+.hero-image:hover img{
+
+    transform:scale(1.05);
+
+}
 /*=========================================================
     Animation
 =========================================================*/
