@@ -377,3 +377,231 @@ ul{
     background:var(--espresso);
 
 }
+
+/*=========================================================
+PART 2    Hero Section
+=========================================================*/
+
+.hero-section{
+
+    background:linear-gradient(
+        135deg,
+        var(--cream) 0%,
+        #FFF8EF 100%
+    );
+
+    overflow:hidden;
+
+}
+
+.hero-section .badge{
+
+    padding:10px 20px;
+
+    font-size:15px;
+
+    border-radius:30px;
+
+}
+
+.hero-section h1{
+
+    font-size:60px;
+
+    line-height:1.2;
+
+}
+
+.hero-section p{
+
+    font-size:18px;
+
+    color:var(--text-light);
+
+}
+
+.hero-section img{
+
+    max-width:100%;
+
+    animation:float 4s ease-in-out infinite;
+
+}
+
+/*=========================================================
+    Category Cards
+=========================================================*/
+
+.category-card{
+
+    background:var(--white);
+
+    border-radius:18px;
+
+    padding:35px 20px;
+
+    text-align:center;
+
+    transition:.35s;
+
+    box-shadow:var(--shadow-sm);
+
+    height:100%;
+
+}
+
+.category-card:hover{
+
+    transform:translateY(-12px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.category-card .icon{
+
+    font-size:60px;
+
+    margin-bottom:20px;
+
+}
+
+.category-card h4{
+
+    color:var(--espresso);
+
+}
+
+/*=========================================================
+    About Section
+=========================================================*/
+
+.about-image{
+
+    overflow:hidden;
+
+    border-radius:18px;
+
+}
+
+.about-image img{
+
+    transition:.5s;
+
+}
+
+.about-image:hover img{
+
+    transform:scale(1.08);
+
+}
+
+/*=========================================================
+    CTA Section
+=========================================================*/
+
+.cta-card{
+
+    background:linear-gradient(
+        135deg,
+        var(--coffee),
+        var(--espresso)
+    );
+
+    color:var(--white);
+
+    border-radius:20px;
+
+    padding:70px 40px;
+
+}
+
+.cta-card h2{
+
+    color:var(--white);
+
+}
+
+.cta-card p{
+
+    color:#f2f2f2;
+
+}
+
+/*=========================================================
+    Footer
+=========================================================*/
+
+.footer-link{
+
+    color:#d8d8d8;
+
+    transition:.3s;
+
+}
+
+.footer-link:hover{
+
+    color:var(--orange);
+
+    padding-left:6px;
+
+}
+
+.social-icon{
+
+    width:42px;
+
+    height:42px;
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.1);
+
+    color:white;
+
+    margin-right:8px;
+
+    transition:.3s;
+
+}
+
+.social-icon:hover{
+
+    background:var(--orange);
+
+    transform:translateY(-4px);
+
+}
+
+/*=========================================================
+    Animation
+=========================================================*/
+
+@keyframes float{
+
+    0%{
+
+        transform:translateY(0);
+
+    }
+
+    50%{
+
+        transform:translateY(-15px);
+
+    }
+
+    100%{
+
+        transform:translateY(0);
+
+    }
+
+}
