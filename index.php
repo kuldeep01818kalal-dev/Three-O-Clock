@@ -452,10 +452,6 @@ require_once 'includes/navbar.php';
                 <div class="testimonial-card">
 
                     <div class="testimonial-header">
-
-                        <img src="assets/images/customers/customer1.jpg"
-                             alt="Customer">
-
                         <div>
 
                             <h5>Rahul Sharma</h5>
@@ -489,10 +485,6 @@ require_once 'includes/navbar.php';
                 <div class="testimonial-card">
 
                     <div class="testimonial-header">
-
-                        <img src="assets/images/customers/customer2.jpg"
-                             alt="Customer">
-
                         <div>
 
                             <h5>Priya Patel</h5>
@@ -525,10 +517,6 @@ require_once 'includes/navbar.php';
                 <div class="testimonial-card">
 
                     <div class="testimonial-header">
-
-                        <img src="assets/images/customers/customer3.jpg"
-                             alt="Customer">
-
                         <div>
 
                             <h5>Amit Verma</h5>
