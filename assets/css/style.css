@@ -691,6 +691,101 @@ Back To Top
 
 }
 /*=========================================================
+Featured Menu
+=========================================================*/
+
+.menu-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:.35s;
+
+}
+
+.menu-card:hover{
+
+    transform:translateY(-10px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.menu-image{
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+.menu-image img{
+
+    width:100%;
+
+    height:250px;
+
+    object-fit:cover;
+
+    transition:.4s;
+
+}
+
+.menu-card:hover img{
+
+    transform:scale(1.08);
+
+}
+
+.menu-image .badge{
+
+    position:absolute;
+
+    top:15px;
+
+    left:15px;
+
+    font-size:13px;
+
+}
+
+.menu-content{
+
+    padding:20px;
+
+}
+
+.menu-content h4{
+
+    font-size:22px;
+
+    margin-bottom:10px;
+
+}
+
+.rating{
+
+    color:#F4B400;
+
+    margin-bottom:10px;
+
+}
+
+.price{
+
+    font-size:24px;
+
+    font-weight:700;
+
+    color:var(--coffee);
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
