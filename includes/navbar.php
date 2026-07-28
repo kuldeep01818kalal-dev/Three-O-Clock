@@ -42,11 +42,8 @@ $isLoggedIn = isset($_SESSION['user_id']);
 
                 <li class="nav-item">
 
-                    <a class="nav-link <?= ($currentPage == 'index.php') ? 'active' : ''; ?>"
-                       href="index.php">
-
+                    <a class="nav-link <?= $currentPage=='index.php'?'active':''; ?>" href="index.php">
                         Home
-
                     </a>
 
                 </li>
