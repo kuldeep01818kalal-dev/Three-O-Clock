@@ -104,4 +104,90 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (empty($errors)) {
 
-        $stmt = $pdo->prepare
+        $stmt = $pdo->prepare("
+            SELECT user_id
+            FROM users
+            WHERE phone = ?
+        ");
+
+        $stmt->execute([$phone]);
+
+        if ($stmt->fetch()) {
+            $errors[] = "Mobile number already registered.";
+        }
+
+    }
+
+    /*==================================================
+    =            REGISTER USER
+    ==================================================*/
+
+    if (empty($errors)) {
+
+        $hashedPassword = password_hash(
+            $password,
+            PASSWORD_DEFAULT
+        );
+
+        $stmt = $pdo->prepare("
+            INSERT INTO users
+            (
+                full_name,
+                email,
+                password,
+                phone
+            )
+            VALUES
+            (
+                ?, ?, ?, ?
+            )
+        ");
+
+        if (
+            $stmt->execute([
+                $full_name,
+                $email,
+                $hashedPassword,
+                $phone
+            ])
+        ) {
+
+            /*
+            ==================================================
+            Welcome Email
+            ==================================================
+
+            Uncomment this after configuring Gmail
+            credentials in config/mail.php.
+
+            sendEmail(
+                $email,
+                $full_name,
+                "Welcome to Three O' Clock Cafe",
+                "<h2>Welcome {$full_name}</h2>
+                <p>Your account has been created successfully.</p>"
+            );
+
+            */
+
+            $_SESSION['registration_success'] =
+                "Registration completed successfully. Please login.";
+
+            header("Location: login.php");
+            exit();
+
+        } else {
+
+            $errors[] =
+                "Registration failed. Please try again.";
+
+        }
+
+    }
+
+}
+
+/*******************************************************
+ * Part 1 Ends Here
+ * Part 2 will start with <!DOCTYPE html>
+ *******************************************************/
