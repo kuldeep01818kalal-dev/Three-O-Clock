@@ -34,7 +34,7 @@ include 'includes/navbar.php';
 
             <div class="col-lg-6">
 
-                <img src="assets/images/about/about.jpg"
+                <img src="assets/images/about-cafe.jpg"
                      class="img-fluid rounded-4 shadow"
                      alt="About Cafe">
 
@@ -53,7 +53,7 @@ include 'includes/navbar.php';
 
 <div class="col-lg-6 order-lg-2">
 
-<img src="assets/images/about/story.jpg"
+<img src="assets/images/our-story.png"
 class="img-fluid rounded-4 shadow">
 
 </div>
@@ -133,6 +133,89 @@ To become the most loved neighborhood café where everyone feels at home.
 </div>
 
 </div>
+
+</section>
+<!-- ==========================================
+     Why Choose Us
+========================================== -->
+
+<section class="section-padding bg-light">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+                Why Choose Three O' Clock?
+            </h2>
+
+            <p class="section-subtitle">
+                We believe every visit should be memorable.
+            </p>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="feature-card">
+
+                    <i class="bi bi-cup-hot-fill"></i>
+
+                    <h4>Fresh Coffee</h4>
+
+                    <p>Premium beans brewed fresh every day.</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="feature-card">
+
+                    <i class="bi bi-egg-fried"></i>
+
+                    <h4>Quality Food</h4>
+
+                    <p>Prepared using fresh and carefully selected ingredients.</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="feature-card">
+
+                    <i class="bi bi-wifi"></i>
+
+                    <h4>Free Wi-Fi</h4>
+
+                    <p>Work, study, or relax with high-speed internet.</p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="feature-card">
+
+                    <i class="bi bi-heart-fill"></i>
+
+                    <h4>Friendly Service</h4>
+
+                    <p>Warm hospitality and a welcoming atmosphere.</p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </section>
 <?php include 'includes/footer.php'; ?>
