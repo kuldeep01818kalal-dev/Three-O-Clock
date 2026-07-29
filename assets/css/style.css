@@ -1168,6 +1168,35 @@ About Features
 
 }
 /*=========================================================
+Menu Page
+=========================================================*/
+
+.menu-hero{
+
+    background:var(--cream);
+
+}
+
+.menu-filter{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:12px;
+
+    margin-bottom:40px;
+
+}
+
+.menu-filter .btn{
+
+    min-width:120px;
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
