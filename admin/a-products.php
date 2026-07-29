@@ -860,3 +860,79 @@ else:
 </tr>
 
 <?php endif; ?>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==========================================
+     Pagination
+========================================== -->
+
+<?php if($totalPages > 1): ?>
+
+<nav class="mt-4">
+
+    <ul class="pagination justify-content-center">
+
+        <!-- Previous -->
+
+        <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+
+            <a class="page-link"
+               href="?page=<?= $page-1; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>&status=<?= urlencode($status); ?>">
+
+                Previous
+
+            </a>
+
+        </li>
+
+        <!-- Page Numbers -->
+
+        <?php for($i=1;$i<=$totalPages;$i++): ?>
+
+        <li class="page-item <?= ($page==$i)?'active':''; ?>">
+
+            <a class="page-link"
+               href="?page=<?= $i; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>&status=<?= urlencode($status); ?>">
+
+                <?= $i; ?>
+
+            </a>
+
+        </li>
+
+        <?php endfor; ?>
+
+        <!-- Next -->
+
+        <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : ''; ?>">
+
+            <a class="page-link"
+               href="?page=<?= $page+1; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>&status=<?= urlencode($status); ?>">
+
+                Next
+
+            </a>
+
+        </li>
+
+    </ul>
+
+</nav>
+
+<?php endif; ?>
+
+<!-- ==========================================
+     Footer
+========================================== -->
+
+</div>
+
+<?php include "includes/a-footer.php"; ?>
