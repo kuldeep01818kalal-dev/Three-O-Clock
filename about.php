@@ -216,6 +216,74 @@ To become the most loved neighborhood café where everyone feels at home.
         </div>
 
     </div>
+</section>
+<section class="section-padding">
+
+    <div class="container">
+
+        <div class="text-center mb-5">
+
+            <h2 class="section-title">
+
+                Our Core Values
+
+            </h2>
+
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+
+                <div class="value-card">
+
+                    <i class="bi bi-award-fill"></i>
+
+                    <h4>Quality</h4>
+
+                    <p>
+                        We never compromise on ingredients or service.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="value-card">
+
+                    <i class="bi bi-emoji-smile-fill"></i>
+
+                    <h4>Hospitality</h4>
+
+                    <p>
+                        Every guest is welcomed like family.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <div class="value-card">
+
+                    <i class="bi bi-globe2"></i>
+
+                    <h4>Sustainability</h4>
+
+                    <p>
+                        We support responsible sourcing and eco-friendly practices.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </section>
 <?php include 'includes/footer.php'; ?>
