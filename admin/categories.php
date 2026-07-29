@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "../config/db.php";
-require_once "auth.php";
+require_once __DIR__ . "/includes/a-auth.php";
 
 // Search
 $search = isset($_GET['search']) ? trim($_GET['search']) : "";
@@ -10,14 +10,14 @@ if ($search != "") {
     $stmt = $conn->prepare("SELECT * FROM categories WHERE category_name LIKE CONCAT('%', ?, '%') ORDER BY category_id DESC");
     $stmt->bind_param("s", $search);
 } else {
-    $stmt = $conn->prepare("SELECT * FROM categories ORDER BY category_id DESC");
+    $stmt = $pdo->prepare("SELECT * FROM categories ORDER BY category_id DESC");
 }
 
 $stmt->execute();
-$result = $stmt->get_result();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-include "includes/header.php";
-include "includes/sidebar.php";
+include "includes/a-header.php";
+include "includes/a-sidebar.php";
 ?>
 
 <div class="content-wrapper">
@@ -129,7 +129,7 @@ include "includes/sidebar.php";
 
                         <?php
 
-                        if($result->num_rows>0){
+                        if(count($result) > 0){
 
                             while($row=$result->fetch_assoc()){
 
@@ -263,4 +263,4 @@ include "includes/sidebar.php";
 
 </div>
 
-<?php include "includes/footer.php"; ?>
+<?php include "includes/a-footer.php"; ?>
