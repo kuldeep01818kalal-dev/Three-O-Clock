@@ -3,7 +3,7 @@ session_start();
 require_once "../config/db.php";
 
 if (isset($_SESSION['admin_id'])) {
-    header("Location: dashboard.php");
+    header("Location:a-dashboard.php");
     exit;
 }
 
@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['admin_name'] = $admin['full_name'];
         $_SESSION['admin_role'] = $admin['role'];
 
-        header("Location: dashboard.php");
+        header("Location:a-dashboard.php");
         exit;
 
     } else {
