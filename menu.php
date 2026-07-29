@@ -2,6 +2,7 @@
 session_start();
 
 require_once "config/db.php";
+require_once "includes/navbar.php";
 
 $pageTitle = "Menu";
 
@@ -337,3 +338,203 @@ include "includes/header.php";
 ========================================== -->
 
 <div class="row">
+    <?php if(count($products) > 0): ?>
+
+<?php foreach($products as $row): ?>
+
+<?php
+
+$image = !empty($row['image_name'])
+    ? "assets/images/products/".$row['image_name']
+    : "assets/images/no-image.png";
+
+$price = (float)$row['price'];
+$discount = (float)$row['discount_percent'];
+
+$finalPrice = $price;
+
+if($discount > 0){
+
+    $finalPrice = $price - (($price * $discount) / 100);
+
+}
+
+?>
+
+<div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+
+    <div class="card h-100 border-0 shadow-sm">
+
+        <div class="position-relative">
+
+            <img
+                src="<?= htmlspecialchars($image); ?>"
+                class="card-img-top"
+                alt="<?= htmlspecialchars($row['product_name']); ?>"
+                style="height:230px;object-fit:cover;">
+
+            <?php if($row['featured']==1): ?>
+
+            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">
+
+                ⭐ Featured
+
+            </span>
+
+            <?php endif; ?>
+
+            <?php if($discount>0): ?>
+
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+
+                <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+            </span>
+
+            <?php endif; ?>
+
+        </div>
+
+        <div class="card-body d-flex flex-column">
+
+            <div class="mb-2">
+
+                <?php
+
+                switch($row['food_type']){
+
+                    case "Veg":
+
+                        echo '<span class="badge bg-success">Veg</span>';
+
+                    break;
+
+                    case "Non-Veg":
+
+                        echo '<span class="badge bg-danger">Non-Veg</span>';
+
+                    break;
+
+                    case "Egg":
+
+                        echo '<span class="badge bg-warning text-dark">Egg</span>';
+
+                    break;
+
+                    default:
+
+                        echo '<span class="badge bg-secondary">N/A</span>';
+
+                }
+
+                ?>
+
+            </div>
+
+            <h5 class="fw-bold">
+
+                <?= htmlspecialchars($row['product_name']); ?>
+
+            </h5>
+
+            <p class="text-muted small flex-grow-1">
+
+                <?= htmlspecialchars($row['short_description']); ?>
+
+            </p>
+
+            <div class="mb-2">
+
+                <?php if($discount>0): ?>
+
+                    <span class="fs-5 fw-bold text-success">
+
+                        ₹<?= number_format($finalPrice,2); ?>
+
+                    </span>
+
+                    <br>
+
+                    <small class="text-decoration-line-through text-muted">
+
+                        ₹<?= number_format($price,2); ?>
+
+                    </small>
+
+                <?php else: ?>
+
+                    <span class="fs-5 fw-bold">
+
+                        ₹<?= number_format($price,2); ?>
+
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+            <p class="text-muted mb-3">
+
+                <i class="bi bi-clock"></i>
+
+                <?= (int)$row['preparation_time']; ?> Min
+
+            </p>
+
+            <div class="d-grid gap-2 mt-auto">
+
+                <a
+                    href="product_details.php?id=<?= $row['product_id']; ?>"
+                    class="btn btn-outline-primary">
+
+                    <i class="bi bi-eye"></i>
+
+                    View Details
+
+                </a>
+
+                <a
+                    href="cart.php?action=add&id=<?= $row['product_id']; ?>"
+                    class="btn btn-primary">
+
+                    <i class="bi bi-cart-plus"></i>
+
+                    Add to Cart
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<?php endforeach; ?>
+
+<?php else: ?>
+
+<div class="col-12">
+
+    <div class="text-center py-5">
+
+        <i class="bi bi-search fs-1 text-muted"></i>
+
+        <h3 class="mt-3">
+
+            No Products Found
+
+        </h3>
+
+        <p class="text-muted">
+
+            Try changing your search or filter.
+
+        </p>
+
+    </div>
+
+</div>
+
+<?php endif; ?>
