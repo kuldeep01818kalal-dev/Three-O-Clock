@@ -462,6 +462,318 @@ if(!empty($images)){
     </div>
 
 </div>
+<!-- ==========================================
+     Quantity & Add To Cart
+========================================== -->
+
+<form
+    action="cart.php"
+    method="GET"
+    class="mb-4">
+
+    <input
+        type="hidden"
+        name="action"
+        value="add">
+
+    <input
+        type="hidden"
+        name="id"
+        value="<?= $product['product_id']; ?>">
+
+    <label class="form-label fw-bold">
+
+        Quantity
+
+    </label>
+
+    <div class="d-flex align-items-center mb-3">
+
+        <button
+            type="button"
+            class="btn btn-outline-secondary"
+            onclick="decreaseQty()">
+
+            <i class="bi bi-dash-lg"></i>
+
+        </button>
+
+        <input
+            type="number"
+            id="quantity"
+            name="qty"
+            class="form-control text-center mx-2"
+            value="1"
+            min="1"
+            max="<?= max(1,$product['stock']); ?>"
+            style="width:90px;">
+
+        <button
+            type="button"
+            class="btn btn-outline-secondary"
+            onclick="increaseQty()">
+
+            <i class="bi bi-plus-lg"></i>
+
+        </button>
+
+    </div>
+
+    <div class="d-grid gap-2">
+
+        <?php if($product['stock'] > 0): ?>
+
+        <button
+            type="submit"
+            class="btn btn-primary btn-lg">
+
+            <i class="bi bi-cart-plus-fill"></i>
+
+            Add To Cart
+
+        </button>
+
+        <a
+            href="checkout.php?id=<?= $product['product_id']; ?>"
+            class="btn btn-success btn-lg">
+
+            <i class="bi bi-lightning-charge-fill"></i>
+
+            Buy Now
+
+        </a>
+
+        <?php else: ?>
+
+        <button
+            class="btn btn-danger btn-lg"
+            disabled>
+
+            Out Of Stock
+
+        </button>
+
+        <?php endif; ?>
+
+    </div>
+
+</form>
+
+<!-- ==========================================
+     Product Information
+========================================== -->
+
+<div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-header bg-light">
+
+        <strong>
+
+            Product Information
+
+        </strong>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-borderless mb-0">
+
+            <tr>
+
+                <th width="140">
+
+                    Product ID
+
+                </th>
+
+                <td>
+
+                    #<?= $product['product_id']; ?>
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+
+                    Category
+
+                </th>
+
+                <td>
+
+                    <?= htmlspecialchars($product['category_name']); ?>
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+
+                    Food Type
+
+                </th>
+
+                <td>
+
+                    <?= htmlspecialchars($product['food_type']); ?>
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+
+                    Preparation
+
+                </th>
+
+                <td>
+
+                    <?= (int)$product['preparation_time']; ?> Minutes
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+
+                    Spice Level
+
+                </th>
+
+                <td>
+
+                    <?= htmlspecialchars($product['spice_level']); ?>
+
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <th>
+
+                    Slug
+
+                </th>
+
+                <td>
+
+                    <?= htmlspecialchars($product['slug']); ?>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- ==========================================
+     Share Buttons
+========================================== -->
+
+<div class="mb-4">
+
+    <h5 class="mb-3">
+
+        Share Product
+
+    </h5>
+
+    <a
+        href="#"
+        class="btn btn-outline-primary me-2">
+
+        <i class="bi bi-facebook"></i>
+
+    </a>
+
+    <a
+        href="#"
+        class="btn btn-outline-info me-2">
+
+        <i class="bi bi-twitter-x"></i>
+
+    </a>
+
+    <a
+        href="#"
+        class="btn btn-outline-success me-2">
+
+        <i class="bi bi-whatsapp"></i>
+
+    </a>
+
+    <a
+        href="#"
+        class="btn btn-outline-danger">
+
+        <i class="bi bi-instagram"></i>
+
+    </a>
+
+</div>
+
+<a
+    href="menu.php"
+    class="btn btn-outline-dark">
+
+    <i class="bi bi-arrow-left"></i>
+
+    Back To Menu
+
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+function increaseQty(){
+
+    let qty=document.getElementById("quantity");
+
+    let max=parseInt(qty.max);
+
+    let value=parseInt(qty.value);
+
+    if(value<max){
+
+        qty.value=value+1;
+
+    }
+
+}
+
+function decreaseQty(){
+
+    let qty=document.getElementById("quantity");
+
+    let value=parseInt(qty.value);
+
+    if(value>1){
+
+        qty.value=value-1;
+
+    }
+
+}
+
+</script>
 
 
 
