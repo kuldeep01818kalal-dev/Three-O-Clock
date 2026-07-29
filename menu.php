@@ -538,3 +538,100 @@ if($discount > 0){
 </div>
 
 <?php endif; ?>
+</div>
+
+<!-- ==========================================
+     Pagination
+========================================== -->
+
+<?php if($totalPages > 1): ?>
+
+<nav class="mt-5">
+
+    <ul class="pagination justify-content-center">
+
+        <!-- Previous -->
+
+        <li class="page-item <?= ($page <= 1) ? 'disabled' : ''; ?>">
+
+            <a
+                class="page-link"
+                href="?page=<?= $page-1; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>">
+
+                <i class="bi bi-chevron-left"></i>
+
+                Previous
+
+            </a>
+
+        </li>
+
+        <!-- Page Numbers -->
+
+        <?php for($i=1;$i<=$totalPages;$i++): ?>
+
+        <li class="page-item <?= ($page==$i) ? 'active' : ''; ?>">
+
+            <a
+                class="page-link"
+                href="?page=<?= $i; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>">
+
+                <?= $i; ?>
+
+            </a>
+
+        </li>
+
+        <?php endfor; ?>
+
+        <!-- Next -->
+
+        <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : ''; ?>">
+
+            <a
+                class="page-link"
+                href="?page=<?= $page+1; ?>&search=<?= urlencode($search); ?>&category=<?= urlencode($category); ?>&food_type=<?= urlencode($food_type); ?>">
+
+                Next
+
+                <i class="bi bi-chevron-right"></i>
+
+            </a>
+
+        </li>
+
+    </ul>
+
+</nav>
+
+<?php endif; ?>
+
+</div>
+
+<?php include "includes/footer.php"; ?>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach(function(card){
+
+        card.addEventListener("mouseenter", function(){
+
+            card.classList.add("shadow-lg");
+
+        });
+
+        card.addEventListener("mouseleave", function(){
+
+            card.classList.remove("shadow-lg");
+
+        });
+
+    });
+
+});
+
+</script>
