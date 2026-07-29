@@ -215,3 +215,404 @@ include "includes/a-navbar.php";
 ?>
 
 <div class="container-fluid mt-4">
+    <!-- ==========================================
+     Success / Error Messages
+========================================== -->
+
+<?php if(isset($_SESSION['success'])): ?>
+
+<div class="alert alert-success alert-dismissible fade show">
+
+    <i class="bi bi-check-circle-fill"></i>
+
+    <?= $_SESSION['success']; ?>
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
+
+</div>
+
+<?php unset($_SESSION['success']); ?>
+
+<?php endif; ?>
+
+
+<?php if(isset($_SESSION['error'])): ?>
+
+<div class="alert alert-danger alert-dismissible fade show">
+
+    <i class="bi bi-exclamation-circle-fill"></i>
+
+    <?= $_SESSION['error']; ?>
+
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+    </button>
+
+</div>
+
+<?php unset($_SESSION['error']); ?>
+
+<?php endif; ?>
+
+
+
+<!-- ==========================================
+     Statistics Cards
+========================================== -->
+
+<div class="row mb-4">
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <h6 class="text-muted">
+
+                    Total Products
+
+                </h6>
+
+                <h2 class="fw-bold">
+
+                    <?= $totalProducts; ?>
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <h6 class="text-success">
+
+                    Active Products
+
+                </h6>
+
+                <h2 class="fw-bold text-success">
+
+                    <?= $activeProducts; ?>
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <h6 class="text-warning">
+
+                    Featured Products
+
+                </h6>
+
+                <h2 class="fw-bold text-warning">
+
+                    <?= $featuredProducts; ?>
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="col-lg-3 col-md-6 mb-3">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body">
+
+                <h6 class="text-danger">
+
+                    Out Of Stock
+
+                </h6>
+
+                <h2 class="fw-bold text-danger">
+
+                    <?= $outOfStock; ?>
+
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ==========================================
+     Search & Filters
+========================================== -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <form method="GET">
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-lg-3">
+
+                    <label class="form-label">
+
+                        Search Product
+
+                    </label>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Search product..."
+                        value="<?= htmlspecialchars($search); ?>">
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Category
+
+                    </label>
+
+                    <select
+                        name="category"
+                        class="form-select">
+
+                        <option value="">
+
+                            All Categories
+
+                        </option>
+
+                        <?php foreach($categories as $cat): ?>
+
+                        <option
+                            value="<?= $cat['category_id']; ?>"
+                            <?= ($category==$cat['category_id']) ? 'selected' : ''; ?>>
+
+                            <?= htmlspecialchars($cat['category_name']); ?>
+
+                        </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Food Type
+
+                    </label>
+
+                    <select
+                        name="food_type"
+                        class="form-select">
+
+                        <option value="">
+
+                            All
+
+                        </option>
+
+                        <option value="Veg"
+                            <?= ($food_type=="Veg") ? "selected":""; ?>>
+
+                            Veg
+
+                        </option>
+
+                        <option value="Non-Veg"
+                            <?= ($food_type=="Non-Veg") ? "selected":""; ?>>
+
+                            Non-Veg
+
+                        </option>
+
+                        <option value="Egg"
+                            <?= ($food_type=="Egg") ? "selected":""; ?>>
+
+                            Egg
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Status
+
+                    </label>
+
+                    <select
+                        name="status"
+                        class="form-select">
+
+                        <option value="">
+
+                            All
+
+                        </option>
+
+                        <option value="Active"
+                            <?= ($status=="Active") ? "selected":""; ?>>
+
+                            Active
+
+                        </option>
+
+                        <option value="Inactive"
+                            <?= ($status=="Inactive") ? "selected":""; ?>>
+
+                            Inactive
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="col-lg-3 text-end">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        <i class="bi bi-search"></i>
+
+                        Search
+
+                    </button>
+
+                    <a
+                        href="products.php"
+                        class="btn btn-secondary">
+
+                        Reset
+
+                    </a>
+
+                    <a
+                        href="add_product.php"
+                        class="btn btn-success">
+
+                        <i class="bi bi-plus-circle"></i>
+
+                        Add Product
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+
+<!-- ==========================================
+     Products Table
+========================================== -->
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            <i class="bi bi-box-seam"></i>
+
+            Product Management
+
+        </h5>
+
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover table-bordered align-middle mb-0">
+
+                <thead class="table-light">
+
+                <tr>
+
+                    <th width="50">#</th>
+
+                    <th width="90">Image</th>
+
+                    <th>Product</th>
+
+                    <th>Category</th>
+
+                    <th width="110">Price</th>
+
+                    <th width="90">Stock</th>
+
+                    <th width="120">Food Type</th>
+
+                    <th width="100">Featured</th>
+
+                    <th width="100">Status</th>
+
+                    <th width="140" class="text-center">
+
+                        Actions
+
+                    </th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
