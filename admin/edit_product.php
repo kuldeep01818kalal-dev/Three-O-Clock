@@ -531,3 +531,516 @@ include "includes/a-navbar.php";
 ?>
 
 <div class="container-fluid mt-4">
+    <!-- ==========================================
+     Validation Errors
+========================================== -->
+
+<?php if(!empty($errors)): ?>
+
+<div class="alert alert-danger">
+
+    <ul class="mb-0">
+
+        <?php foreach($errors as $error): ?>
+
+            <li><?= htmlspecialchars($error); ?></li>
+
+        <?php endforeach; ?>
+
+    </ul>
+
+</div>
+
+<?php endif; ?>
+
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-primary text-white">
+
+        <h4 class="mb-0">
+
+            <i class="bi bi-pencil-square"></i>
+
+            Edit Product
+
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+<form method="POST"
+      enctype="multipart/form-data">
+
+<div class="row">
+
+<!-- Product Name -->
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+
+Product Name
+
+<span class="text-danger">*</span>
+
+</label>
+
+<input
+type="text"
+id="product_name"
+name="product_name"
+class="form-control"
+required
+value="<?= htmlspecialchars($product_name); ?>">
+
+</div>
+
+<!-- Slug -->
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+
+Slug
+
+</label>
+
+<input
+type="text"
+id="slug"
+class="form-control"
+readonly
+value="<?= htmlspecialchars($slug); ?>">
+
+</div>
+
+<!-- Category -->
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+
+Category
+
+</label>
+
+<select
+name="category_id"
+class="form-select"
+required>
+
+<option value="">
+
+Select Category
+
+</option>
+
+<?php foreach($categories as $cat): ?>
+
+<option
+value="<?= $cat['category_id']; ?>"
+<?= ($category_id==$cat['category_id'])?'selected':''; ?>>
+
+<?= htmlspecialchars($cat['category_name']); ?>
+
+</option>
+
+<?php endforeach; ?>
+
+</select>
+
+</div>
+
+<!-- Food Type -->
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">
+
+Food Type
+
+</label>
+
+<select
+name="food_type"
+class="form-select">
+
+<option value="Veg"
+<?= ($food_type=="Veg")?"selected":""; ?>>
+
+Veg
+
+</option>
+
+<option value="Non-Veg"
+<?= ($food_type=="Non-Veg")?"selected":""; ?>>
+
+Non-Veg
+
+</option>
+
+<option value="Egg"
+<?= ($food_type=="Egg")?"selected":""; ?>>
+
+Egg
+
+</option>
+
+</select>
+
+</div>
+
+<!-- Short Description -->
+
+<div class="col-12 mb-3">
+
+<label class="form-label">
+
+Short Description
+
+</label>
+
+<textarea
+name="short_description"
+class="form-control"
+rows="2"><?= htmlspecialchars($short_description); ?></textarea>
+
+</div>
+
+<!-- Description -->
+
+<div class="col-12 mb-3">
+
+<label class="form-label">
+
+Description
+
+</label>
+
+<textarea
+name="description"
+class="form-control"
+rows="5"><?= htmlspecialchars($description); ?></textarea>
+
+</div>
+
+<!-- Price -->
+
+<div class="col-md-3 mb-3">
+
+<label class="form-label">
+
+Price
+
+</label>
+
+<input
+type="number"
+step="0.01"
+name="price"
+class="form-control"
+required
+value="<?= htmlspecialchars($price); ?>">
+
+</div>
+
+<!-- Discount Price -->
+
+<div class="col-md-3 mb-3">
+
+<label class="form-label">
+
+Discount Price
+
+</label>
+
+<input
+type="number"
+step="0.01"
+name="discount_price"
+class="form-control"
+value="<?= htmlspecialchars($discount_price); ?>">
+
+</div>
+
+<!-- Stock -->
+
+<div class="col-md-3 mb-3">
+
+<label class="form-label">
+
+Stock
+
+</label>
+
+<input
+type="number"
+name="stock"
+class="form-control"
+value="<?= htmlspecialchars($stock); ?>">
+
+</div>
+
+<!-- Preparation Time -->
+
+<div class="col-md-3 mb-3">
+
+<label class="form-label">
+
+Preparation Time (Min)
+
+</label>
+
+<input
+type="number"
+name="preparation_time"
+class="form-control"
+value="<?= htmlspecialchars($preparation_time); ?>">
+
+</div>
+
+<!-- Spice Level -->
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">
+
+Spice Level
+
+</label>
+
+<select
+name="spice_level"
+class="form-select">
+
+<option value="">Select</option>
+
+<option value="Mild"
+<?= ($spice_level=="Mild")?"selected":""; ?>>
+
+Mild
+
+</option>
+
+<option value="Medium"
+<?= ($spice_level=="Medium")?"selected":""; ?>>
+
+Medium
+
+</option>
+
+<option value="Hot"
+<?= ($spice_level=="Hot")?"selected":""; ?>>
+
+Hot
+
+</option>
+
+</select>
+
+</div>
+
+<!-- Availability -->
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">
+
+Availability
+
+</label>
+
+<select
+name="availability"
+class="form-select">
+
+<option value="Available"
+<?= ($availability=="Available")?"selected":""; ?>>
+
+Available
+
+</option>
+
+<option value="Unavailable"
+<?= ($availability=="Unavailable")?"selected":""; ?>>
+
+Unavailable
+
+</option>
+
+</select>
+
+</div>
+
+<!-- Status -->
+
+<div class="col-md-4 mb-3">
+
+<label class="form-label">
+
+Status
+
+</label>
+
+<select
+name="status"
+class="form-select">
+
+<option value="Active"
+<?= ($status=="Active")?"selected":""; ?>>
+
+Active
+
+</option>
+
+<option value="Inactive"
+<?= ($status=="Inactive")?"selected":""; ?>>
+
+Inactive
+
+</option>
+
+</select>
+
+</div>
+
+<!-- Featured -->
+
+<div class="col-12 mb-4">
+
+<div class="form-check">
+
+<input
+type="checkbox"
+name="featured"
+id="featured"
+class="form-check-input"
+value="1"
+<?= ($featured==1)?'checked':''; ?>>
+
+<label
+class="form-check-label"
+for="featured">
+
+Featured Product
+
+</label>
+
+</div>
+
+</div>
+
+<hr>
+
+<h5 class="mb-3">
+
+Existing Images
+
+</h5>
+
+<div class="row">
+
+<?php if(count($productImages)>0): ?>
+
+<?php foreach($productImages as $img): ?>
+
+<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+
+<div class="card">
+
+<img
+src="../assets/images/products/<?= htmlspecialchars($img['image_name']); ?>"
+class="card-img-top"
+style="height:180px;object-fit:cover;">
+
+<div class="card-body">
+
+<div class="form-check mb-2">
+
+<input
+class="form-check-input"
+type="radio"
+name="primary_image"
+value="<?= $img['image_id']; ?>"
+<?= ($img['is_primary']==1)?'checked':''; ?>>
+
+<label class="form-check-label">
+
+Primary Image
+
+</label>
+
+</div>
+
+<div class="form-check">
+
+<input
+class="form-check-input"
+type="checkbox"
+name="delete_images[]"
+value="<?= $img['image_id']; ?>">
+
+<label class="form-check-label text-danger">
+
+Delete Image
+
+</label>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<?php endforeach; ?>
+
+<?php else: ?>
+
+<div class="col-12">
+
+<div class="alert alert-warning">
+
+No images uploaded.
+
+</div>
+
+</div>
+
+<?php endif; ?>
+
+</div>
+
+<hr>
+
+<div class="mb-4">
+
+<label class="form-label">
+
+Upload New Images
+
+</label>
+
+<input
+type="file"
+id="product_images"
+name="product_images[]"
+class="form-control"
+multiple
+accept=".jpg,.jpeg,.png,.webp">
+
+<small class="text-muted">
+
+Select one or more new images to add.
+
+</small>
+
+</div>
+
+<div id="preview"
+class="row mb-4">
+
+</div>
