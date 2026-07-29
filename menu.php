@@ -152,3 +152,188 @@ include "includes/header.php";
 ?>
 
 <div class="container py-5">
+    <!-- ==========================================
+     Hero Section
+========================================== -->
+
+<div class="text-center mb-5">
+
+    <h1 class="fw-bold display-5">
+
+        Our Menu
+
+    </h1>
+
+    <p class="text-muted">
+
+        Freshly prepared food and beverages made with quality ingredients.
+
+    </p>
+
+</div>
+
+<!-- ==========================================
+     Search & Filters
+========================================== -->
+
+<div class="card shadow-sm border-0 mb-4">
+
+    <div class="card-body">
+
+        <form method="GET">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- Search -->
+
+                <div class="col-lg-4">
+
+                    <label class="form-label">
+
+                        Search Menu
+
+                    </label>
+
+                    <input
+                        type="text"
+                        name="search"
+                        class="form-control"
+                        placeholder="Search food..."
+                        value="<?= htmlspecialchars($search); ?>">
+
+                </div>
+
+                <!-- Category -->
+
+                <div class="col-lg-3">
+
+                    <label class="form-label">
+
+                        Category
+
+                    </label>
+
+                    <select
+                        name="category"
+                        class="form-select">
+
+                        <option value="">
+
+                            All Categories
+
+                        </option>
+
+                        <?php foreach($categories as $cat): ?>
+
+                        <option
+                            value="<?= $cat['category_id']; ?>"
+                            <?= ($category==$cat['category_id']) ? "selected" : ""; ?>>
+
+                            <?= htmlspecialchars($cat['category_name']); ?>
+
+                        </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+                <!-- Food Type -->
+
+                <div class="col-lg-2">
+
+                    <label class="form-label">
+
+                        Food Type
+
+                    </label>
+
+                    <select
+                        name="food_type"
+                        class="form-select">
+
+                        <option value="">All</option>
+
+                        <option value="Veg"
+                            <?= ($food_type=="Veg") ? "selected" : ""; ?>>
+
+                            Veg
+
+                        </option>
+
+                        <option value="Non-Veg"
+                            <?= ($food_type=="Non-Veg") ? "selected" : ""; ?>>
+
+                            Non-Veg
+
+                        </option>
+
+                        <option value="Egg"
+                            <?= ($food_type=="Egg") ? "selected" : ""; ?>>
+
+                            Egg
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- Buttons -->
+
+                <div class="col-lg-3 text-end">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        <i class="bi bi-search"></i>
+
+                        Search
+
+                    </button>
+
+                    <a
+                        href="menu.php"
+                        class="btn btn-secondary">
+
+                        Reset
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- ==========================================
+     Product Count
+========================================== -->
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h4 class="mb-0">
+
+        Menu Items
+
+    </h4>
+
+    <span class="badge bg-primary fs-6">
+
+        <?= $totalProducts; ?> Items Found
+
+    </span>
+
+</div>
+
+<!-- ==========================================
+     Products Grid
+========================================== -->
+
+<div class="row">
