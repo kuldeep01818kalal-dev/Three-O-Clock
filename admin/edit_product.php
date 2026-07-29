@@ -87,7 +87,7 @@ $slug = $product['slug'];
 $short_description = $product['short_description'];
 $description = $product['description'];
 $price = $product['price'];
-$discount_price = $product['discount_price'];
+$discount_percent = $product['discount_percent'];
 $food_type = $product['food_type'];
 $spice_level = $product['spice_level'];
 $preparation_time = $product['preparation_time'];
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $short_description = trim($_POST['short_description']);
     $description = trim($_POST['description']);
     $price = trim($_POST['price']);
-    $discount_price = trim($_POST['discount_price']);
+    $discount_percent= trim($_POST['discount_percent']);
     $food_type = trim($_POST['food_type']);
     $spice_level = trim($_POST['spice_level']);
     $preparation_time = trim($_POST['preparation_time']);
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
     }
 
-    if ($discount_price != "" && !is_numeric($discount_price)) {
+    if ($discount_percent != "" && !is_numeric($discount_percent)) {
 
         $errors[] = "Discount Price must be numeric.";
 
@@ -235,7 +235,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 description=?,
                 short_description=?,
                 price=?,
-                discount_price=?,
+                discount_percent=?,
                 food_type=?,
                 spice_level=?,
                 preparation_time=?,
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 $description,
                 $short_description,
                 $price,
-                $discount_price == "" ? null : $discount_price,
+                $discount_percent  == "" ? null : $discount_percent,
                 $food_type,
                 $spice_level,
                 $preparation_time,
@@ -752,16 +752,16 @@ value="<?= htmlspecialchars($price); ?>">
 
 <label class="form-label">
 
-Discount Price
+Discount Percentage(%)
 
 </label>
 
 <input
 type="number"
 step="0.01"
-name="discount_price"
+name="discount_percent"
 class="form-control"
-value="<?= htmlspecialchars($discount_price); ?>">
+value="<?= htmlspecialchars($discount_percent); ?>">
 
 </div>
 

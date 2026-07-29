@@ -674,31 +674,54 @@ $image = !empty($row['image_name'])
 
     <td>
 
-        <?php if(!empty($row['discount_price']) && $row['discount_price'] > 0): ?>
+       <?php
 
-            <span class="fw-bold text-success">
+$price = (float)$row['price'];
+$discount = (float)$row['discount_percent'];
 
-                ₹<?= number_format($row['discount_price'],2); ?>
+$finalPrice = $price;
 
-            </span>
+if ($discount > 0) {
 
-            <br>
+    $finalPrice = $price - (($price * $discount) / 100);
 
-            <small class="text-decoration-line-through text-muted">
+}
 
-                ₹<?= number_format($row['price'],2); ?>
+?>
 
-            </small>
+<?php if($discount > 0): ?>
 
-        <?php else: ?>
+<span class="fw-bold text-success">
 
-            <span class="fw-bold">
+    ₹<?= number_format($finalPrice,2); ?>
 
-                ₹<?= number_format($row['price'],2); ?>
+</span>
 
-            </span>
+<br>
 
-        <?php endif; ?>
+<small class="text-decoration-line-through text-muted">
+
+    ₹<?= number_format($price,2); ?>
+
+</small>
+
+<br>
+
+<span class="badge bg-danger">
+
+    <?= rtrim(rtrim(number_format($discount,2), '0'), '.'); ?>% OFF
+
+</span>
+
+<?php else: ?>
+
+<span class="fw-bold">
+
+    ₹<?= number_format($price,2); ?>
+
+</span>
+
+<?php endif; ?>
 
     </td>
 

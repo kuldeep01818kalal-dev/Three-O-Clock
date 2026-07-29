@@ -31,7 +31,7 @@ $slug = "";
 $short_description = "";
 $description = "";
 $price = "";
-$discount_price = "";
+$discount_percent = "";
 $food_type = "";
 $spice_level = "";
 $preparation_time = "";
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $short_description = trim($_POST['short_description']);
     $description = trim($_POST['description']);
     $price = trim($_POST['price']);
-    $discount_price = trim($_POST['discount_price']);
+    $discount_percent = trim($_POST['discount_percent']);
     $food_type = trim($_POST['food_type']);
     $spice_level = trim($_POST['spice_level']);
     $preparation_time = trim($_POST['preparation_time']);
@@ -102,8 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $errors[] = "Price must be numeric.";
     }
 
-    if ($discount_price != "" && !is_numeric($discount_price)) {
-        $errors[] = "Discount Price must be numeric.";
+    if ($discount_percent != "" && !is_numeric($discount_percent)) {
+        if($discount_percent < 0 || $discount_percent > 100){
+            $errors[] = "Discount must be between 0 and 100.";
+
+        }
     }
 
     if ($stock == "") {
@@ -163,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 description,
                 short_description,
                 price,
-                discount_price,
+                discount_percent,
                 food_type,
                 spice_level,
                 preparation_time,
@@ -198,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
                 $description,
                 $short_description,
                 $price,
-                $discount_price == "" ? null : $discount_price,
+                $discount_percent == "" ? null : $discount_percent,
                 $food_type,
                 $spice_level,
                 $preparation_time,
@@ -566,17 +569,17 @@ value="<?= htmlspecialchars($price); ?>">
 <div class="col-md-3 mb-3">
 
 <label class="form-label">
-
-Discount Price
-
+Discount (%)
 </label>
 
 <input
 type="number"
-step="0.01"
-name="discount_price"
+name="discount_percent"
 class="form-control"
-value="<?= htmlspecialchars($discount_price); ?>">
+min="0"
+max="100"
+step="0.01"
+value="<?= htmlspecialchars($discount_percent); ?>">
 
 </div>
 
