@@ -247,3 +247,283 @@ if(!empty($images)){
 ========================================== -->
 
 <div class="col-lg-6">
+<!-- ==========================================
+     Product Information
+========================================== -->
+
+<h1 class="fw-bold mb-3">
+
+    <?= htmlspecialchars($product['product_name']); ?>
+
+</h1>
+
+<div class="mb-3">
+
+    <span class="badge bg-primary me-2">
+
+        <?= htmlspecialchars($product['category_name']); ?>
+
+    </span>
+
+    <?php
+
+    switch($product['food_type']){
+
+        case "Veg":
+
+            echo '<span class="badge bg-success">Veg</span>';
+
+        break;
+
+        case "Non-Veg":
+
+            echo '<span class="badge bg-danger">Non-Veg</span>';
+
+        break;
+
+        case "Egg":
+
+            echo '<span class="badge bg-warning text-dark">Egg</span>';
+
+        break;
+
+        default:
+
+            echo '<span class="badge bg-secondary">N/A</span>';
+
+    }
+
+    ?>
+
+</div>
+
+<!-- ==========================================
+     Price
+========================================== -->
+
+<div class="mb-4">
+
+<?php if($discount > 0): ?>
+
+<h2 class="text-success fw-bold mb-1">
+
+    ₹<?= number_format($finalPrice,2); ?>
+
+</h2>
+
+<h5 class="text-muted text-decoration-line-through">
+
+    ₹<?= number_format($price,2); ?>
+
+</h5>
+
+<span class="badge bg-danger fs-6">
+
+    <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+</span>
+
+<?php else: ?>
+
+<h2 class="fw-bold">
+
+    ₹<?= number_format($price,2); ?>
+
+</h2>
+
+<?php endif; ?>
+
+</div>
+
+<!-- ==========================================
+     Description
+========================================== -->
+
+<h5 class="fw-bold">
+
+    Description
+
+</h5>
+
+<p class="text-muted mb-4">
+
+    <?= nl2br(htmlspecialchars($product['description'])); ?>
+
+</p>
+
+<!-- ==========================================
+     Product Details
+========================================== -->
+
+<div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body">
+
+        <div class="row">
+
+            <div class="col-6 mb-3">
+
+                <strong>
+
+                    <i class="bi bi-clock"></i>
+
+                    Preparation
+
+                </strong>
+
+                <br>
+
+                <?= (int)$product['preparation_time']; ?> Minutes
+
+            </div>
+
+            <div class="col-6 mb-3">
+
+                <strong>
+
+                    <i class="bi bi-fire"></i>
+
+                    Spice Level
+
+                </strong>
+
+                <br>
+
+                <?= htmlspecialchars($product['spice_level']); ?>
+
+            </div>
+
+            <div class="col-6">
+
+                <strong>
+
+                    <i class="bi bi-box"></i>
+
+                    Stock
+
+                </strong>
+
+                <br>
+
+                <?php if($product['stock'] > 0): ?>
+
+                    <span class="badge bg-success">
+
+                        <?= (int)$product['stock']; ?> Available
+
+                    </span>
+
+                <?php else: ?>
+
+                    <span class="badge bg-danger">
+
+                        Out Of Stock
+
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+            <div class="col-6">
+
+                <strong>
+
+                    <i class="bi bi-check-circle"></i>
+
+                    Availability
+
+                </strong>
+
+                <br>
+
+                <?php if($product['availability']=="Available"): ?>
+
+                    <span class="badge bg-success">
+
+                        Available
+
+                    </span>
+
+                <?php else: ?>
+
+                    <span class="badge bg-secondary">
+
+                        Unavailable
+
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+
+function changeImage(img){
+
+    document.getElementById("mainProductImage").src = img.src;
+
+}
+
+</script>
