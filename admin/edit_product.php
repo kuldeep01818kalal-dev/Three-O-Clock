@@ -270,3 +270,264 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
              * and primary image update
              * will be added in Part 2.
              */
+                        /* ==========================================
+               Upload New Images
+            ========================================== */
+
+            if (
+                isset($_FILES['product_images']) &&
+                !empty($_FILES['product_images']['name'][0])
+            ) {
+
+                $uploadDir = "../assets/images/products/";
+
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $allowed = [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp"
+                ];
+
+                $displayStmt = $pdo->prepare("
+                    SELECT COALESCE(MAX(display_order),0)
+                    FROM product_images
+                    WHERE product_id=?
+                ");
+
+                $displayStmt->execute([$product_id]);
+
+                $displayOrder = (int)$displayStmt->fetchColumn();
+
+                foreach ($_FILES['product_images']['name'] as $key => $imageName) {
+
+                    if ($_FILES['product_images']['error'][$key] != 0) {
+                        continue;
+                    }
+
+                    $tmpName = $_FILES['product_images']['tmp_name'][$key];
+
+                    $extension = strtolower(
+                        pathinfo($imageName, PATHINFO_EXTENSION)
+                    );
+
+                    if (!in_array($extension, $allowed)) {
+                        continue;
+                    }
+
+                    $newImageName =
+                        time() .
+                        "_" .
+                        uniqid() .
+                        "." .
+                        $extension;
+
+                    if (
+                        move_uploaded_file(
+                            $tmpName,
+                            $uploadDir . $newImageName
+                        )
+                    ) {
+
+                        $displayOrder++;
+
+                        $primaryCheck = $pdo->prepare("
+                            SELECT COUNT(*)
+                            FROM product_images
+                            WHERE product_id=?
+                            AND is_primary=1
+                        ");
+
+                        $primaryCheck->execute([$product_id]);
+
+                        $isPrimary =
+                            ($primaryCheck->fetchColumn() == 0)
+                            ? 1
+                            : 0;
+
+                        $insertImage = $pdo->prepare("
+                            INSERT INTO product_images
+                            (
+                                product_id,
+                                image_name,
+                                is_primary,
+                                display_order
+                            )
+                            VALUES
+                            (
+                                ?,
+                                ?,
+                                ?,
+                                ?
+                            )
+                        ");
+
+                        $insertImage->execute([
+                            $product_id,
+                            $newImageName,
+                            $isPrimary,
+                            $displayOrder
+                        ]);
+
+                    }
+
+                }
+
+            }
+
+            /* ==========================================
+               Delete Selected Images
+            ========================================== */
+
+            if (!empty($_POST['delete_images'])) {
+
+                foreach ($_POST['delete_images'] as $image_id) {
+
+                    $imageStmt = $pdo->prepare("
+                        SELECT *
+                        FROM product_images
+                        WHERE image_id=?
+                        AND product_id=?
+                    ");
+
+                    $imageStmt->execute([
+                        $image_id,
+                        $product_id
+                    ]);
+
+                    $image = $imageStmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($image) {
+
+                        $file =
+                            "../assets/images/products/" .
+                            $image['image_name'];
+
+                        if (file_exists($file)) {
+                            unlink($file);
+                        }
+
+                        $deleteStmt = $pdo->prepare("
+                            DELETE
+                            FROM product_images
+                            WHERE image_id=?
+                        ");
+
+                        $deleteStmt->execute([
+                            $image_id
+                        ]);
+
+                    }
+
+                }
+
+            }
+
+            /* ==========================================
+               Change Primary Image
+            ========================================== */
+
+            if (!empty($_POST['primary_image'])) {
+
+                $primaryImage =
+                    (int)$_POST['primary_image'];
+
+                $pdo->prepare("
+                    UPDATE product_images
+                    SET is_primary=0
+                    WHERE product_id=?
+                ")->execute([$product_id]);
+
+                $pdo->prepare("
+                    UPDATE product_images
+                    SET is_primary=1
+                    WHERE image_id=?
+                    AND product_id=?
+                ")->execute([
+                    $primaryImage,
+                    $product_id
+                ]);
+
+            }
+
+            /* ==========================================
+               Ensure One Primary Image Exists
+            ========================================== */
+
+            $primaryCount = $pdo->prepare("
+                SELECT COUNT(*)
+                FROM product_images
+                WHERE product_id=?
+                AND is_primary=1
+            ");
+
+            $primaryCount->execute([$product_id]);
+
+            if ($primaryCount->fetchColumn() == 0) {
+
+                $firstImage = $pdo->prepare("
+                    SELECT image_id
+                    FROM product_images
+                    WHERE product_id=?
+                    ORDER BY display_order ASC
+                    LIMIT 1
+                ");
+
+                $firstImage->execute([$product_id]);
+
+                $first = $firstImage->fetch(PDO::FETCH_ASSOC);
+
+                if ($first) {
+
+                    $pdo->prepare("
+                        UPDATE product_images
+                        SET is_primary=1
+                        WHERE image_id=?
+                    ")->execute([
+                        $first['image_id']
+                    ]);
+
+                }
+
+            }
+
+            /* ==========================================
+               Commit Transaction
+            ========================================== */
+
+            $pdo->commit();
+
+            $_SESSION['success'] =
+                "Product updated successfully.";
+
+            header("Location: products.php");
+
+            exit();
+
+        } catch (Exception $e) {
+
+            $pdo->rollBack();
+
+            $_SESSION['error'] =
+                "Update failed : " .
+                $e->getMessage();
+
+        }
+
+    }
+
+}
+
+/* ==========================================
+   Includes
+========================================== */
+
+include "includes/a-header.php";
+include "includes/a-sidebar.php";
+include "includes/a-navbar.php";
+?>
+
+<div class="container-fluid mt-4">
