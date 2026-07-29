@@ -214,3 +214,124 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
              * Image upload and product_images insertion
              * will be added in Part 2.
              */
+            /* ==========================================
+               Upload Product Images
+            ========================================== */
+
+            if (
+                isset($_FILES['product_images']) &&
+                !empty($_FILES['product_images']['name'][0])
+            ) {
+
+                $uploadDir = "../assets/images/products/";
+
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+
+                $allowed = [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "webp"
+                ];
+
+                foreach ($_FILES['product_images']['name'] as $key => $imageName) {
+
+                    if ($_FILES['product_images']['error'][$key] != 0) {
+                        continue;
+                    }
+
+                    $tmpName = $_FILES['product_images']['tmp_name'][$key];
+
+                    $extension = strtolower(
+                        pathinfo($imageName, PATHINFO_EXTENSION)
+                    );
+
+                    if (!in_array($extension, $allowed)) {
+                        continue;
+                    }
+
+                    $newImageName =
+                        time() .
+                        "_" .
+                        uniqid() .
+                        "." .
+                        $extension;
+
+                    if (move_uploaded_file(
+                        $tmpName,
+                        $uploadDir . $newImageName
+                    )) {
+
+                        $isPrimary = ($key == 0) ? 1 : 0;
+
+                        $displayOrder = $key + 1;
+
+                        $imgStmt = $pdo->prepare("
+                        INSERT INTO product_images
+                        (
+                            product_id,
+                            image_name,
+                            is_primary,
+                            display_order
+                        )
+                        VALUES
+                        (
+                            ?,
+                            ?,
+                            ?,
+                            ?
+                        )
+                        ");
+
+                        $imgStmt->execute([
+                            $product_id,
+                            $newImageName,
+                            $isPrimary,
+                            $displayOrder
+                        ]);
+
+                    }
+
+                }
+
+            }
+
+            /* ==========================================
+               Commit Transaction
+            ========================================== */
+
+            $pdo->commit();
+
+            $_SESSION['success'] =
+                "Product added successfully.";
+
+            header("Location: products.php");
+
+            exit();
+
+        } catch (Exception $e) {
+
+            $pdo->rollBack();
+
+            $_SESSION['error'] =
+                "Something went wrong. " .
+                $e->getMessage();
+
+        }
+
+    }
+
+}
+
+/* ==========================================
+   Includes
+========================================== */
+
+include "includes/a-header.php";
+include "includes/a-sidebar.php";
+include "includes/a-navbar.php";
+?>
+
+<div class="container-fluid mt-4">
