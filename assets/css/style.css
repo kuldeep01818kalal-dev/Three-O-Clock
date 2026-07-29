@@ -1126,6 +1126,48 @@ About Page
 
 }
 /*=========================================================
+About Features
+=========================================================*/
+
+.feature-card,
+.value-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:35px 25px;
+
+    text-align:center;
+
+    box-shadow:var(--shadow-sm);
+
+    transition:.35s;
+
+    height:100%;
+
+}
+
+.feature-card:hover,
+.value-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:var(--shadow);
+
+}
+
+.feature-card i,
+.value-card i{
+
+    font-size:48px;
+
+    color:var(--coffee);
+
+    margin-bottom:20px;
+
+}
+/*=========================================================
     Animation
 =========================================================*/
 
