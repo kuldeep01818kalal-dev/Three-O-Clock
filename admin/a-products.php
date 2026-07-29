@@ -616,3 +616,247 @@ include "includes/a-navbar.php";
                 </thead>
 
                 <tbody>
+                    <?php
+
+if(count($products) > 0):
+
+$sr = $offset + 1;
+
+foreach($products as $row):
+
+$image = !empty($row['image_name'])
+    ? "../assets/images/products/".$row['image_name']
+    : "../assets/images/no-image.png";
+
+?>
+
+<tr>
+
+    <td>
+
+        <?= $sr++; ?>
+
+    </td>
+
+    <td class="text-center">
+
+        <img
+            src="<?= htmlspecialchars($image); ?>"
+            alt="<?= htmlspecialchars($row['product_name']); ?>"
+            class="img-thumbnail"
+            style="width:70px;height:70px;object-fit:cover;">
+
+    </td>
+
+    <td>
+
+        <strong>
+
+            <?= htmlspecialchars($row['product_name']); ?>
+
+        </strong>
+
+        <br>
+
+        <small class="text-muted">
+
+            <?= htmlspecialchars($row['slug']); ?>
+
+        </small>
+
+    </td>
+
+    <td>
+
+        <?= htmlspecialchars($row['category_name'] ?? 'N/A'); ?>
+
+    </td>
+
+    <td>
+
+        <?php if(!empty($row['discount_price']) && $row['discount_price'] > 0): ?>
+
+            <span class="fw-bold text-success">
+
+                ₹<?= number_format($row['discount_price'],2); ?>
+
+            </span>
+
+            <br>
+
+            <small class="text-decoration-line-through text-muted">
+
+                ₹<?= number_format($row['price'],2); ?>
+
+            </small>
+
+        <?php else: ?>
+
+            <span class="fw-bold">
+
+                ₹<?= number_format($row['price'],2); ?>
+
+            </span>
+
+        <?php endif; ?>
+
+    </td>
+
+    <td>
+
+        <?php
+
+        if($row['stock'] <= 0){
+
+            echo '<span class="badge bg-danger">Out Of Stock</span>';
+
+        }
+
+        elseif($row['stock'] <= 10){
+
+            echo '<span class="badge bg-warning text-dark">'.$row['stock'].'</span>';
+
+        }
+
+        else{
+
+            echo '<span class="badge bg-success">'.$row['stock'].'</span>';
+
+        }
+
+        ?>
+
+    </td>
+
+    <td>
+
+        <?php
+
+        switch($row['food_type']){
+
+            case "Veg":
+
+                echo '<span class="badge bg-success">Veg</span>';
+
+                break;
+
+            case "Non-Veg":
+
+                echo '<span class="badge bg-danger">Non-Veg</span>';
+
+                break;
+
+            case "Egg":
+
+                echo '<span class="badge bg-warning text-dark">Egg</span>';
+
+                break;
+
+            default:
+
+                echo '<span class="badge bg-secondary">N/A</span>';
+
+        }
+
+        ?>
+
+    </td>
+
+    <td>
+
+        <?php if($row['featured']==1): ?>
+
+            <span class="badge bg-primary">
+
+                Yes
+
+            </span>
+
+        <?php else: ?>
+
+            <span class="badge bg-secondary">
+
+                No
+
+            </span>
+
+        <?php endif; ?>
+
+    </td>
+
+    <td>
+
+        <?php if($row['status']=="Active"): ?>
+
+            <span class="badge bg-success">
+
+                Active
+
+            </span>
+
+        <?php else: ?>
+
+            <span class="badge bg-danger">
+
+                Inactive
+
+            </span>
+
+        <?php endif; ?>
+
+    </td>
+
+    <td class="text-center">
+
+        <a
+            href="edit_product.php?id=<?= $row['product_id']; ?>"
+            class="btn btn-sm btn-warning mb-1">
+
+            <i class="bi bi-pencil-square"></i>
+
+        </a>
+
+        <a
+            href="delete_product.php?id=<?= $row['product_id']; ?>"
+            class="btn btn-sm btn-danger mb-1"
+            onclick="return confirm('Are you sure you want to delete this product?');">
+
+            <i class="bi bi-trash"></i>
+
+        </a>
+
+    </td>
+
+</tr>
+
+<?php
+
+endforeach;
+
+else:
+
+?>
+
+<tr>
+
+    <td colspan="10" class="text-center py-5">
+
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+
+        <h5 class="mt-3">
+
+            No Products Found
+
+        </h5>
+
+        <p class="text-muted">
+
+            Try changing your search or filters.
+
+        </p>
+
+    </td>
+
+</tr>
+
+<?php endif; ?>
