@@ -163,3 +163,87 @@ include "includes/header.php";
 <div class="container py-5">
 
     <div class="row">
+        <!-- ==========================================
+     Product Image Gallery
+========================================== -->
+
+<div class="col-lg-6 mb-4">
+
+<?php
+
+$mainImage = "assets/images/no-image.png";
+
+if(!empty($images)){
+
+    $mainImage = "assets/images/products/".$images[0]['image_name'];
+
+}
+
+?>
+
+<div class="position-relative">
+
+    <img
+        id="mainProductImage"
+        src="<?= htmlspecialchars($mainImage); ?>"
+        alt="<?= htmlspecialchars($product['product_name']); ?>"
+        class="img-fluid rounded shadow w-100"
+        style="height:500px;object-fit:cover;">
+
+    <?php if($product['featured']==1): ?>
+
+    <span
+        class="badge bg-warning text-dark position-absolute top-0 start-0 m-3 fs-6">
+
+        ⭐ Featured
+
+    </span>
+
+    <?php endif; ?>
+
+    <?php if($discount>0): ?>
+
+    <span
+        class="badge bg-danger position-absolute top-0 end-0 m-3 fs-6">
+
+        <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+    </span>
+
+    <?php endif; ?>
+
+</div>
+
+<!-- ==========================================
+     Thumbnail Gallery
+========================================== -->
+
+<?php if(count($images)>1): ?>
+
+<div class="row mt-3">
+
+<?php foreach($images as $img): ?>
+
+<div class="col-3 mb-3">
+
+<img
+    src="assets/images/products/<?= htmlspecialchars($img['image_name']); ?>"
+    class="img-fluid rounded border thumbnail-image"
+    style="height:90px;object-fit:cover;cursor:pointer;"
+    onclick="changeImage(this)">
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php endif; ?>
+
+</div>
+
+<!-- ==========================================
+     Product Information
+========================================== -->
+
+<div class="col-lg-6">
