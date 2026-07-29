@@ -204,3 +204,178 @@ Add New Category
 </div>
 
 <div class="card-body">
+    <?php if (!empty($errors)) { ?>
+
+<div class="alert alert-danger">
+
+    <ul class="mb-0">
+
+        <?php foreach ($errors as $error) { ?>
+
+            <li><?= htmlspecialchars($error); ?></li>
+
+        <?php } ?>
+
+    </ul>
+
+</div>
+
+<?php } ?>
+
+<form method="POST" enctype="multipart/form-data">
+
+<div class="row">
+
+    <!-- Category Name -->
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Category Name
+            <span class="text-danger">*</span>
+
+        </label>
+
+        <input
+            type="text"
+            name="category_name"
+            class="form-control"
+            maxlength="100"
+            value="<?= htmlspecialchars($category_name); ?>"
+            placeholder="Enter category name"
+            required>
+
+    </div>
+
+    <!-- Status -->
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Status
+
+        </label>
+
+        <select
+            name="status"
+            class="form-select">
+
+            <option
+                value="Active"
+                <?= ($status=="Active") ? "selected" : ""; ?>>
+
+                Active
+
+            </option>
+
+            <option
+                value="Inactive"
+                <?= ($status=="Inactive") ? "selected" : ""; ?>>
+
+                Inactive
+
+            </option>
+
+        </select>
+
+    </div>
+
+    <!-- Description -->
+
+    <div class="col-12 mb-3">
+
+        <label class="form-label">
+
+            Description
+
+        </label>
+
+        <textarea
+            name="description"
+            rows="4"
+            class="form-control"
+            placeholder="Category description"><?= htmlspecialchars($description); ?></textarea>
+
+    </div>
+
+    <!-- Image -->
+
+    <div class="col-md-12 mb-4">
+
+        <label class="form-label">
+
+            Category Image
+
+        </label>
+
+        <input
+            type="file"
+            name="category_image"
+            class="form-control"
+            accept=".jpg,.jpeg,.png,.webp">
+
+        <small class="text-muted">
+
+            Allowed:
+            JPG, JPEG, PNG, WEBP
+
+            <br>
+
+            Maximum Size:
+            2 MB
+
+        </small>
+
+    </div>
+
+</div>
+
+<div class="text-end">
+
+    <a
+        href="categories.php"
+        class="btn btn-secondary">
+
+        <i class="bi bi-arrow-left-circle"></i>
+
+        Back
+
+    </a>
+
+    <button
+        type="reset"
+        class="btn btn-warning">
+
+        <i class="bi bi-arrow-clockwise"></i>
+
+        Reset
+
+    </button>
+
+    <button
+        type="submit"
+        class="btn btn-success">
+
+        <i class="bi bi-check-circle"></i>
+
+        Save Category
+
+    </button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<?php include "includes/a-footer.php"; ?>
