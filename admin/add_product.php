@@ -777,3 +777,162 @@ The first uploaded image will be the primary image.
 </small>
 
 </div>
+<!-- Image Preview -->
+
+<div class="row mb-4">
+
+    <div class="col-12">
+
+        <div
+            id="preview"
+            class="d-flex flex-wrap gap-3">
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Buttons -->
+
+<div class="row">
+
+    <div class="col-12">
+
+        <button
+            type="submit"
+            class="btn btn-success">
+
+            <i class="bi bi-check-circle"></i>
+
+            Save Product
+
+        </button>
+
+        <button
+            type="reset"
+            class="btn btn-warning">
+
+            <i class="bi bi-arrow-clockwise"></i>
+
+            Reset
+
+        </button>
+
+        <a
+            href="products.php"
+            class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+
+            Back
+
+        </a>
+
+    </div>
+
+</div>
+
+</form>
+
+    </div>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+     JavaScript
+========================================== -->
+
+<script>
+
+const productName =
+document.getElementById("product_name");
+
+const slug =
+document.getElementById("slug");
+
+productName.addEventListener("keyup",function(){
+
+    slug.value=this.value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-|-$/g,"");
+
+});
+
+const imageInput =
+document.getElementById("product_images");
+
+const preview =
+document.getElementById("preview");
+
+imageInput.addEventListener("change",function(){
+
+    preview.innerHTML="";
+
+    Array.from(this.files).forEach(function(file){
+
+        if(!file.type.startsWith("image/")){
+            return;
+        }
+
+        const reader =
+        new FileReader();
+
+        reader.onload=function(e){
+
+            const card=
+            document.createElement("div");
+
+            card.className="text-center";
+
+            card.innerHTML=`
+                <img
+                    src="${e.target.result}"
+                    class="img-thumbnail"
+                    style="
+                        width:120px;
+                        height:120px;
+                        object-fit:cover;
+                    ">
+
+                <div class="small mt-2">
+
+                    ${file.name}
+
+                </div>
+            `;
+
+            preview.appendChild(card);
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+});
+
+document.querySelector("form")
+.addEventListener("submit",function(e){
+
+    if(productName.value.trim()==""){
+
+        alert("Please enter Product Name");
+
+        productName.focus();
+
+        e.preventDefault();
+
+        return;
+
+    }
+
+});
+
+</script>
+
+<?php include "includes/a-footer.php"; ?>
