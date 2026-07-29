@@ -1,138 +1,154 @@
 <?php
+session_start();
+
+require_once "config/db.php";
+
 $pageTitle = "Menu";
-include 'includes/header.php';
-include 'includes/navbar.php';
-?>
 
-<!-- ==========================================
-     Menu Hero
-========================================== -->
+/* ==========================================
+   Search & Filters
+========================================== */
 
-<section class="menu-hero section-padding">
+$search = isset($_GET['search']) ? trim($_GET['search']) : "";
+$category = isset($_GET['category']) ? trim($_GET['category']) : "";
+$food_type = isset($_GET['food_type']) ? trim($_GET['food_type']) : "";
 
-    <div class="container text-center">
+/* ==========================================
+   Fetch Categories
+========================================== */
 
-        <span class="badge bg-warning text-dark mb-3">
-            Fresh • Delicious • Handcrafted
-        </span>
+$categoryStmt = $pdo->query("
+SELECT
+    category_id,
+    category_name
+FROM categories
+WHERE status='Active'
+ORDER BY category_name ASC
+");
 
-        <h1 class="display-4 fw-bold mb-3">
-            Explore Our Menu
-        </h1>
+$categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        <p class="lead">
-            From handcrafted coffee to delicious meals and desserts,
-            discover your next favorite dish.
-        </p>
+/* ==========================================
+   Pagination
+========================================== */
 
-    </div>
+$limit = 12;
 
-</section>
-<section class="section-padding pt-0">
+$page = isset($_GET['page'])
+    ? max((int)$_GET['page'], 1)
+    : 1;
 
-    <div class="container">
+$offset = ($page - 1) * $limit;
 
-        <div class="menu-filter text-center">
+/* ==========================================
+   Dynamic WHERE Clause
+========================================== */
 
-            <button class="btn btn-primary active">All</button>
-
-            <button class="btn btn-outline-primary">Coffee</button>
-
-            <button class="btn btn-outline-primary">Pizza</button>
-
-            <button class="btn btn-outline-primary">Burger</button>
-
-            <button class="btn btn-outline-primary">Dessert</button>
-
-            <button class="btn btn-outline-primary">Beverages</button>
-
-        </div>
-
-    </div>
-
-</section>
-<div class="container mb-5">
-
-    <div class="row justify-content-center">
-
-        <div class="col-lg-6">
-
-            <input
-                type="text"
-                class="form-control form-control-lg"
-                placeholder="Search your favorite food...">
-
-        </div>
-
-    </div>
-
-</div>
-<div class="container">
-
-<div class="row g-4">
-
-<?php
-
-$products=[
-
-["Cappuccino","199","coffee1.jpg"],
-
-["Latte","219","coffee2.jpg"],
-
-["Cheese Burger","259","burger.jpg"],
-
-["Margherita Pizza","349","pizza.jpg"],
-
-["Chocolate Cake","179","cake.jpg"],
-
-["Cold Coffee","149","coldcoffee.jpg"],
-
-["Pasta","299","pasta.jpg"],
-
-["Brownie","159","brownie.jpg"]
-
+$where = [
+    "p.status='Active'",
+    "p.availability='Available'"
 ];
 
-foreach($products as $p){
+$params = [];
 
+if (!empty($search)) {
+
+    $where[] = "p.product_name LIKE :search";
+
+    $params[':search'] = "%{$search}%";
+
+}
+
+if (!empty($category)) {
+
+    $where[] = "p.category_id = :category";
+
+    $params[':category'] = $category;
+
+}
+
+if (!empty($food_type)) {
+
+    $where[] = "p.food_type = :food_type";
+
+    $params[':food_type'] = $food_type;
+
+}
+
+$whereSQL = "WHERE " . implode(" AND ", $where);
+
+/* ==========================================
+   Count Products
+========================================== */
+
+$countSQL = "
+SELECT COUNT(*)
+FROM products p
+{$whereSQL}
+";
+
+$countStmt = $pdo->prepare($countSQL);
+
+$countStmt->execute($params);
+
+$totalProducts = $countStmt->fetchColumn();
+
+$totalPages = ceil($totalProducts / $limit);
+
+/* ==========================================
+   Fetch Products
+========================================== */
+
+$sql = "
+SELECT
+
+p.*,
+
+c.category_name,
+
+pi.image_name
+
+FROM products p
+
+LEFT JOIN categories c
+ON c.category_id = p.category_id
+
+LEFT JOIN product_images pi
+ON pi.product_id = p.product_id
+AND pi.is_primary = 1
+
+{$whereSQL}
+
+ORDER BY
+
+p.featured DESC,
+
+p.product_name ASC
+
+LIMIT :offset,:limit
+";
+
+$stmt = $pdo->prepare($sql);
+
+foreach ($params as $key => $value) {
+
+    $stmt->bindValue($key, $value);
+
+}
+
+$stmt->bindValue(":offset", $offset, PDO::PARAM_INT);
+
+$stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+
+$stmt->execute();
+
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* ==========================================
+   Includes
+========================================== */
+
+include "includes/header.php";
 ?>
 
-<div class="col-lg-3 col-md-6">
-
-<div class="menu-card">
-
-<div class="menu-image">
-
-<img src="assets/images/menu/<?php echo $p[2]; ?>">
-
-</div>
-
-<div class="menu-content">
-
-<h4><?php echo $p[0]; ?></h4>
-
-<div class="price">₹<?php echo $p[1]; ?></div>
-
-<div class="d-grid mt-3">
-
-<a href="product.php" class="btn btn-primary">
-
-View Details
-
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<?php } ?>
-
-</div>
-
-</div>
-
-<?php include 'includes/footer.php'; ?>
+<div class="container py-5">
