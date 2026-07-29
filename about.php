@@ -286,4 +286,32 @@ To become the most loved neighborhood café where everyone feels at home.
     </div>
 
 </section>
+<section class="section-padding">
+
+    <div class="container">
+
+        <div class="cta-card text-center">
+
+            <h2>
+                Visit Three O' Clock Today
+            </h2>
+
+            <p class="mb-4">
+
+                Enjoy handcrafted coffee, delicious meals,
+                and unforgettable moments with us.
+
+            </p>
+
+            <a href="reservation.php" class="btn btn-light btn-lg">
+
+                Book a Table
+
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
 <?php include 'includes/footer.php'; ?>
