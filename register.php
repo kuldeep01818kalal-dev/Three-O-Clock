@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-require_once 'config/database.php';
+require_once 'config/db.php';
 require_once 'config/session.php';
 require_once 'config/mail.php';
 
@@ -186,6 +186,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
 }
+?>
+
 
 /*******************************************************
  * Part 1 Ends Here
