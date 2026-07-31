@@ -1089,3 +1089,152 @@ Be the first customer to review this product.
 </div>
 
 </section>
+<!-- ==========================================
+     RELATED PRODUCTS
+========================================== -->
+
+<section class="related-products py-5">
+
+<div class="container">
+
+<div class="section-heading text-center mb-5">
+
+<h2>You May Also Like</h2>
+
+<p class="text-muted">
+
+Explore more delicious dishes from the same category.
+
+</p>
+
+</div>
+
+<div class="row g-4">
+
+<?php if(!empty($relatedProducts)): ?>
+
+<?php foreach($relatedProducts as $item): ?>
+
+<?php
+
+$image = !empty($item['image_name'])
+
+? "assets/images/products/".$item['image_name']
+
+: "assets/images/no-image.png";
+
+$price = (float)$item['price'];
+
+$discount = (float)$item['discount_percent'];
+
+$finalPrice = $price;
+
+if($discount>0){
+
+$finalPrice = $price-(($price*$discount)/100);
+
+}
+
+?>
+
+<div class="col-lg-3 col-md-6">
+
+<div class="related-card h-100">
+
+<div class="related-image">
+
+<img
+src="<?= htmlspecialchars($image); ?>"
+alt="<?= htmlspecialchars($item['product_name']); ?>">
+
+<?php if($discount>0): ?>
+
+<span class="discount-badge">
+
+<?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+</span>
+
+<?php endif; ?>
+
+</div>
+
+<div class="related-content">
+
+<span class="category-name">
+
+<?= htmlspecialchars($item['category_name']); ?>
+
+</span>
+
+<h5>
+
+<?= htmlspecialchars($item['product_name']); ?>
+
+</h5>
+
+<div class="price-area">
+
+<span class="current-price">
+
+₹<?= number_format($finalPrice,2); ?>
+
+</span>
+
+<?php if($discount>0): ?>
+
+<span class="old-price">
+
+₹<?= number_format($price,2); ?>
+
+</span>
+
+<?php endif; ?>
+
+</div>
+
+<div class="d-grid gap-2 mt-3">
+
+<a
+href="product_details.php?id=<?= $item['product_id']; ?>"
+class="btn btn-outline-dark">
+
+View Details
+
+</a>
+
+<a
+href="cart_action.php?product_id=<?= $item['product_id']; ?>"
+class="btn btn-success">
+
+<i class="bi bi-cart-plus"></i>
+
+Add To Cart
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<?php endforeach; ?>
+
+<?php else: ?>
+
+<div class="col-12 text-center">
+
+<h5>No Related Products Found.</h5>
+
+</div>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+</section>
