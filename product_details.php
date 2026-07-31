@@ -657,3 +657,154 @@ Save
 </p>
 
 <?php endif; ?>
+<!-- ==========================================
+     INGREDIENTS
+========================================== -->
+
+<?php if(!empty($ingredients)): ?>
+
+<div class="ingredients-section mb-4">
+
+    <h5 class="section-title">
+
+        <i class="bi bi-basket2-fill me-2"></i>
+
+        Ingredients
+
+    </h5>
+
+    <div class="ingredient-list">
+
+        <?php foreach($ingredients as $ingredient): ?>
+
+            <span class="ingredient-chip">
+
+                <?= htmlspecialchars($ingredient['ingredient_name']); ?>
+
+            </span>
+
+        <?php endforeach; ?>
+
+    </div>
+
+</div>
+
+<?php endif; ?>
+
+
+<!-- ==========================================
+     PRODUCT SPECIFICATIONS
+========================================== -->
+
+<div class="specification-grid">
+
+    <div class="spec-card">
+
+        <div class="spec-icon">
+
+            <i class="bi bi-clock-history"></i>
+
+        </div>
+
+        <div class="spec-content">
+
+            <span class="spec-label">
+
+                Preparation Time
+
+            </span>
+
+            <strong>
+
+                <?= htmlspecialchars($product['preparation_time']); ?>
+
+                mins
+
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="spec-card">
+
+        <div class="spec-icon">
+
+            <i class="bi bi-fire"></i>
+
+        </div>
+
+        <div class="spec-content">
+
+            <span class="spec-label">
+
+                Spice Level
+
+            </span>
+
+            <strong>
+
+                <?= htmlspecialchars($product['spice_level']); ?>
+
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="spec-card">
+
+        <div class="spec-icon">
+
+            <i class="bi bi-box-seam"></i>
+
+        </div>
+
+        <div class="spec-content">
+
+            <span class="spec-label">
+
+                Stock
+
+            </span>
+
+            <strong>
+
+                <?= (int)$product['stock']; ?>
+
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="spec-card">
+
+        <div class="spec-icon">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+        </div>
+
+        <div class="spec-content">
+
+            <span class="spec-label">
+
+                Availability
+
+            </span>
+
+            <strong class="<?= $product['availability']=='Available' ? 'text-success' : 'text-danger'; ?>">
+
+                <?= htmlspecialchars($product['availability']); ?>
+
+            </strong>
+
+        </div>
+
+    </div>
+
+</div>
