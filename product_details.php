@@ -225,14 +225,17 @@ require_once "includes/navbar.php";
     </div>
 
 </section>
-<div class="container py-5">
+<section class="product-details py-5">
 
-    <div class="row">
-        <!-- ==========================================
-     Product Image Gallery
+<div class="container">
+
+<div class="row g-5">
+
+<!-- ==========================================
+     Product Gallery
 ========================================== -->
 
-<div class="col-lg-6 mb-4">
+<div class="col-lg-6">
 
 <?php
 
@@ -246,64 +249,59 @@ if(!empty($images)){
 
 ?>
 
-<div class="position-relative">
+<div class="product-gallery">
 
-    <img
-        id="mainProductImage"
-        src="<?= htmlspecialchars($mainImage); ?>"
-        alt="<?= htmlspecialchars($product['product_name']); ?>"
-        class="img-fluid rounded shadow w-100"
-        style="height:500px;object-fit:cover;">
+<div class="main-image position-relative">
 
-    <?php if($product['featured']==1): ?>
+<img
+id="mainProductImage"
+src="<?= htmlspecialchars($mainImage); ?>"
+class="img-fluid rounded-4 shadow-sm w-100"
+alt="<?= htmlspecialchars($product['product_name']); ?>">
 
-    <span
-        class="badge bg-warning text-dark position-absolute top-0 start-0 m-3 fs-6">
+<?php if($product['featured']==1): ?>
 
-        ⭐ Featured
+<span class="badge bg-warning text-dark featured-badge">
 
-    </span>
+⭐ Featured
 
-    <?php endif; ?>
+</span>
 
-    <?php if($discount>0): ?>
+<?php endif; ?>
 
-    <span
-        class="badge bg-danger position-absolute top-0 end-0 m-3 fs-6">
+<?php if($discount>0): ?>
 
-        <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+<span class="badge bg-danger discount-badge">
 
-    </span>
+<?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
 
-    <?php endif; ?>
+</span>
+
+<?php endif; ?>
 
 </div>
-
-<!-- ==========================================
-     Thumbnail Gallery
-========================================== -->
 
 <?php if(count($images)>1): ?>
 
-<div class="row mt-3">
+<div class="thumbnail-wrapper mt-4">
 
 <?php foreach($images as $img): ?>
 
-<div class="col-3 mb-3">
-
 <img
-    src="assets/images/products/<?= htmlspecialchars($img['image_name']); ?>"
-    class="img-fluid rounded border thumbnail-image"
-    style="height:90px;object-fit:cover;cursor:pointer;"
-    onclick="changeImage(this)">
 
-</div>
+src="assets/images/products/<?= htmlspecialchars($img['image_name']); ?>"
+
+class="thumbnail"
+
+onclick="changeImage(this)">
 
 <?php endforeach; ?>
 
 </div>
 
 <?php endif; ?>
+
+</div>
 
 </div>
 
@@ -312,87 +310,75 @@ if(!empty($images)){
 ========================================== -->
 
 <div class="col-lg-6">
-<!-- ==========================================
-     Product Information
-========================================== -->
 
-<h1 class="fw-bold mb-3">
+<div class="sticky-top" style="top:100px;">
 
-    <?= htmlspecialchars($product['product_name']); ?>
+<div class="mb-3">
+
+<span class="badge bg-primary">
+
+<?= htmlspecialchars($product['category_name']); ?>
+
+</span>
+
+<span class="badge bg-success">
+
+<?= htmlspecialchars($product['food_type']); ?>
+
+</span>
+
+</div>
+
+<h1 class="display-5 fw-bold mb-3">
+
+<?= htmlspecialchars($product['product_name']); ?>
 
 </h1>
 
 <div class="mb-3">
 
-    <span class="badge bg-primary me-2">
+<span class="text-warning fs-5">
 
-        <?= htmlspecialchars($product['category_name']); ?>
+★★★★★
 
-    </span>
+</span>
 
-    <?php
+<span class="text-muted ms-2">
 
-    switch($product['food_type']){
+4.8 (120 Reviews)
 
-        case "Veg":
-
-            echo '<span class="badge bg-success">Veg</span>';
-
-        break;
-
-        case "Non-Veg":
-
-            echo '<span class="badge bg-danger">Non-Veg</span>';
-
-        break;
-
-        case "Egg":
-
-            echo '<span class="badge bg-warning text-dark">Egg</span>';
-
-        break;
-
-        default:
-
-            echo '<span class="badge bg-secondary">N/A</span>';
-
-    }
-
-    ?>
+</span>
 
 </div>
 
-<!-- ==========================================
-     Price
-========================================== -->
+<div class="price-box mb-4">
 
-<div class="mb-4">
+<?php if($discount>0): ?>
 
-<?php if($discount > 0): ?>
+<h2 class="text-success fw-bold">
 
-<h2 class="text-success fw-bold mb-1">
+₹<?= number_format($finalPrice,2); ?>
 
-    ₹<?= number_format($finalPrice,2); ?>
+<small
+class="text-decoration-line-through text-muted ms-2">
 
-</h2>
+₹<?= number_format($price,2); ?>
 
-<h5 class="text-muted text-decoration-line-through">
+</small>
 
-    ₹<?= number_format($price,2); ?>
+<span class="badge bg-danger ms-2">
 
-</h5>
-
-<span class="badge bg-danger fs-6">
-
-    <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+<?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
 
 </span>
+
+</h2>
 
 <?php else: ?>
 
 <h2 class="fw-bold">
 
-    ₹<?= number_format($price,2); ?>
+₹<?= number_format($price,2); ?>
 
 </h2>
 
@@ -400,580 +386,101 @@ if(!empty($images)){
 
 </div>
 
-<!-- ==========================================
-     Description
-========================================== -->
+<p class="lead text-muted">
 
-<h5 class="fw-bold">
-
-    Description
-
-</h5>
-
-<p class="text-muted mb-4">
-
-    <?= nl2br(htmlspecialchars($product['description'])); ?>
+<?= htmlspecialchars($product['short_description']); ?>
 
 </p>
 
-<!-- ==========================================
-     Product Details
-========================================== -->
+<div class="row g-3 mt-4">
 
-<div class="card border-0 shadow-sm mb-4">
+<div class="col-6">
 
-    <div class="card-body">
+<div class="feature-card">
 
-        <div class="row">
+<i class="bi bi-clock"></i>
 
-            <div class="col-6 mb-3">
+<h6>Preparation</h6>
 
-                <strong>
+<p>
 
-                    <i class="bi bi-clock"></i>
+<?= (int)$product['preparation_time']; ?>
 
-                    Preparation
+Minutes
 
-                </strong>
-
-                <br>
-
-                <?= (int)$product['preparation_time']; ?> Minutes
-
-            </div>
-
-            <div class="col-6 mb-3">
-
-                <strong>
-
-                    <i class="bi bi-fire"></i>
-
-                    Spice Level
-
-                </strong>
-
-                <br>
-
-                <?= htmlspecialchars($product['spice_level']); ?>
-
-            </div>
-
-            <div class="col-6">
-
-                <strong>
-
-                    <i class="bi bi-box"></i>
-
-                    Stock
-
-                </strong>
-
-                <br>
-
-                <?php if($product['stock'] > 0): ?>
-
-                    <span class="badge bg-success">
-
-                        <?= (int)$product['stock']; ?> Available
-
-                    </span>
-
-                <?php else: ?>
-
-                    <span class="badge bg-danger">
-
-                        Out Of Stock
-
-                    </span>
-
-                <?php endif; ?>
-
-            </div>
-
-            <div class="col-6">
-
-                <strong>
-
-                    <i class="bi bi-check-circle"></i>
-
-                    Availability
-
-                </strong>
-
-                <br>
-
-                <?php if($product['availability']=="Available"): ?>
-
-                    <span class="badge bg-success">
-
-                        Available
-
-                    </span>
-
-                <?php else: ?>
-
-                    <span class="badge bg-secondary">
-
-                        Unavailable
-
-                    </span>
-
-                <?php endif; ?>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-<!-- ==========================================
-     Quantity & Add To Cart
-========================================== -->
-
-<form
-    action="cart.php"
-    method="GET"
-    class="mb-4">
-
-    <input
-        type="hidden"
-        name="action"
-        value="add">
-
-    <input
-        type="hidden"
-        name="id"
-        value="<?= $product['product_id']; ?>">
-
-    <label class="form-label fw-bold">
-
-        Quantity
-
-    </label>
-
-    <div class="d-flex align-items-center mb-3">
-
-        <button
-            type="button"
-            class="btn btn-outline-secondary"
-            onclick="decreaseQty()">
-
-            <i class="bi bi-dash-lg"></i>
-
-        </button>
-
-        <input
-            type="number"
-            id="quantity"
-            name="qty"
-            class="form-control text-center mx-2"
-            value="1"
-            min="1"
-            max="<?= max(1,$product['stock']); ?>"
-            style="width:90px;">
-
-        <button
-            type="button"
-            class="btn btn-outline-secondary"
-            onclick="increaseQty()">
-
-            <i class="bi bi-plus-lg"></i>
-
-        </button>
-
-    </div>
-
-    <div class="d-grid gap-2">
-
-        <?php if($product['stock'] > 0): ?>
-
-        <button
-            type="submit"
-            class="btn btn-primary btn-lg">
-
-            <i class="bi bi-cart-plus-fill"></i>
-
-            Add To Cart
-
-        </button>
-
-        <a
-            href="checkout.php?id=<?= $product['product_id']; ?>"
-            class="btn btn-success btn-lg">
-
-            <i class="bi bi-lightning-charge-fill"></i>
-
-            Buy Now
-
-        </a>
-
-        <?php else: ?>
-
-        <button
-            class="btn btn-danger btn-lg"
-            disabled>
-
-            Out Of Stock
-
-        </button>
-
-        <?php endif; ?>
-
-    </div>
-
-</form>
-
-<!-- ==========================================
-     Product Information
-========================================== -->
-
-<div class="card border-0 shadow-sm mb-4">
-
-    <div class="card-header bg-light">
-
-        <strong>
-
-            Product Information
-
-        </strong>
-
-    </div>
-
-    <div class="card-body">
-
-        <table class="table table-borderless mb-0">
-
-            <tr>
-
-                <th>
-
-                    Category
-
-                </th>
-
-                <td>
-
-                    <?= htmlspecialchars($product['category_name']); ?>
-
-                </td>
-
-            </tr>
-
-            <tr>
-
-                <th>
-
-                    Food Type
-
-                </th>
-
-                <td>
-
-                    <?= htmlspecialchars($product['food_type']); ?>
-
-                </td>
-
-            </tr>
-
-            <tr>
-
-                <th>
-
-                    Preparation
-
-                </th>
-
-                <td>
-
-                    <?= (int)$product['preparation_time']; ?> Minutes
-
-                </td>
-
-            </tr>
-
-            <tr>
-
-                <th>
-
-                    Spice Level
-
-                </th>
-
-                <td>
-
-                    <?= htmlspecialchars($product['spice_level']); ?>
-
-                </td>
-
-            </tr>
-
-        </table>
-
-    </div>
-
-</div>
-
-<!-- ==========================================
-     Share Buttons
-========================================== -->
-
-<div class="mb-4">
-
-    <h5 class="mb-3">
-
-        Share Product
-
-    </h5>
-
-    <a
-        href="#"
-        class="btn btn-outline-primary me-2">
-
-        <i class="bi bi-facebook"></i>
-
-    </a>
-
-    <a
-        href="#"
-        class="btn btn-outline-info me-2">
-
-        <i class="bi bi-twitter-x"></i>
-
-    </a>
-
-    <a
-        href="#"
-        class="btn btn-outline-success me-2">
-
-        <i class="bi bi-whatsapp"></i>
-
-    </a>
-
-    <a
-        href="#"
-        class="btn btn-outline-danger">
-
-        <i class="bi bi-instagram"></i>
-
-    </a>
-
-</div>
-
-<a
-    href="menu.php"
-    class="btn btn-outline-dark">
-
-    <i class="bi bi-arrow-left"></i>
-
-    Back To Menu
-
-</a>
+</p>
 
 </div>
 
 </div>
 
-<script>
+<div class="col-6">
 
-function increaseQty(){
+<div class="feature-card">
 
-    let qty=document.getElementById("quantity");
+<i class="bi bi-fire"></i>
 
-    let max=parseInt(qty.max);
+<h6>Spice Level</h6>
 
-    let value=parseInt(qty.value);
+<p>
 
-    if(value<max){
+<?= htmlspecialchars($product['spice_level']); ?>
 
-        qty.value=value+1;
-
-    }
-
-}
-
-function decreaseQty(){
-
-    let qty=document.getElementById("quantity");
-
-    let value=parseInt(qty.value);
-
-    if(value>1){
-
-        qty.value=value-1;
-
-    }
-
-}
-
-</script>
-<!-- ==========================================
-     Related Products
-========================================== -->
-
-<hr class="my-5">
-
-<h3 class="fw-bold mb-4">
-
-    Related Products
-
-</h3>
-
-<div class="row">
-
-<?php if(count($relatedProducts) > 0): ?>
-
-<?php foreach($relatedProducts as $item): ?>
-
-<?php
-
-$image = !empty($item['image_name'])
-    ? "assets/images/products/".$item['image_name']
-    : "assets/images/no-image.png";
-
-$price = (float)$item['price'];
-$discount = (float)$item['discount_percent'];
-
-$finalPrice = $price;
-
-if($discount > 0){
-
-    $finalPrice = $price - (($price * $discount) / 100);
-
-}
-
-?>
-
-<div class="col-lg-3 col-md-6 mb-4">
-
-    <div class="card h-100 shadow-sm border-0">
-
-        <img
-            src="<?= htmlspecialchars($image); ?>"
-            class="card-img-top"
-            alt="<?= htmlspecialchars($item['product_name']); ?>"
-            style="height:220px;object-fit:cover;">
-
-        <div class="card-body">
-
-            <h5 class="fw-bold">
-
-                <?= htmlspecialchars($item['product_name']); ?>
-
-            </h5>
-
-            <?php if($discount > 0): ?>
-
-                <span class="fw-bold text-success fs-5">
-
-                    ₹<?= number_format($finalPrice,2); ?>
-
-                </span>
-
-                <br>
-
-                <small class="text-decoration-line-through text-muted">
-
-                    ₹<?= number_format($price,2); ?>
-
-                </small>
-
-            <?php else: ?>
-
-                <span class="fw-bold fs-5">
-
-                    ₹<?= number_format($price,2); ?>
-
-                </span>
-
-            <?php endif; ?>
-
-        </div>
-
-        <div class="card-footer bg-white border-0">
-
-            <a
-                href="product_details.php?id=<?= $item['product_id']; ?>"
-                class="btn btn-outline-primary w-100">
-
-                View Details
-
-            </a>
-
-        </div>
-
-<?php endforeach; ?>
-
-<?php else: ?>
-
-<div class="col-12">
-
-    <div class="alert alert-info">
-
-        No related products available.
-
-    </div>
-
-</div>
-
-<?php endif; ?>
-
-</div>
-
-<!-- ==========================================
-     Customer Reviews
-========================================== -->
-
-<hr class="my-5">
-
-<div class="card shadow-sm border-0">
-
-    <div class="card-header bg-primary text-white">
-
-        <h4 class="mb-0">
-
-            Customer Reviews
-
-        </h4>
-
-    </div>
-
-    <div class="card-body text-center py-5">
-
-        <i class="bi bi-chat-square-text display-3 text-muted"></i>
-
-        <h5 class="mt-4">
-
-            No Reviews Yet
-
-        </h5>
-
-        <p class="text-muted">
-
-            Be the first customer to review this product.
-
-        </p>
-
-    </div>
+</p>
 
 </div>
 
 </div>
-   
+
+<div class="col-6">
+
+<div class="feature-card">
+
+<i class="bi bi-box-seam"></i>
+
+<h6>Stock</h6>
+
+<p>
+
+<?= (int)$product['stock']; ?>
+
+Available
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-6">
+
+<div class="feature-card">
+
+<i class="bi bi-check-circle"></i>
+
+<h6>Status</h6>
+
+<p>
+
+<?= htmlspecialchars($product['availability']); ?>
+
+</p>
+
 </div>
 
 </div>
-<script>
 
-function changeImage(img){
+</div>
 
-    document.getElementById("mainProductImage").src = img.src;
+</div>
 
-}
+</div>
 
-</script>
-<?php include "includes/footer.php"; ?>
+</div>
 
+</div>
+
+</section>
 
 
 
