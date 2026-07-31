@@ -359,23 +359,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </label>
 
                             <div class="input-group">
-
-                                <input
-                                    type="password"
-                                    class="form-control"
-                                    name="password"
-                                    id="password"
-                                    required>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-secondary"
-                                    id="togglePassword">
-
+                                <input type="password" class="form-control" id="password" name="password">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)">
                                     <i class="bi bi-eye"></i>
-
                                 </button>
-
                             </div>
 
                         </div>
@@ -391,23 +378,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </label>
 
                             <div class="input-group">
-
-                                <input
-                                    type="password"
-                                    class="form-control"
-                                    name="confirm_password"
-                                    id="confirm_password"
-                                    required>
-
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-secondary"
-                                    id="toggleConfirmPassword">
-
-                                    <i class="bi bi-eye"></i>
-
-                                </button>
-
+                                <input type="password" class="form-control" id="confirm password" name="confirm password">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm password', this)">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
                             </div>
 
                         </div>
@@ -456,3 +430,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <!-- Bootstrap JS -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<?php include 'includes/footer.php'; ?>
