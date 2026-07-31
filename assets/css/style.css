@@ -1196,6 +1196,39 @@ Menu Page
     min-width:120px;
 
 }
+/* ==========================================
+   Product Breadcrumb
+========================================== */
+
+.breadcrumb{
+
+    font-size:15px;
+
+    margin:0;
+
+}
+
+.breadcrumb-item a{
+
+    color:#6F4E37;
+
+    transition:.3s;
+
+}
+
+.breadcrumb-item a:hover{
+
+    color:#c57d17;
+
+}
+
+.breadcrumb-item.active{
+
+    color:#2c2c2c;
+
+    font-weight:600;
+
+}
 /*=========================================================
     Animation
 =========================================================*/

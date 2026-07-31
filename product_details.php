@@ -157,9 +157,74 @@ $pageTitle = $product['product_name'];
    Include Header
 ========================================== */
 
-include "includes/header.php";
+require_once "includes/header.php";
+require_once "includes/navbar.php";
 ?>
+<!-- ==========================================
+     Breadcrumb Section
+========================================== -->
 
+<section class="py-3 border-bottom bg-white">
+
+    <div class="container">
+
+        <nav aria-label="breadcrumb">
+
+            <ol class="breadcrumb mb-0">
+
+                <li class="breadcrumb-item">
+
+                    <a
+                        href="index.php"
+                        class="text-decoration-none">
+
+                        <i class="bi bi-house-door"></i>
+
+                        Home
+
+                    </a>
+
+                </li>
+
+                <li class="breadcrumb-item">
+
+                    <a
+                        href="menu.php"
+                        class="text-decoration-none">
+
+                        Menu
+
+                    </a>
+
+                </li>
+
+                <li class="breadcrumb-item">
+
+                    <a
+                        href="menu.php?category=<?= $product['category_id']; ?>"
+                        class="text-decoration-none">
+
+                        <?= htmlspecialchars($product['category_name']); ?>
+
+                    </a>
+
+                </li>
+
+                <li
+                    class="breadcrumb-item active fw-semibold"
+                    aria-current="page">
+
+                    <?= htmlspecialchars($product['product_name']); ?>
+
+                </li>
+
+            </ol>
+
+        </nav>
+
+    </div>
+
+</section>
 <div class="container py-5">
 
     <div class="row">
@@ -581,22 +646,6 @@ if(!empty($images)){
 
             <tr>
 
-                <th width="140">
-
-                    Product ID
-
-                </th>
-
-                <td>
-
-                    #<?= $product['product_id']; ?>
-
-                </td>
-
-            </tr>
-
-            <tr>
-
                 <th>
 
                     Category
@@ -654,22 +703,6 @@ if(!empty($images)){
                 <td>
 
                     <?= htmlspecialchars($product['spice_level']); ?>
-
-                </td>
-
-            </tr>
-
-            <tr>
-
-                <th>
-
-                    Slug
-
-                </th>
-
-                <td>
-
-                    <?= htmlspecialchars($product['slug']); ?>
 
                 </td>
 
@@ -774,62 +807,162 @@ function decreaseQty(){
 }
 
 </script>
+<!-- ==========================================
+     Related Products
+========================================== -->
 
+<hr class="my-5">
 
+<h3 class="fw-bold mb-4">
 
+    Related Products
 
+</h3>
 
+<div class="row">
 
+<?php if(count($relatedProducts) > 0): ?>
 
+<?php foreach($relatedProducts as $item): ?>
 
+<?php
 
+$image = !empty($item['image_name'])
+    ? "assets/images/products/".$item['image_name']
+    : "assets/images/no-image.png";
 
+$price = (float)$item['price'];
+$discount = (float)$item['discount_percent'];
 
+$finalPrice = $price;
 
+if($discount > 0){
 
+    $finalPrice = $price - (($price * $discount) / 100);
 
+}
 
+?>
 
+<div class="col-lg-3 col-md-6 mb-4">
 
+    <div class="card h-100 shadow-sm border-0">
 
+        <img
+            src="<?= htmlspecialchars($image); ?>"
+            class="card-img-top"
+            alt="<?= htmlspecialchars($item['product_name']); ?>"
+            style="height:220px;object-fit:cover;">
 
+        <div class="card-body">
 
+            <h5 class="fw-bold">
 
+                <?= htmlspecialchars($item['product_name']); ?>
 
+            </h5>
 
+            <?php if($discount > 0): ?>
 
+                <span class="fw-bold text-success fs-5">
 
+                    ₹<?= number_format($finalPrice,2); ?>
 
+                </span>
 
+                <br>
 
+                <small class="text-decoration-line-through text-muted">
 
+                    ₹<?= number_format($price,2); ?>
 
+                </small>
 
+            <?php else: ?>
 
+                <span class="fw-bold fs-5">
 
+                    ₹<?= number_format($price,2); ?>
 
+                </span>
 
+            <?php endif; ?>
 
+        </div>
 
+        <div class="card-footer bg-white border-0">
 
+            <a
+                href="product_details.php?id=<?= $item['product_id']; ?>"
+                class="btn btn-outline-primary w-100">
 
+                View Details
 
+            </a>
 
+        </div>
 
+<?php endforeach; ?>
 
+<?php else: ?>
 
+<div class="col-12">
 
+    <div class="alert alert-info">
 
+        No related products available.
 
+    </div>
 
+</div>
 
+<?php endif; ?>
 
+</div>
 
+<!-- ==========================================
+     Customer Reviews
+========================================== -->
 
+<hr class="my-5">
 
+<div class="card shadow-sm border-0">
 
+    <div class="card-header bg-primary text-white">
 
+        <h4 class="mb-0">
 
+            Customer Reviews
+
+        </h4>
+
+    </div>
+
+    <div class="card-body text-center py-5">
+
+        <i class="bi bi-chat-square-text display-3 text-muted"></i>
+
+        <h5 class="mt-4">
+
+            No Reviews Yet
+
+        </h5>
+
+        <p class="text-muted">
+
+            Be the first customer to review this product.
+
+        </p>
+
+    </div>
+
+</div>
+
+</div>
+   
+</div>
+
+</div>
 <script>
 
 function changeImage(img){
@@ -839,3 +972,59 @@ function changeImage(img){
 }
 
 </script>
+<?php include "includes/footer.php"; ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
