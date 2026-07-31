@@ -473,7 +473,7 @@ require_once "includes/navbar.php";
 
                 <!-- Thumbnails -->
 
-                <?php if(!empty($images)): ?>
+                <?php if(count($images) > 1): ?>
 
                 <div class="thumbnail-list mt-4">
 
@@ -1238,3 +1238,164 @@ Add To Cart
 </div>
 
 </section>
+<!-- ==========================================
+     WHY CHOOSE US
+========================================== -->
+
+<section class="why-choose py-5">
+
+<div class="container">
+
+<div class="text-center mb-5">
+
+<h2 class="fw-bold">
+
+Why Choose Three O' Clock Cafe?
+
+</h2>
+
+<p class="text-muted">
+
+Freshly prepared meals, premium ingredients, and an unforgettable dining experience.
+
+</p>
+
+</div>
+
+<div class="row g-4">
+
+<div class="col-lg-3 col-md-6">
+
+<div class="feature-box">
+
+<div class="feature-icon">
+
+<i class="bi bi-truck"></i>
+
+</div>
+
+<h5>Fast Delivery</h5>
+
+<p>
+
+Quick doorstep delivery while your food is fresh and hot.
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3 col-md-6">
+
+<div class="feature-box">
+
+<div class="feature-icon">
+
+<i class="bi bi-award-fill"></i>
+
+</div>
+
+<h5>Premium Quality</h5>
+
+<p>
+
+Only premium ingredients are used in every dish.
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3 col-md-6">
+
+<div class="feature-box">
+
+<div class="feature-icon">
+
+<i class="bi bi-cup-hot-fill"></i>
+
+</div>
+
+<h5>Fresh Coffee</h5>
+
+<p>
+
+Prepared by experienced baristas using quality coffee beans.
+
+</p>
+
+</div>
+
+</div>
+
+<div class="col-lg-3 col-md-6">
+
+<div class="feature-box">
+
+<div class="feature-icon">
+
+<i class="bi bi-heart-fill"></i>
+
+</div>
+
+<h5>Customer First</h5>
+
+<p>
+
+Thousands of happy customers enjoy our food every day.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+<script>
+
+function changeImage(image){
+
+document.getElementById("mainProductImage").src=image.src;
+
+document.querySelectorAll(".gallery-thumb").forEach(function(item){
+
+item.classList.remove("active-thumb");
+
+});
+
+image.classList.add("active-thumb");
+
+}
+
+function increaseQty(){
+
+let qty=document.getElementById("quantity");
+
+qty.value=parseInt(qty.value)+1;
+
+}
+
+function decreaseQty(){
+
+let qty=document.getElementById("quantity");
+
+if(parseInt(qty.value)>1){
+
+qty.value=parseInt(qty.value)-1;
+
+}
+
+}
+
+</script>
+<?php
+
+require_once "includes/footer.php";
+
+?>
