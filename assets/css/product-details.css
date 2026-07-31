@@ -1,0 +1,308 @@
+/* ==========================================
+   HERO
+========================================== */
+
+.product-hero{
+
+    background:#f8f5ef;
+
+}
+
+.breadcrumb{
+
+    font-size:15px;
+
+}
+
+.breadcrumb a{
+
+    color:#6F4E37;
+
+    text-decoration:none;
+
+}
+
+.breadcrumb a:hover{
+
+    color:#8b5e3c;
+
+}
+
+.gallery-card{
+
+    background:#fff;
+
+    border-radius:24px;
+
+    padding:20px;
+
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+
+}
+
+.gallery-image{
+
+    position:relative;
+
+    overflow:hidden;
+
+    border-radius:20px;
+
+}
+
+.gallery-image img{
+
+    width:100%;
+
+    height:520px;
+
+    object-fit:cover;
+
+    transition:.4s;
+
+}
+
+.gallery-image:hover img{
+
+    transform:scale(1.06);
+
+}
+
+.gallery-badge{
+
+    position:absolute;
+
+    padding:10px 16px;
+
+    border-radius:30px;
+
+    color:#fff;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.gallery-badge.featured{
+
+    top:18px;
+
+    left:18px;
+
+    background:#ffc107;
+
+    color:#222;
+
+}
+
+.gallery-badge.discount{
+
+    top:18px;
+
+    right:18px;
+
+    background:#dc3545;
+
+}
+
+.gallery-badge.stock{
+
+    bottom:18px;
+
+    left:18px;
+
+    background:#343a40;
+
+}
+
+.thumbnail-list{
+
+    display:flex;
+
+    gap:15px;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+}
+
+.gallery-thumb{
+
+    width:90px;
+
+    height:90px;
+
+    border-radius:16px;
+
+    object-fit:cover;
+
+    cursor:pointer;
+
+    border:3px solid transparent;
+
+    transition:.3s;
+
+}
+
+.gallery-thumb:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.active-thumb{
+
+    border-color:#6F4E37;
+
+}
+/* ===============================
+   Product Right Panel
+================================ */
+
+.product-info{
+
+top:100px;
+
+}
+
+.product-title{
+
+font-size:38px;
+
+font-weight:700;
+
+line-height:1.2;
+
+color:#2d2d2d;
+
+margin-bottom:18px;
+
+}
+
+.product-badges{
+
+display:flex;
+
+gap:10px;
+
+flex-wrap:wrap;
+
+}
+
+.category-badge{
+
+background:#6F4E37;
+
+color:#fff;
+
+padding:8px 14px;
+
+border-radius:30px;
+
+}
+
+.food-badge{
+
+background:#198754;
+
+color:#fff;
+
+padding:8px 14px;
+
+border-radius:30px;
+
+}
+
+.offer-badge{
+
+background:#dc3545;
+
+color:#fff;
+
+padding:8px 14px;
+
+border-radius:30px;
+
+}
+
+.rating-stars{
+
+color:#FFC107;
+
+font-size:20px;
+
+}
+
+.rating-value{
+
+font-weight:700;
+
+font-size:18px;
+
+}
+
+.rating-count{
+
+color:#777;
+
+}
+
+.price-card{
+
+background:#fff;
+
+padding:20px;
+
+border-radius:18px;
+
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+}
+
+.current-price{
+
+font-size:40px;
+
+font-weight:700;
+
+color:#198754;
+
+}
+
+.old-price{
+
+text-decoration:line-through;
+
+font-size:22px;
+
+color:#888;
+
+}
+
+.save-badge{
+
+background:#ffe9e9;
+
+color:#dc3545;
+
+padding:6px 12px;
+
+border-radius:20px;
+
+font-weight:600;
+
+}
+
+.product-tagline{
+
+margin-top:18px;
+
+font-size:16px;
+
+color:#666;
+
+line-height:1.7;
+
+}

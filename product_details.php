@@ -344,5 +344,316 @@ $product['product_name'];
 require_once "includes/header.php";
 
 require_once "includes/navbar.php";
+?>
+<head>
+    <link rel="stylesheet" href="assets/css/product-details.php">
+</head>
+<!-- =====================================================
+     SECTION 2 - PART 1A
+     Breadcrumb + Product Gallery
+====================================================== -->
+
+<section class="product-hero py-5">
+
+<div class="container">
+
+    <!-- Breadcrumb -->
+
+    <nav class="mb-4" aria-label="breadcrumb">
+
+        <ol class="breadcrumb mb-0">
+
+            <li class="breadcrumb-item">
+
+                <a href="index.php">
+
+                    <i class="bi bi-house-door-fill me-1"></i>
+
+                    Home
+
+                </a>
+
+            </li>
+
+            <li class="breadcrumb-item">
+
+                <a href="menu.php">
+
+                    Menu
+
+                </a>
+
+            </li>
+
+            <li class="breadcrumb-item">
+
+                <a href="menu.php?category=<?= (int)$product['category_id']; ?>">
+
+                    <?= htmlspecialchars($product['category_name']); ?>
+
+                </a>
+
+            </li>
+
+            <li
+                class="breadcrumb-item active"
+                aria-current="page">
+
+                <?= htmlspecialchars($product['product_name']); ?>
+
+            </li>
+
+        </ol>
+
+    </nav>
+
+
+    <div class="row g-5 align-items-start">
+
+        <!-- ======================================
+             LEFT COLUMN
+        ======================================= -->
+
+        <div class="col-lg-6">
+
+            <div class="gallery-card">
+
+                <div class="gallery-image position-relative">
+
+                    <img
+
+                        id="mainProductImage"
+
+                        src="<?= htmlspecialchars($mainImage); ?>"
+
+                        class="img-fluid w-100"
+
+                        alt="<?= htmlspecialchars($product['product_name']); ?>">
+
+
+                    <!-- Featured -->
+
+                    <?php if(!empty($product['featured'])): ?>
+
+                        <span class="gallery-badge featured">
+
+                            <i class="bi bi-star-fill"></i>
+
+                            Featured
+
+                        </span>
+
+                    <?php endif; ?>
+
+
+                    <!-- Discount -->
+
+                    <?php if($discount > 0): ?>
+
+                        <span class="gallery-badge discount">
+
+                            <?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+                        </span>
+
+                    <?php endif; ?>
+
+
+                    <!-- Stock -->
+
+                    <?php if((int)$product['stock'] <= 0): ?>
+
+                        <span class="gallery-badge stock">
+
+                            Out of Stock
+
+                        </span>
+
+                    <?php endif; ?>
+
+                </div>
+
+
+                <!-- Thumbnails -->
+
+                <?php if(!empty($images)): ?>
+
+                <div class="thumbnail-list mt-4">
+
+                    <?php foreach($images as $index => $img): ?>
+
+                        <?php
+
+                        $thumb="assets/images/products/".$img['image_name'];
+
+                        ?>
+
+                        <img
+
+                            src="<?= htmlspecialchars($thumb); ?>"
+
+                            class="gallery-thumb <?= $index==0 ? 'active-thumb' : ''; ?>"
+
+                            onclick="changeImage(this)"
+
+                            alt="Thumbnail">
+
+                    <?php endforeach; ?>
+
+                </div>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT COLUMN STARTS IN PART 1B -->
+         <!-- ==========================================
+     RIGHT PRODUCT INFORMATION
+========================================== -->
+
+<div class="col-lg-6">
+
+<div class="product-info sticky-top">
+
+<!-- Category & Food Type -->
+
+<div class="product-badges mb-3">
+
+<span class="badge category-badge">
+
+<i class="bi bi-grid-fill me-1"></i>
+
+<?= htmlspecialchars($product['category_name']); ?>
+
+</span>
+
+<span class="badge food-badge">
+
+<i class="bi bi-circle-fill me-1"></i>
+
+<?= htmlspecialchars($product['food_type']); ?>
+
+</span>
+
+<?php if($discount > 0): ?>
+
+<span class="badge offer-badge">
+
+<?= rtrim(rtrim(number_format($discount,2),'0'),'.'); ?>% OFF
+
+</span>
+
+<?php endif; ?>
+
+</div>
+
+<!-- Product Name -->
+
+<h1 class="product-title">
+
+<?= htmlspecialchars($product['product_name']); ?>
+
+</h1>
+
+<!-- Rating -->
+
+<div class="product-rating d-flex align-items-center mb-4">
+
+<div class="rating-stars">
+
+<?php
+
+$displayRating = $averageRating > 0 ? $averageRating : 5;
+
+for($i=1;$i<=5;$i++):
 
 ?>
+
+<?php if($i <= floor($displayRating)): ?>
+
+<i class="bi bi-star-fill"></i>
+
+<?php elseif($i - $displayRating < 1): ?>
+
+<i class="bi bi-star-half"></i>
+
+<?php else: ?>
+
+<i class="bi bi-star"></i>
+
+<?php endif; ?>
+
+<?php endfor; ?>
+
+</div>
+
+<span class="rating-value ms-2">
+
+<?= number_format($displayRating,1); ?>
+
+</span>
+
+<span class="rating-count ms-2">
+
+(<?= $totalReviews; ?> Reviews)
+
+</span>
+
+</div>
+
+<!-- Price -->
+
+<div class="price-card mb-4">
+
+<?php if($discount > 0): ?>
+
+<div class="d-flex align-items-center flex-wrap">
+
+<h2 class="current-price mb-0">
+
+₹<?= number_format($finalPrice,2); ?>
+
+</h2>
+
+<span class="old-price ms-3">
+
+₹<?= number_format($price,2); ?>
+
+</span>
+
+<span class="save-badge ms-3">
+
+Save
+
+₹<?= number_format($price-$finalPrice,2); ?>
+
+</span>
+
+</div>
+
+<?php else: ?>
+
+<h2 class="current-price">
+
+₹<?= number_format($price,2); ?>
+
+</h2>
+
+<?php endif; ?>
+
+</div>
+
+<!-- Short Tagline -->
+
+<?php if(!empty($product['short_description'])): ?>
+
+<p class="product-tagline">
+
+<?= htmlspecialchars($product['short_description']); ?>
+
+</p>
+
+<?php endif; ?>
