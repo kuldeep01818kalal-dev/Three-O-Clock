@@ -60,6 +60,11 @@ $page_title = $page_title ?? "Three O' Clock Cafe";
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/product-details.css">
+      <?php if(basename($_SERVER['PHP_SELF'])=='cart.php'): ?>
+
+            <link rel="stylesheet" href="assets/css/cart.css">
+
+      <?php endif; ?>
 
     <!-- Favicon -->
 
