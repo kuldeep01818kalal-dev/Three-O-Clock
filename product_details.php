@@ -654,3 +654,180 @@ Save
 </p>
 
 <?php endif; ?>
+<!-- ==========================================
+     PURCHASE PANEL
+========================================== -->
+
+<div class="purchase-card">
+
+    <h5 class="quantity-title">
+
+        Quantity
+
+    </h5>
+
+    <form action="cart_action.php" method="POST">
+
+        <input
+            type="hidden"
+            name="product_id"
+            value="<?= $product_id; ?>">
+
+        <div class="quantity-box">
+
+            <button
+                type="button"
+                class="qty-btn"
+                onclick="decreaseQty()">
+
+                −
+
+            </button>
+
+            <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                class="qty-input"
+                value="1"
+                min="1"
+                max="<?= (int)$product['stock']; ?>">
+
+            <button
+                type="button"
+                class="qty-btn"
+                onclick="increaseQty()">
+
+                +
+
+            </button>
+
+            <div class="ms-auto">
+
+                <?php if((int)$product['stock']>0): ?>
+
+                    <span class="text-success fw-semibold">
+
+                        <i class="bi bi-check-circle-fill"></i>
+
+                        <?= (int)$product['stock']; ?>
+
+                        Available
+
+                    </span>
+
+                <?php else: ?>
+
+                    <span class="text-danger fw-semibold">
+
+                        <i class="bi bi-x-circle-fill"></i>
+
+                        Out of Stock
+
+                    </span>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+
+        <?php if((int)$product['stock']>0): ?>
+
+            <button
+                type="submit"
+                name="add_to_cart"
+                class="btn-cart">
+
+                <i class="bi bi-cart-plus me-2"></i>
+
+                Add To Cart
+
+            </button>
+
+            <button
+                type="submit"
+                name="buy_now"
+                class="btn-buy mt-3">
+
+                <i class="bi bi-lightning-fill me-2"></i>
+
+                Buy Now
+
+            </button>
+
+        <?php else: ?>
+
+            <button
+                class="btn btn-secondary w-100"
+                disabled>
+
+                Currently Unavailable
+
+            </button>
+
+        <?php endif; ?>
+
+    </form>
+
+</div>
+
+
+<!-- ==========================================
+     BENEFITS
+========================================== -->
+
+<div class="benefits-grid">
+
+    <div class="benefit-card">
+
+        <i class="bi bi-truck"></i>
+
+        <h6>Fast Delivery</h6>
+
+        <p>Fresh food delivered quickly.</p>
+
+    </div>
+
+    <div class="benefit-card">
+
+        <i class="bi bi-shield-check"></i>
+
+        <h6>Quality Assured</h6>
+
+        <p>Prepared using premium ingredients.</p>
+
+    </div>
+
+    <div class="benefit-card">
+
+        <i class="bi bi-arrow-repeat"></i>
+
+        <h6>Easy Reorder</h6>
+
+        <p>Order your favourite meal anytime.</p>
+
+    </div>
+
+    <div class="benefit-card">
+
+        <i class="bi bi-headset"></i>
+
+        <h6>Customer Support</h6>
+
+        <p>We're here to help whenever you need.</p>
+
+    </div>
+
+</div>
+
+</div> <!-- /.product-info -->
+
+</div> <!-- /.col-lg-6 -->
+
+</div> <!-- /.row -->
+
+</div> <!-- /.container -->
+
+</section>
