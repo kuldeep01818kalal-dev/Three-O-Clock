@@ -481,7 +481,261 @@ Available
 </div>
 
 </section>
+<!-- ==========================================
+     Quantity Selector
+========================================== -->
 
+<form action="cart.php" method="GET">
+
+<input type="hidden" name="action" value="add">
+
+<input type="hidden"
+name="id"
+value="<?= $product['product_id']; ?>">
+
+<div class="mt-4">
+
+<h5 class="fw-semibold mb-3">
+
+Quantity
+
+</h5>
+
+<div class="d-flex align-items-center">
+
+<button
+type="button"
+class="qty-btn"
+onclick="decreaseQty()">
+
+<i class="bi bi-dash-lg"></i>
+
+</button>
+
+<input
+
+type="number"
+
+id="quantity"
+
+name="qty"
+
+value="1"
+
+min="1"
+
+max="<?= max(1,$product['stock']); ?>"
+
+class="qty-input">
+
+<button
+type="button"
+class="qty-btn"
+onclick="increaseQty()">
+
+<i class="bi bi-plus-lg"></i>
+
+</button>
+
+<span class="ms-4 text-muted">
+
+Max :
+
+<?= (int)$product['stock']; ?>
+
+</span>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+     Buttons
+========================================== -->
+
+<div class="d-grid gap-3 mt-4">
+
+<button
+type="submit"
+class="btn btn-cart">
+
+<i class="bi bi-cart-plus-fill"></i>
+
+Add To Cart
+
+</button>
+
+<a
+href="checkout.php?id=<?= $product['product_id']; ?>"
+class="btn btn-buy">
+
+<i class="bi bi-lightning-charge-fill"></i>
+
+Buy Now
+
+</a>
+
+</div>
+
+</form>
+
+<!-- ==========================================
+     Product Benefits
+========================================== -->
+
+<div class="row g-3 mt-4">
+
+<div class="col-6">
+
+<div class="benefit-box">
+
+<i class="bi bi-flower1"></i>
+
+Fresh Ingredients
+
+</div>
+
+</div>
+
+<div class="col-6">
+
+<div class="benefit-box">
+
+<i class="bi bi-shield-check"></i>
+
+Hygienically Prepared
+
+</div>
+
+</div>
+
+<div class="col-6">
+
+<div class="benefit-box">
+
+<i class="bi bi-truck"></i>
+
+Fast Delivery
+
+</div>
+
+</div>
+
+<div class="col-6">
+
+<div class="benefit-box">
+
+<i class="bi bi-award"></i>
+
+Premium Quality
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+     Product Tabs
+========================================== -->
+
+<div class="card border-0 shadow-sm rounded-4 mt-5">
+
+<div class="card-body">
+
+<ul
+class="nav nav-tabs border-0"
+id="productTabs">
+
+<li class="nav-item">
+
+<button
+
+class="nav-link active"
+
+data-bs-toggle="tab"
+
+data-bs-target="#description">
+
+Description
+
+</button>
+
+</li>
+
+<li class="nav-item">
+
+<button
+
+class="nav-link"
+
+data-bs-toggle="tab"
+
+data-bs-target="#ingredients">
+
+Ingredients
+
+</button>
+
+</li>
+
+<li class="nav-item">
+
+<button
+
+class="nav-link"
+
+data-bs-toggle="tab"
+
+data-bs-target="#nutrition">
+
+Nutrition
+
+</button>
+
+</li>
+
+</ul>
+
+<div class="tab-content mt-4">
+
+<div
+class="tab-pane fade show active"
+id="description">
+
+<?= nl2br(htmlspecialchars($product['description'])); ?>
+
+</div>
+
+<div
+class="tab-pane fade"
+id="ingredients">
+
+<p class="text-muted">
+
+Coming Soon
+
+</p>
+
+</div>
+
+<div
+class="tab-pane fade"
+id="nutrition">
+
+<p class="text-muted">
+
+Coming Soon
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 
 
