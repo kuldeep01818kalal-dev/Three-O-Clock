@@ -83,7 +83,7 @@ include "includes/navbar.php";
 
         <div class="col-lg-5 col-md-7">
 
-            <div class="card shadow-lg border-0 rounded-4">
+            <div class="card login-card">
 
                 <div class="card-body p-5">
 
@@ -91,13 +91,13 @@ include "includes/navbar.php";
 
                         <i class="bi bi-cup-hot-fill text-warning display-4"></i>
 
-                        <h2 class="fw-bold mt-3">
+                        <h2 class="login-title">
 
                             Welcome Back
 
                         </h2>
 
-                        <p class="text-muted">
+                        <p class="login-subtitle">
 
                             Login to your Three O' Clock Cafe account
 
@@ -200,7 +200,7 @@ include "includes/navbar.php";
 
                             <button
                                 type="submit"
-                                class="btn btn-dark btn-lg">
+                                class="btn btn-login">
 
                                 <i class="bi bi-box-arrow-in-right me-2"></i>
 
