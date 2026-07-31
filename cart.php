@@ -119,3 +119,346 @@ require_once "includes/header.php";
 require_once "includes/navbar.php";
 
 ?>
+<!-- ==========================================
+     SHOPPING CART
+========================================== -->
+
+<section class="cart-section py-5">
+
+<div class="container">
+
+<div class="row">
+
+<!-- =========================
+     LEFT SIDE
+========================= -->
+
+<div class="col-lg-8">
+
+<h2 class="fw-bold mb-4">
+
+<i class="bi bi-cart3 me-2"></i>
+
+Shopping Cart
+
+</h2>
+
+<?php if(count($cartItems)>0): ?>
+
+<div class="cart-table">
+
+<?php foreach($cartItems as $item): ?>
+
+<?php
+
+$image = !empty($item['image_name'])
+
+? "assets/images/products/".$item['image_name']
+
+: "assets/images/no-image.png";
+
+?>
+
+<div class="cart-item">
+
+<div class="row align-items-center">
+
+<!-- Image -->
+
+<div class="col-md-2">
+
+<img
+
+src="<?= htmlspecialchars($image); ?>"
+
+class="cart-image"
+
+alt="<?= htmlspecialchars($item['product_name']); ?>">
+
+</div>
+
+<!-- Product -->
+
+<div class="col-md-4">
+
+<h5 class="mb-2">
+
+<?= htmlspecialchars($item['product_name']); ?>
+
+</h5>
+
+<p class="text-muted mb-1">
+
+₹<?= number_format($item['final_price'],2); ?>
+
+</p>
+
+<?php if($item['discount_percent']>0): ?>
+
+<small class="text-success">
+
+<?= $item['discount_percent']; ?>% OFF
+
+</small>
+
+<?php endif; ?>
+
+</div>
+
+<!-- Quantity -->
+
+<div class="col-md-3">
+
+<form
+
+action="update_cart.php"
+
+method="POST">
+
+<input
+
+type="hidden"
+
+name="cart_id"
+
+value="<?= $item['cart_id']; ?>">
+
+<div class="qty-wrapper">
+
+<button
+
+type="button"
+
+class="qty-btn"
+
+onclick="decreaseQty(this)">
+
+−
+
+</button>
+
+<input
+
+type="number"
+
+class="qty-input"
+
+name="quantity"
+
+value="<?= $item['quantity']; ?>"
+
+min="1"
+
+max="<?= $item['stock']; ?>">
+
+<button
+
+type="button"
+
+class="qty-btn"
+
+onclick="increaseQty(this)">
+
++
+
+</button>
+
+</div>
+
+<button
+
+type="submit"
+
+class="btn btn-sm btn-outline-primary mt-2">
+
+Update
+
+</button>
+
+</form>
+
+</div>
+
+<!-- Total -->
+
+<div class="col-md-2 text-center">
+
+<strong>
+
+₹<?= number_format($item['item_total'],2); ?>
+
+</strong>
+
+</div>
+
+<!-- Remove -->
+
+<div class="col-md-1 text-end">
+
+<a
+
+href="remove_cart.php?id=<?= $item['cart_id']; ?>"
+
+class="btn btn-danger btn-sm"
+
+onclick="return confirm('Remove this product?')">
+
+<i class="bi bi-trash"></i>
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<?php endforeach; ?>
+
+</div>
+
+<?php else: ?>
+
+<div class="empty-cart">
+
+<i class="bi bi-cart-x display-1 text-muted"></i>
+
+<h3 class="mt-3">
+
+Your Cart is Empty
+
+</h3>
+
+<p>
+
+Looks like you haven't added anything yet.
+
+</p>
+
+<a
+
+href="menu.php"
+
+class="btn btn-success">
+
+Continue Shopping
+
+</a>
+
+</div>
+
+<?php endif; ?>
+
+</div>
+
+<!-- =========================
+     ORDER SUMMARY
+========================= -->
+
+<div class="col-lg-4">
+
+<div class="summary-card">
+
+<h4 class="mb-4">
+
+Order Summary
+
+</h4>
+
+<div class="summary-row">
+
+<span>Subtotal</span>
+
+<span>
+
+₹<?= number_format($subtotal,2); ?>
+
+</span>
+
+</div>
+
+<div class="summary-row">
+
+<span>GST (5%)</span>
+
+<span>
+
+₹<?= number_format($gst,2); ?>
+
+</span>
+
+</div>
+
+<div class="summary-row">
+
+<span>Delivery</span>
+
+<span>
+
+<?= $delivery==0
+
+? "FREE"
+
+: "₹".number_format($delivery,2); ?>
+
+</span>
+
+</div>
+
+<hr>
+
+<div class="summary-total">
+
+<span>Total</span>
+
+<strong>
+
+₹<?= number_format($grandTotal,2); ?>
+
+</strong>
+
+</div>
+
+<div class="d-grid gap-3 mt-4">
+
+<a
+
+href="menu.php"
+
+class="btn btn-outline-secondary">
+
+Continue Shopping
+
+</a>
+
+<?php if(count($cartItems)>0): ?>
+
+<a
+
+href="checkout.php"
+
+class="btn btn-success">
+
+Proceed To Checkout
+
+</a>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<?php
+
+require_once "includes/footer.php";
+
+?>
