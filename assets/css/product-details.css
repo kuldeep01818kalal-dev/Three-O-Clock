@@ -585,7 +585,51 @@ color:#222;
     top:90px;
     align-self:flex-start;
 }
+.product-tabs{
+background:#fff;
+}
 
+#productTabs .nav-link{
+
+padding:12px 30px;
+
+border-radius:40px;
+
+margin:5px;
+
+font-weight:600;
+
+color:#6F4E37;
+
+background:#f5f5f5;
+
+}
+
+#productTabs .nav-link.active{
+
+background:#6F4E37;
+
+color:#fff;
+
+}
+
+.tab-card{
+
+background:#fff;
+
+padding:35px;
+
+border-radius:20px;
+
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.review-box{
+
+padding:20px 0;
+
+}
 /* ==========================================
    MOBILE
 ========================================== */

@@ -831,3 +831,261 @@ Save
 </div> <!-- /.container -->
 
 </section>
+<!-- ==========================================
+     PRODUCT TABS
+========================================== -->
+
+<section class="product-tabs py-5">
+
+<div class="container">
+
+<ul class="nav nav-pills justify-content-center mb-5" id="productTabs">
+
+<li class="nav-item">
+
+<button
+class="nav-link active"
+data-bs-toggle="pill"
+data-bs-target="#description">
+
+Description
+
+</button>
+
+</li>
+
+<li class="nav-item">
+
+<button
+class="nav-link"
+data-bs-toggle="pill"
+data-bs-target="#information">
+
+Additional Information
+
+</button>
+
+</li>
+
+<li class="nav-item">
+
+<button
+class="nav-link"
+data-bs-toggle="pill"
+data-bs-target="#reviews">
+
+Reviews (<?= $totalReviews; ?>)
+
+</button>
+
+</li>
+
+</ul>
+
+<div class="tab-content">
+
+<!-- ===========================
+     DESCRIPTION
+=========================== -->
+
+<div class="tab-pane fade show active" id="description">
+
+<div class="tab-card">
+
+<h3>Description</h3>
+
+<?php if(!empty($product['description'])): ?>
+
+<p>
+
+<?= nl2br(htmlspecialchars($product['description'])); ?>
+
+</p>
+
+<?php else: ?>
+
+<p>
+
+No description available.
+
+</p>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+<!-- ===========================
+     INFORMATION
+=========================== -->
+
+<div class="tab-pane fade" id="information">
+
+<div class="tab-card">
+
+<h3>Product Information</h3>
+
+<table class="table table-bordered">
+
+<tr>
+
+<th>Category</th>
+
+<td><?= htmlspecialchars($product['category_name']); ?></td>
+
+</tr>
+
+<tr>
+
+<th>Food Type</th>
+
+<td><?= htmlspecialchars($product['food_type']); ?></td>
+
+</tr>
+
+<tr>
+
+<th>Preparation Time</th>
+
+<td><?= htmlspecialchars($product['preparation_time']); ?> Minutes</td>
+
+</tr>
+
+<tr>
+
+<th>Spice Level</th>
+
+<td><?= htmlspecialchars($product['spice_level']); ?></td>
+
+</tr>
+
+<tr>
+
+<th>Availability</th>
+
+<td><?= htmlspecialchars($product['availability']); ?></td>
+
+</tr>
+
+<tr>
+
+<th>Stock</th>
+
+<td><?= (int)$product['stock']; ?></td>
+
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+<!-- ===========================
+     REVIEWS
+=========================== -->
+
+<div class="tab-pane fade" id="reviews">
+
+<div class="tab-card">
+
+<h3>Customer Reviews</h3>
+
+<?php if($totalReviews>0): ?>
+
+<?php foreach($reviews as $review): ?>
+
+<div class="review-box">
+
+<div class="d-flex justify-content-between">
+
+<h5>
+
+<?= htmlspecialchars($review['name']); ?>
+
+</h5>
+
+<div>
+
+<?php
+
+for($i=1;$i<=5;$i++):
+
+?>
+
+<?php if($i <= $review['rating']): ?>
+
+<i class="bi bi-star-fill text-warning"></i>
+
+<?php else: ?>
+
+<i class="bi bi-star text-warning"></i>
+
+<?php endif; ?>
+
+<?php endfor; ?>
+
+</div>
+
+</div>
+
+<?php if(!empty($review['review_title'])): ?>
+
+<h6 class="mt-2">
+
+<?= htmlspecialchars($review['review_title']); ?>
+
+</h6>
+
+<?php endif; ?>
+
+<p>
+
+<?= nl2br(htmlspecialchars($review['review'])); ?>
+
+</p>
+
+<small class="text-muted">
+
+<?= date("d M Y",strtotime($review['created_at'])); ?>
+
+</small>
+
+</div>
+
+<hr>
+
+<?php endforeach; ?>
+
+<?php else: ?>
+
+<div class="text-center py-4">
+
+<i class="bi bi-chat-square-text fs-1 text-muted"></i>
+
+<h5 class="mt-3">
+
+No Reviews Yet
+
+</h5>
+
+<p class="text-muted">
+
+Be the first customer to review this product.
+
+</p>
+
+</div>
+
+<?php endif; ?>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
