@@ -1,11 +1,14 @@
 /* ==========================================
    HERO
 ========================================== */
-
+.product-info{
+    position: sticky;
+    top: 90px;      /* navbar height */
+    align-self: flex-start;
+}
 .product-hero{
-
     background:#f8f5ef;
-
+    padding:90px 0 70px;
 }
 
 .breadcrumb{
@@ -160,12 +163,6 @@
 /* ===============================
    Product Right Panel
 ================================ */
-
-.product-info{
-
-top:100px;
-
-}
 
 .product-title{
 
@@ -452,6 +449,160 @@ font-size:16px;
 font-weight:700;
 
 color:#222;
+
+}
+/* ==========================================
+   PURCHASE PANEL
+========================================== */
+
+.purchase-card{
+    margin-top:30px;
+    background:#fff;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.quantity-title{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:15px;
+    color:#2d2d2d;
+}
+
+.quantity-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:25px;
+}
+
+.qty-btn{
+    width:48px;
+    height:48px;
+    border:none;
+    border-radius:12px;
+    background:#f5f5f5;
+    font-size:22px;
+    transition:.3s;
+}
+
+.qty-btn:hover{
+    background:#6F4E37;
+    color:#fff;
+}
+
+.qty-input{
+    width:90px;
+    height:48px;
+    text-align:center;
+    border-radius:12px;
+    border:1px solid #ddd;
+    font-size:18px;
+    font-weight:600;
+}
+
+.btn-cart{
+    width:100%;
+    border:none;
+    border-radius:50px;
+    padding:16px;
+    background:#6F4E37;
+    color:#fff;
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:15px;
+    transition:.3s;
+}
+
+.btn-cart:hover{
+    background:#5b3d2c;
+}
+
+.btn-buy{
+    width:100%;
+    border:none;
+    border-radius:50px;
+    padding:16px;
+    background:#198754;
+    color:#fff;
+    font-size:18px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-buy:hover{
+    background:#157347;
+}
+
+/* ==========================================
+   BENEFITS
+========================================== */
+
+.benefits-grid{
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.benefit-card{
+    background:#fff;
+    border-radius:18px;
+    padding:18px;
+    text-align:center;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+    transition:.3s;
+}
+
+.benefit-card:hover{
+    transform:translateY(-4px);
+}
+
+.benefit-card i{
+    font-size:28px;
+    color:#6F4E37;
+    margin-bottom:12px;
+}
+
+.benefit-card h6{
+    font-weight:700;
+    margin-bottom:6px;
+}
+
+.benefit-card p{
+    font-size:14px;
+    color:#777;
+    margin:0;
+}
+
+/* ==========================================
+   STICKY PANEL
+========================================== */
+
+.product-info{
+    position:sticky;
+    top:90px;
+    align-self:flex-start;
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media(max-width:991px){
+
+.product-info{
+    position:static;
+}
+
+.benefits-grid{
+    grid-template-columns:1fr;
+}
+
+.qty-input{
+    width:70px;
+}
 
 }
 
