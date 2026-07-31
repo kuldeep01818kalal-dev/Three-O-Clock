@@ -135,103 +135,115 @@ $isLoggedIn = isset($_SESSION['user_id']);
 
                 </li>
 
-                <?php if (!$isLoggedIn): ?>
+                <?php if($isLoggedIn): ?>
 
-                    <li class="nav-item ms-lg-2">
+<li class="nav-item dropdown">
 
-                        <a class="btn btn-outline-light me-lg-2 mt-2 mt-lg-0"
-                           href="login.php">
+    <a class="nav-link dropdown-toggle"
 
-                            Login
+       href="#"
 
-                        </a>
+       role="button"
 
-                    </li>
+       data-bs-toggle="dropdown">
 
-                    <li class="nav-item mt-2 mt-lg-0">
+        <i class="bi bi-person-circle"></i>
 
-                        <a class="btn btn-warning"
-                           href="register.php">
+        <?= htmlspecialchars($_SESSION['user_name']); ?>
 
-                            Register
+    </a>
 
-                        </a>
+    <ul class="dropdown-menu dropdown-menu-end">
 
-                    </li>
+        <li>
 
-                <?php else: ?>
+            <a class="dropdown-item"
 
-                    <li class="nav-item dropdown">
+               href="profile.php">
 
-                        <a class="nav-link dropdown-toggle"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown">
+                <i class="bi bi-person"></i>
 
-                            <i class="bi bi-person-circle"></i>
+                My Profile
 
-                            My Account
+            </a>
 
-                        </a>
+        </li>
 
-                        <ul class="dropdown-menu dropdown-menu-end">
+        <li>
 
-                            <li>
+            <a class="dropdown-item"
 
-                                <a class="dropdown-item"
-                                   href="profile.php">
+               href="my_orders.php">
 
-                                    Profile
+                <i class="bi bi-bag-check"></i>
 
-                                </a>
+                My Orders
 
-                            </li>
+            </a>
 
-                            <li>
+        </li>
 
-                                <a class="dropdown-item"
-                                   href="my_orders.php">
+        <li>
 
-                                    My Orders
+            <a class="dropdown-item"
 
-                                </a>
+               href="cart.php">
 
-                            </li>
+                <i class="bi bi-cart3"></i>
 
-                            <li>
+                Cart
 
-                                <a class="dropdown-item"
-                                   href="reservation.php">
+            </a>
 
-                                    My Reservations
+        </li>
 
-                                </a>
+        <li><hr class="dropdown-divider"></li>
 
-                            </li>
+        <li>
 
-                            <li>
+            <a class="dropdown-item text-danger"
 
-                                <hr class="dropdown-divider">
+               href="logout.php">
 
-                            </li>
+                <i class="bi bi-box-arrow-right"></i>
 
-                            <li>
+                Logout
 
-                                <a class="dropdown-item text-danger"
-                                   href="logout.php">
+            </a>
 
-                                    Logout
+        </li>
 
-                                </a>
+    </ul>
 
-                            </li>
+</li>
 
-                        </ul>
+<?php else: ?>
 
-                    </li>
+<li class="nav-item">
 
-                <?php endif; ?>
+    <a class="nav-link"
 
+       href="login.php">
+
+        Login
+
+    </a>
+
+</li>
+
+<li class="nav-item">
+
+    <a class="btn btn-warning ms-2"
+
+       href="register.php">
+
+        Register
+
+    </a>
+
+</li>
+
+<?php endif; ?>
             </ul>
 
         </div>

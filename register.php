@@ -7,9 +7,10 @@
 
 declare(strict_types=1);
 
-require_once 'config/db.php';
-require_once 'config/session.php';
-require_once 'config/mail.php';
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/config/session.php';
+
+// require_once 'config/mail.php';
 
 // If already logged in
 if (isUserLoggedIn()) {
@@ -189,10 +190,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 ?>
 
 
-/*******************************************************
- * Part 1 Ends Here
- * Part 2 will start with <!DOCTYPE html>
- *******************************************************/
 <!DOCTYPE html>
 <html lang="en">
 

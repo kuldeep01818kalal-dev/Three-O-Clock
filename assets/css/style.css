@@ -718,10 +718,13 @@ Fade Animation
 
 }
 
-.card,
-.category-card,
 .hero-image,
-.about-image{
+.about-image,
+.category-card,
+.menu-card,
+.stats-card,
+.testimonial-card,
+.gallery-card{
 
     opacity:0;
 
