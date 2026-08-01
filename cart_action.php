@@ -233,3 +233,37 @@ else {
  * Success & Error Messages
  * Cart Count Update
  *******************************************************/
+/*======================================================
+=            REDIRECT AFTER ADD TO CART
+======================================================*/
+
+$redirect = $_SERVER['HTTP_REFERER'] ?? 'cart.php';
+
+/*----------------------------------------
+If request came from Product Details
+----------------------------------------*/
+
+if (strpos($redirect, 'product_details.php') !== false) {
+
+    header("Location: " . $redirect);
+    exit();
+
+}
+
+/*----------------------------------------
+If request came from Menu Page
+----------------------------------------*/
+
+if (strpos($redirect, 'menu.php') !== false) {
+
+    header("Location: " . $redirect);
+    exit();
+
+}
+
+/*----------------------------------------
+Default Redirect
+----------------------------------------*/
+
+header("Location: cart.php");
+exit();

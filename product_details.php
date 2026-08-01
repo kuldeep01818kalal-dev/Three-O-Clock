@@ -345,6 +345,53 @@ require_once "includes/header.php";
 
 require_once "includes/navbar.php";
 ?>
+<?php if(isset($_SESSION['cart_success'])): ?>
+
+<div class="container mt-3">
+
+    <div class="alert alert-success alert-dismissible fade show">
+
+        <i class="bi bi-check-circle-fill me-2"></i>
+
+        <?= htmlspecialchars($_SESSION['cart_success']); ?>
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert">
+        </button>
+
+    </div>
+
+</div>
+
+<?php unset($_SESSION['cart_success']); ?>
+
+<?php endif; ?>
+
+<?php if(isset($_SESSION['cart_error'])): ?>
+
+<div class="container mt-3">
+
+    <div class="alert alert-danger alert-dismissible fade show">
+
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+        <?= htmlspecialchars($_SESSION['cart_error']); ?>
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert">
+        </button>
+
+    </div>
+
+</div>
+
+<?php unset($_SESSION['cart_error']); ?>
+
+<?php endif; ?>
 <!-- =====================================================
      SECTION 2 - PART 1A
      Breadcrumb + Product Gallery
