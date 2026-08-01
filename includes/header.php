@@ -88,7 +88,15 @@ $page_title = $page_title ?? "Three O' Clock Cafe";
                   echo '<link rel="stylesheet" href="assets/css/login.css">';
             }
       ?>
+      <?php
+      $currentPage = basename($_SERVER['PHP_SELF']);
 
+      if ($currentPage == "checkout.php") {
+      ?>
+      <link rel="stylesheet" href="assets/css/checkout.css">
+      <?php
+      }
+      ?>
     <!-- Favicon -->
 
    <!-- <link rel="icon" href="assets/images/favicon.png"> -->

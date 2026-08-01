@@ -143,276 +143,332 @@ LAYOUT
 require_once "includes/header.php";
 require_once "includes/navbar.php";
 ?>
-<div class="col-lg-8">
+<<section class="checkout-section">
+
+<div class="container">
 
 <form action="place_order.php" method="POST">
 
-<div class="checkout-card">
+<div class="row g-4">
 
-<h3 class="section-title">
+    <!-- =========================================
+         LEFT COLUMN
+    ========================================== -->
 
-<i class="bi bi-person-circle me-2"></i>
+    <div class="col-lg-8">
 
-Customer Details
+        <div class="checkout-card">
 
-</h3>
+            <h3 class="section-title">
 
-<div class="row">
+                <i class="bi bi-person-circle me-2"></i>
 
-<div class="col-md-6 mb-3">
+                Customer Details
 
-<label class="form-label">Full Name</label>
+            </h3>
 
-<input
-type="text"
-name="full_name"
-class="form-control"
-value="<?= htmlspecialchars($user['full_name'] ?? ''); ?>"
-required>
+            <div class="row">
 
-</div>
+                <div class="col-md-6 mb-3">
 
-<div class="col-md-6 mb-3">
+                    <label class="form-label">
 
-<label class="form-label">Email</label>
+                        Full Name
 
-<input
-type="email"
-name="email"
-class="form-control"
-value="<?= htmlspecialchars($user['email'] ?? ''); ?>"
-required>
+                    </label>
 
-</div>
+                    <input
+                        type="text"
+                        name="full_name"
+                        class="form-control"
+                        value="<?= htmlspecialchars($user['full_name'] ?? ''); ?>"
+                        required>
 
-<div class="col-md-6 mb-3">
+                </div>
 
-<label class="form-label">Mobile Number</label>
+                <div class="col-md-6 mb-3">
 
-<input
-type="text"
-name="phone"
-class="form-control"
-value="<?= htmlspecialchars($user['phone'] ?? ''); ?>"
-required>
+                    <label class="form-label">
 
-</div>
+                        Email Address
 
-<div class="col-md-6 mb-3">
+                    </label>
 
-<label class="form-label">Pincode</label>
+                    <input
+                        type="email"
+                        name="email"
+                        class="form-control"
+                        value="<?= htmlspecialchars($user['email'] ?? ''); ?>"
+                        required>
 
-<input
-type="text"
-name="pincode"
-class="form-control"
-value="<?= htmlspecialchars($user['pincode'] ?? ''); ?>">
+                </div>
 
-</div>
+                <div class="col-md-6 mb-3">
 
-</div>
+                    <label class="form-label">
 
-<h3 class="section-title mt-4">
+                        Mobile Number
 
-<i class="bi bi-geo-alt-fill me-2"></i>
+                    </label>
 
-Delivery Address
+                    <input
+                        type="text"
+                        name="phone"
+                        class="form-control"
+                        value="<?= htmlspecialchars($user['phone'] ?? ''); ?>"
+                        required>
 
-</h3>
+                </div>
 
-<div class="mb-3">
+                <div class="col-md-6 mb-3">
 
-<label class="form-label">Address</label>
+                    <label class="form-label">
 
-<textarea
-name="address"
-class="form-control"
-rows="3"
-required><?= htmlspecialchars($user['address'] ?? ''); ?></textarea>
+                        Pincode
 
-</div>
+                    </label>
 
-<div class="row">
+                    <input
+                        type="text"
+                        name="pincode"
+                        class="form-control"
+                        value="<?= htmlspecialchars($user['pincode'] ?? ''); ?>">
 
-<div class="col-md-6 mb-3">
+                </div>
 
-<label class="form-label">City</label>
+            </div>
 
-<input
-type="text"
-name="city"
-class="form-control"
-value="<?= htmlspecialchars($user['city'] ?? ''); ?>">
+            <hr class="my-4">
 
-</div>
+            <h3 class="section-title">
 
-<div class="col-md-6 mb-3">
+                <i class="bi bi-geo-alt-fill me-2"></i>
 
-<label class="form-label">Landmark</label>
+                Delivery Address
 
-<input
-type="text"
-name="landmark"
-class="form-control"
-placeholder="Near School, Temple, Mall, etc.">
+            </h3>
 
-</div>
-</div>
+            <div class="mb-3">
 
-<h3 class="section-title mt-4">
+                <label class="form-label">
 
-<i class="bi bi-credit-card me-2"></i>
+                    Complete Address
 
-Payment Method
+                </label>
 
-</h3>
+                <textarea
+                    name="address"
+                    class="form-control"
+                    rows="4"
+                    required><?= htmlspecialchars($user['address'] ?? ''); ?></textarea>
 
-<div class="payment-option">
+            </div>
 
-<label>
+            <div class="row">
 
-<input
-type="radio"
-name="payment_method"
-value="COD"
-checked>
+                <div class="col-md-6 mb-3">
 
-Cash On Delivery
+                    <label class="form-label">
 
-</label>
+                        City
 
-</div>
+                    </label>
 
-<div class="payment-option">
+                    <input
+                        type="text"
+                        name="city"
+                        class="form-control"
+                        value="<?= htmlspecialchars($user['city'] ?? ''); ?>">
 
-<label>
+                </div>
 
-<input
-type="radio"
-name="payment_method"
-value="ONLINE">
+                <div class="col-md-6 mb-3">
 
-Online Payment (Razorpay)
+                    <label class="form-label">
 
-</label>
+                        Landmark
 
-</div>
+                    </label>
 
-</div>
-<div class="col-lg-4">
+                    <input
+                        type="text"
+                        name="landmark"
+                        class="form-control"
+                        placeholder="Near School, Temple, Mall, etc.">
 
-<div class="summary-card">
+                </div>
 
-<h3>
+            </div>
 
-Order Summary
+            <hr class="my-4">
 
-</h3>
+            <h3 class="section-title">
 
-<?php foreach($cartItems as $item): ?>
+                <i class="bi bi-credit-card me-2"></i>
 
-<div class="summary-item">
+                Payment Method
 
-<div class="d-flex justify-content-between">
+            </h3>
 
-<div>
+            <div class="payment-option">
 
-<strong>
+                <label>
 
-<?= htmlspecialchars($item['product_name']); ?>
+                    <input
+                        type="radio"
+                        name="payment_method"
+                        value="COD"
+                        checked>
 
-</strong>
+                    Cash On Delivery
 
-<br>
+                </label>
 
-<small>
+            </div>
 
-Qty : <?= $item['quantity']; ?>
+            <div class="payment-option">
 
-</small>
+                <label>
 
-</div>
+                    <input
+                        type="radio"
+                        name="payment_method"
+                        value="ONLINE">
 
-<div>
+                    Online Payment (Razorpay)
 
-₹<?= number_format($item['item_total'],2); ?>
+                </label>
 
-</div>
+            </div>
 
-</div>
+        </div>
 
-</div>
+    </div>
 
-<hr>
+    <!-- =========================================
+         RIGHT COLUMN
+    ========================================== -->
 
-<?php endforeach; ?>
+    <div class="col-lg-4">
 
-<div class="summary-row">
+        <div class="summary-card">
 
-<span>Subtotal</span>
+            <h3>
 
-<span>
+                Order Summary
 
-₹<?= number_format($subtotal,2); ?>
+            </h3>
 
-</span>
+            <?php foreach($cartItems as $item): ?>
 
-</div>
+            <div class="summary-item">
 
-<div class="summary-row">
+                <div class="d-flex justify-content-between align-items-center">
 
-<span>GST (5%)</span>
+                    <div>
 
-<span>
+                        <strong>
 
-₹<?= number_format($gst,2); ?>
+                            <?= htmlspecialchars($item['product_name']); ?>
 
-</span>
+                        </strong>
 
-</div>
+                        <br>
 
-<div class="summary-row">
+                        <small>
 
-<span>Delivery</span>
+                            Qty : <?= $item['quantity']; ?>
 
-<span>
+                        </small>
 
-<?= $delivery==0 ? "FREE" : "₹".number_format($delivery,2); ?>
+                    </div>
 
-</span>
+                    <div class="price">
 
-</div>
+                        ₹<?= number_format($item['item_total'],2); ?>
 
-<hr>
+                    </div>
 
-<div class="summary-total">
+                </div>
 
-<h4>
+            </div>
 
-Total
+            <?php endforeach; ?>
 
-</h4>
+            <div class="summary-row">
 
-<h4>
+                <span>Subtotal</span>
 
-₹<?= number_format($grandTotal,2); ?>
+                <span>
 
-</h4>
+                    ₹<?= number_format($subtotal,2); ?>
 
-</div>
+                </span>
 
-<button
-type="submit"
-class="btn-place-order">
+            </div>
 
-<i class="bi bi-bag-check-fill me-2"></i>
+            <div class="summary-row">
 
-Place Order
+                <span>GST (5%)</span>
 
-</button>
+                <span>
 
-</div>
+                    ₹<?= number_format($gst,2); ?>
+
+                </span>
+
+            </div>
+
+            <div class="summary-row">
+
+                <span>Delivery</span>
+
+                <span class="free-delivery">
+
+                    <?= $delivery == 0 ? "FREE" : "₹".number_format($delivery,2); ?>
+
+                </span>
+
+            </div>
+
+            <hr>
+
+            <div class="summary-total">
+
+                <h4>
+
+                    Total
+
+                </h4>
+
+                <h4>
+
+                    ₹<?= number_format($grandTotal,2); ?>
+
+                </h4>
+
+            </div>
+
+            <button
+                type="submit"
+                class="btn-place-order">
+
+                <i class="bi bi-bag-check-fill me-2"></i>
+
+                Place Order
+
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 
 </form>
+
+</div>
+
+</section>
+
+<?php require_once "includes/footer.php"; ?>
