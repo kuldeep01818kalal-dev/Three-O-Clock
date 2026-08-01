@@ -294,3 +294,49 @@ try {
     ]);
 
     $order_id = (int)$pdo->lastInsertId();
+    /*=========================================
+INSERT ORDER ITEMS
+=========================================*/
+
+$itemStmt = $pdo->prepare("
+INSERT INTO order_items
+(
+    order_id,
+    product_id,
+    quantity,
+    unit_price,
+    total_price,
+    special_instruction,
+    created_at
+)
+VALUES
+(
+    ?, ?, ?, ?, ?, ?, NOW()
+)
+");
+
+foreach ($cartItems as $item) {
+
+    $lineTotal =
+
+        $item['unit_price'] *
+
+        $item['quantity'];
+
+    $itemStmt->execute([
+
+        $order_id,
+
+        $item['product_id'],
+
+        $item['quantity'],
+
+        $item['unit_price'],
+
+        $lineTotal,
+
+        $notes
+
+    ]);
+
+}
