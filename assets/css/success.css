@@ -1,0 +1,33 @@
+.success-card{
+
+background:#fff;
+
+padding:50px;
+
+border-radius:20px;
+
+box-shadow:0 15px 40px rgba(0,0,0,.08);
+
+}
+
+.success-icon{
+
+font-size:80px;
+
+color:#198754;
+
+}
+
+.success-card p{
+
+margin-bottom:18px;
+
+}
+
+.success-card .btn{
+
+padding:12px 28px;
+
+border-radius:50px;
+
+}
