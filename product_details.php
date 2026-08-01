@@ -735,17 +735,26 @@ Save
 
         <?php if((int)$product['stock']>0): ?>
 
-            <button
-                type="submit"
-                name="add_to_cart"
-                class="btn-cart">
+           <form action="cart_action.php" method="POST">
 
-                <i class="bi bi-cart-plus me-2"></i>
+    <input type="hidden"
+           name="product_id"
+           value="<?= $product['product_id']; ?>">
 
-                Add To Cart
+    <input type="hidden"
+           name="quantity"
+           id="cartQty"
+           value="1">
 
-            </button>
+    <button type="submit"
+            class="btn btn-cart">
 
+        <i class="bi bi-cart-plus"></i>
+        Add To Cart
+
+    </button>
+
+</form>
             <button
                 type="submit"
                 name="buy_now"

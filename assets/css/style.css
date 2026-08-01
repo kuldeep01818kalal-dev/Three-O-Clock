@@ -717,14 +717,10 @@ Fade Animation
     transform:translateY(0) !important;
 
 }
-
-.hero-image,
-.about-image,
+.card,
 .category-card,
-.menu-card,
-.stats-card,
-.testimonial-card,
-.gallery-card{
+.hero-image,
+.about-image{
 
     opacity:0;
 
