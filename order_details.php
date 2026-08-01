@@ -144,3 +144,198 @@ Track your order and view complete purchase information.
 </div>
 
 </div>
+<div class="row g-4 mb-4">
+
+    <!-- ================================
+         ORDER INFORMATION
+    ================================= -->
+
+    <div class="col-lg-8">
+
+        <div class="order-card">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+                <div>
+
+                    <h3 class="mb-2">
+
+                        <i class="bi bi-receipt-cutoff me-2"></i>
+
+                        <?= htmlspecialchars($order['order_number']); ?>
+
+                    </h3>
+
+                    <p class="text-muted mb-0">
+
+                        <i class="bi bi-calendar-event me-2"></i>
+
+                        <?= date("d M Y • h:i A", strtotime($order['ordered_at'])); ?>
+
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <?php
+
+                    $statusColor = "secondary";
+
+                    switch($order['order_status']){
+
+                        case "Pending":
+                            $statusColor = "warning";
+                            break;
+
+                        case "Preparing":
+                            $statusColor = "info";
+                            break;
+
+                        case "Ready":
+                            $statusColor = "primary";
+                            break;
+
+                        case "Out for Delivery":
+                            $statusColor = "dark";
+                            break;
+
+                        case "Completed":
+                            $statusColor = "success";
+                            break;
+
+                        case "Cancelled":
+                            $statusColor = "danger";
+                            break;
+
+                    }
+
+                    ?>
+
+                    <span class="badge bg-<?= $statusColor; ?> px-3 py-2">
+
+                        <?= htmlspecialchars($order['order_status']); ?>
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <h6>
+
+                        <i class="bi bi-person-fill me-2"></i>
+
+                        Customer
+
+                    </h6>
+
+                    <p class="mb-1">
+
+                        <?= htmlspecialchars($order['customer_name']); ?>
+
+                    </p>
+
+                    <small class="text-muted">
+
+                        <?= htmlspecialchars($order['phone']); ?>
+
+                    </small>
+
+                    <br>
+
+                    <small class="text-muted">
+
+                        <?= htmlspecialchars($order['email']); ?>
+
+                    </small>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <h6>
+
+                        <i class="bi bi-geo-alt-fill me-2"></i>
+
+                        Delivery Address
+
+                    </h6>
+
+                    <p class="mb-0">
+
+                        <?= nl2br(htmlspecialchars($order['address'])); ?>
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ================================
+         PAYMENT INFORMATION
+    ================================= -->
+
+    <div class="col-lg-4">
+
+        <div class="payment-card">
+
+            <h5 class="mb-4">
+
+                <i class="bi bi-credit-card-2-front me-2"></i>
+
+                Payment Details
+
+            </h5>
+
+            <div class="payment-row">
+
+                <span>Method</span>
+
+                <strong>
+
+                    <?= htmlspecialchars($order['payment_method']); ?>
+
+                </strong>
+
+            </div>
+
+            <div class="payment-row">
+
+                <span>Payment</span>
+
+                <span class="badge bg-success">
+
+                    <?= htmlspecialchars($order['payment_status']); ?>
+
+                </span>
+
+            </div>
+
+            <div class="payment-row">
+
+                <span>Total Amount</span>
+
+                <strong class="text-success">
+
+                    ₹<?= number_format((float)$order['grand_total'],2); ?>
+
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
