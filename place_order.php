@@ -192,3 +192,105 @@ $tax = round($subtotal * 0.05, 2);
 $delivery = ($subtotal >= 500) ? 0 : 40;
 
 $grandTotal = $subtotal + $tax + $delivery;
+/*=========================================
+START TRANSACTION
+=========================================*/
+
+try {
+
+    $pdo->beginTransaction();
+
+    /*=========================================
+    GENERATE ORDER NUMBER
+    =========================================*/
+
+    $stmt = $pdo->query("
+    SELECT MAX(order_id) AS last_id
+    FROM orders
+    ");
+
+    $lastOrder = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $nextId = ($lastOrder['last_id'] ?? 0) + 1;
+
+    $orderNumber = "TOC-" . str_pad($nextId, 6, "0", STR_PAD_LEFT);
+
+    /*=========================================
+    INSERT ORDER
+    =========================================*/
+
+    $stmt = $pdo->prepare("
+    INSERT INTO orders
+    (
+        order_number,
+        user_id,
+        customer_name,
+        phone,
+        email,
+        address,
+        order_source,
+        order_type,
+        table_id,
+        subtotal,
+        discount,
+        tax,
+        delivery_charge,
+        grand_total,
+        payment_status,
+        order_status,
+        payment_method,
+        notes,
+        ordered_at
+    )
+    VALUES
+    (
+        ?,?,?,?,?,?,
+        ?,?,
+        ?,
+        ?,?,?,?,?,
+        ?,?,?,?,
+        NOW()
+    )
+    ");
+
+    $stmt->execute([
+
+        $orderNumber,
+
+        $user_id,
+
+        $full_name,
+
+        $phone,
+
+        $email,
+
+        $fullAddress,
+
+        "Website",
+
+        "Delivery",
+
+        null,
+
+        $subtotal,
+
+        $discount,
+
+        $tax,
+
+        $delivery_charge,
+
+        $grand_total,
+
+        ($payment_method == "ONLINE") ? "Pending" : "Pending",
+
+        "Pending",
+
+        $payment_method,
+
+        $notes
+
+    ]);
+
+    $order_id = (int)$pdo->lastInsertId();
