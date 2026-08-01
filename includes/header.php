@@ -102,6 +102,10 @@ $page_title = $page_title ?? "Three O' Clock Cafe";
             <link rel="stylesheet" href="assets/css/order.css">
 
       <?php endif; ?>
+      <?php if(basename($_SERVER['PHP_SELF']) == 'order_details.php'): ?>
+
+            <link rel="stylesheet" href="assets/css/order_details.css">
+      <?php endif; ?>
     <!-- Favicon -->
 
    <!-- <link rel="icon" href="assets/images/favicon.png"> -->

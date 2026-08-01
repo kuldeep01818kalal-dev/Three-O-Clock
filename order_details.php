@@ -314,7 +314,9 @@ Track your order and view complete purchase information.
 
                 <span>Payment</span>
 
-                <span class="badge bg-success">
+                <span class="payment-status payment-<?= strtolower($order['payment_status']); ?>">
+
+                    <i class="bi bi-clock-history me-1"></i>
 
                     <?= htmlspecialchars($order['payment_status']); ?>
 
@@ -365,9 +367,9 @@ Track your order and view complete purchase information.
 
                 <?php
 
-                $image = !empty($item['image_name'])
-                    ? "uploads/products/".$item['image_name']
-                    : "assets/images/no-image.png";
+                    $image = !empty($item['image_name'])
+                    ?"assets/images/products/".$item['image_name']
+                    :"assets/images/menu/pizza.jpg";
 
                 ?>
 

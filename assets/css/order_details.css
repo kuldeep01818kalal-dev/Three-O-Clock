@@ -1,0 +1,506 @@
+/*=========================================================
+ORDER DETAILS PAGE
+Three O' Clock Cafe
+=========================================================*/
+
+body{
+    background:#f7f4ee;
+    font-family:'Poppins',sans-serif;
+}
+
+.order-details-section{
+    min-height:100vh;
+    padding:70px 0;
+}
+
+/*=========================================================
+CARDS
+=========================================================*/
+
+.order-card,
+.payment-card,
+.summary-card{
+
+    background:#fff;
+
+    border-radius:22px;
+
+    padding:30px;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.08);
+
+    transition:.35s;
+
+}
+
+.order-card:hover,
+.payment-card:hover,
+.summary-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,.12);
+
+}
+
+/*=========================================================
+SECTION TITLES
+=========================================================*/
+
+.section-title,
+.order-card h4,
+.payment-card h5{
+
+    color:#3b2416;
+
+    font-weight:700;
+
+}
+
+/*=========================================================
+ORDER HEADER
+=========================================================*/
+
+.order-card h3{
+
+    color:#3b2416;
+
+    font-weight:700;
+
+    font-size:28px;
+
+}
+
+.order-card p{
+
+    color:#666;
+
+}
+
+/*=========================================================
+PAYMENT
+=========================================================*/
+
+.payment-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:14px 0;
+
+    border-bottom:1px solid #f1f1f1;
+
+}
+
+.payment-row:last-child{
+
+    border-bottom:none;
+
+}
+
+.payment-row span{
+
+    color:#666;
+
+}
+
+.payment-row strong{
+
+    color:#3b2416;
+
+}
+
+/*=========================================================
+PRODUCT ITEM
+=========================================================*/
+
+.product-item{
+
+    padding:22px 0;
+
+    border-bottom:1px solid #eee;
+
+}
+
+.product-item:last-child{
+
+    border-bottom:none;
+
+}
+
+/*=========================================================
+PRODUCT IMAGE
+=========================================================*/
+
+.product-image{
+
+    width:100px;
+
+    height:100px;
+
+    border-radius:18px;
+
+    object-fit:cover;
+
+    border:3px solid #f3f3f3;
+
+    transition:.35s;
+
+}
+
+.product-image:hover{
+
+    transform:scale(1.05);
+
+}
+
+/*=========================================================
+PRODUCT NAME
+=========================================================*/
+
+.product-name{
+
+    color:#3b2416;
+
+    font-weight:700;
+
+    margin-bottom:8px;
+
+}
+
+/*=========================================================
+QUANTITY BADGE
+=========================================================*/
+
+.qty-badge{
+
+    display:inline-block;
+
+    background:#ffedd5;
+
+    color:#8B4513;
+
+    padding:8px 18px;
+
+    border-radius:30px;
+
+    font-weight:600;
+
+}
+
+/*=========================================================
+ITEM TOTAL
+=========================================================*/
+
+.item-total{
+
+    color:#afbbb5;
+
+    font-weight:700;
+
+}
+
+/*=========================================================
+SUMMARY
+=========================================================*/
+
+.summary-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    padding:12px 0;
+
+    color:#666;
+
+}
+
+.summary-total{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.summary-total h4{
+
+    color:#198754;
+
+    font-weight:700;
+
+}
+
+/*=========================================================
+STATUS BADGE
+=========================================================*/
+
+.badge{
+
+    padding:9px 18px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+/*=========================================================
+ACTION BUTTONS
+=========================================================*/
+
+.btn-dark{
+
+    border:none;
+
+    border-radius:30px;
+
+    padding:10px 24px;
+
+    background:#3b2416;
+
+    transition:.3s;
+
+}
+
+.btn-dark:hover{
+
+    background:#5b3923;
+
+    transform:translateY(-2px);
+
+}
+
+.btn-outline-danger{
+
+    border-radius:30px;
+
+    transition:.3s;
+
+}
+
+.btn-outline-danger:hover{
+
+    transform:translateY(-2px);
+
+}
+
+/*=========================================================
+TIMELINE (For Next Part)
+=========================================================*/
+
+.timeline{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:35px;
+
+}
+
+.timeline-step{
+
+    flex:1;
+
+    text-align:center;
+
+    position:relative;
+
+}
+
+.timeline-step::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:16px;
+
+    left:50%;
+
+    width:100%;
+
+    height:3px;
+
+    background:#ddd;
+
+    z-index:1;
+
+}
+
+.timeline-step:last-child::after{
+
+    display:none;
+
+}
+
+.timeline-circle{
+
+    width:34px;
+
+    height:34px;
+
+    border-radius:50%;
+
+    background:#ddd;
+
+    margin:auto;
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+.timeline-step.active .timeline-circle{
+
+    background:#198754;
+
+}
+
+.timeline-step p{
+
+    margin-top:12px;
+
+    font-size:14px;
+
+    color:#666;
+
+}
+/*=========================================
+PAYMENT STATUS BADGES
+=========================================*/
+
+.payment-status{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    padding:10px 20px;
+
+    border-radius:50px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    border:1px solid transparent;
+
+}
+
+/* Pending */
+
+.payment-pending{
+
+    background:#FFF3CD;
+
+    color:#B7791F;
+
+    border-color:#FFE69C;
+
+}
+
+/* Paid */
+
+.payment-paid{
+
+    background:#D1FAE5;
+
+    color:#047857;
+
+    border-color:#A7F3D0;
+
+}
+
+/* Failed */
+
+.payment-failed{
+
+    background:#FEE2E2;
+
+    color:#DC2626;
+
+    border-color:#FECACA;
+
+}
+
+/* Refunded */
+
+.payment-refunded{
+
+    background:#E0E7FF;
+
+    color:#4338CA;
+
+    border-color:#C7D2FE;
+
+}
+/*=========================================================
+RESPONSIVE
+=========================================================*/
+
+@media(max-width:992px){
+
+.payment-card{
+
+margin-top:20px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.order-card,
+.payment-card,
+.summary-card{
+
+padding:22px;
+
+}
+
+.product-image{
+
+width:80px;
+
+height:80px;
+
+margin-bottom:15px;
+
+}
+
+.item-total{
+
+margin-top:15px;
+
+text-align:left !important;
+
+}
+
+.timeline{
+
+flex-direction:column;
+
+gap:25px;
+
+}
+
+.timeline-step::after{
+
+display:none;
+
+}
+
+}
