@@ -339,3 +339,177 @@ Track your order and view complete purchase information.
     </div>
 
 </div>
+<!-- =========================================
+     ORDER ITEMS
+========================================= -->
+
+<div class="order-card mt-4">
+
+    <h4 class="mb-4">
+
+        <i class="bi bi-bag-fill me-2"></i>
+
+        Ordered Items
+
+    </h4>
+
+    <?php foreach($orderItems as $item): ?>
+
+    <div class="product-item">
+
+        <div class="row align-items-center">
+
+            <!-- Product Image -->
+
+            <div class="col-md-2 col-4">
+
+                <?php
+
+                $image = !empty($item['image_name'])
+                    ? "uploads/products/".$item['image_name']
+                    : "assets/images/no-image.png";
+
+                ?>
+
+                <img
+                    src="<?= $image; ?>"
+                    class="product-image"
+                    alt="<?= htmlspecialchars($item['product_name']); ?>">
+
+            </div>
+
+            <!-- Product Info -->
+
+            <div class="col-md-5 col-8">
+
+                <h5 class="product-name">
+
+                    <?= htmlspecialchars($item['product_name']); ?>
+
+                </h5>
+
+                <p class="text-muted mb-0">
+
+                    ₹<?= number_format((float)$item['unit_price'],2); ?>
+
+                    ×
+
+                    <?= (int)$item['quantity']; ?>
+
+                </p>
+
+            </div>
+
+            <!-- Quantity -->
+
+            <div class="col-md-2 text-center">
+
+                <span class="qty-badge">
+
+                    Qty
+
+                    <?= (int)$item['quantity']; ?>
+
+                </span>
+
+            </div>
+
+            <!-- Total -->
+
+            <div class="col-md-3 text-end">
+
+                <h5 class="item-total">
+
+                    ₹<?= number_format((float)$item['total_price'],2); ?>
+
+                </h5>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <?php endforeach; ?>
+
+</div>
+
+<!-- =========================================
+     BILL SUMMARY
+========================================= -->
+
+<div class="row mt-4">
+
+    <div class="col-lg-5 ms-auto">
+
+        <div class="summary-card">
+
+            <h4 class="mb-4">
+
+                Bill Summary
+
+            </h4>
+
+            <div class="summary-row">
+
+                <span>Subtotal</span>
+
+                <span>
+
+                    ₹<?= number_format((float)$order['subtotal'],2); ?>
+
+                </span>
+
+            </div>
+
+            <div class="summary-row">
+
+                <span>GST</span>
+
+                <span>
+
+                    ₹<?= number_format((float)$order['tax'],2); ?>
+
+                </span>
+
+            </div>
+
+            <div class="summary-row">
+
+                <span>Delivery Charge</span>
+
+                <span>
+
+                    <?=
+                    ((float)$order['delivery_charge'] == 0)
+                    ? "FREE"
+                    : "₹".number_format((float)$order['delivery_charge'],2);
+                    ?>
+
+                </span>
+
+            </div>
+
+            <hr>
+
+            <div class="summary-total">
+
+                <h5>
+
+                    Grand Total
+
+                </h5>
+
+                <h4>
+
+                    ₹<?= number_format((float)$order['grand_total'],2); ?>
+
+                </h4>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
