@@ -1,6 +1,27 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+    
+$cartCount = 0;
+
+if (isset($_SESSION['user_id'])) {
+
+    require_once __DIR__ . "/../config/db.php";
+
+    $stmt = $pdo->prepare("
+        SELECT COALESCE(SUM(quantity),0)
+        FROM cart
+        WHERE user_id = ?
+    ");
+
+    $stmt->execute([
+        $_SESSION['user_id']
+    ]);
+
+    $cartCount = (int)$stmt->fetchColumn();
+
+}
+
 }
 
 $page_title = $page_title ?? "Three O' Clock Cafe";

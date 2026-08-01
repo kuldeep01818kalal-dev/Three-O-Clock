@@ -264,6 +264,8 @@ if (strpos($redirect, 'menu.php') !== false) {
 /*----------------------------------------
 Default Redirect
 ----------------------------------------*/
+$_SESSION['cart_success']="Product added successfully.";
 
-header("Location: cart.php");
+header("Location: product_details.php?id=".$product_id);
+
 exit();

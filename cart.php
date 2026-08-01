@@ -255,15 +255,10 @@ min="1"
 max="<?= $item['stock']; ?>">
 
 <button
-
-type="button"
-
-class="qty-btn"
-
-onclick="increaseQty(this)">
-
-+
-
+    type="button"
+    class="qty-btn"
+    onclick="increaseQty(this)">
+    +
 </button>
 
 </div>

@@ -704,21 +704,20 @@ Save
 <!-- ==========================================
      PURCHASE PANEL
 ========================================== -->
-
 <div class="purchase-card">
 
     <h5 class="quantity-title">
-
         Quantity
-
     </h5>
+
+    <?php if((int)$product['stock'] > 0): ?>
 
     <form action="cart_action.php" method="POST">
 
         <input
             type="hidden"
             name="product_id"
-            value="<?= $product_id; ?>">
+            value="<?= $product['product_id']; ?>">
 
         <div class="quantity-box">
 
@@ -751,61 +750,34 @@ Save
 
             <div class="ms-auto">
 
-                <?php if((int)$product['stock']>0): ?>
+                <span class="text-success fw-semibold">
 
-                    <span class="text-success fw-semibold">
+                    <i class="bi bi-check-circle-fill"></i>
 
-                        <i class="bi bi-check-circle-fill"></i>
+                    <?= (int)$product['stock']; ?> Available
 
-                        <?= (int)$product['stock']; ?>
-
-                        Available
-
-                    </span>
-
-                <?php else: ?>
-
-                    <span class="text-danger fw-semibold">
-
-                        <i class="bi bi-x-circle-fill"></i>
-
-                        Out of Stock
-
-                    </span>
-
-                <?php endif; ?>
+                </span>
 
             </div>
 
         </div>
 
+        <div class="d-grid gap-2 mt-4">
 
-        <?php if((int)$product['stock']>0): ?>
+            <button
+                type="submit"
+                class="btn btn-cart">
 
-           <form action="cart_action.php" method="POST">
+                <i class="bi bi-cart-plus"></i>
 
-    <input type="hidden"
-           name="product_id"
-           value="<?= $product['product_id']; ?>">
+                Add To Cart
 
-    <input type="hidden"
-           name="quantity"
-           id="cartQty"
-           value="1">
+            </button>
 
-    <button type="submit"
-            class="btn btn-cart">
-
-        <i class="bi bi-cart-plus"></i>
-        Add To Cart
-
-    </button>
-
-</form>
             <button
                 type="submit"
                 name="buy_now"
-                class="btn-buy mt-3">
+                class="btn-buy">
 
                 <i class="bi bi-lightning-fill me-2"></i>
 
@@ -813,19 +785,21 @@ Save
 
             </button>
 
-        <?php else: ?>
-
-            <button
-                class="btn btn-secondary w-100"
-                disabled>
-
-                Currently Unavailable
-
-            </button>
-
-        <?php endif; ?>
+        </div>
 
     </form>
+
+    <?php else: ?>
+
+    <button
+        class="btn btn-secondary w-100"
+        disabled>
+
+        Currently Unavailable
+
+    </button>
+
+    <?php endif; ?>
 
 </div>
 
@@ -1259,15 +1233,29 @@ View Details
 
 </a>
 
-<a
-href="cart_action.php?product_id=<?= $item['product_id']; ?>"
-class="btn btn-success">
+<form action="cart_action.php" method="POST">
 
-<i class="bi bi-cart-plus"></i>
+    <input
+        type="hidden"
+        name="product_id"
+        value="<?= $item['product_id']; ?>">
 
-Add To Cart
+    <input
+        type="hidden"
+        name="quantity"
+        value="1">
 
-</a>
+    <button
+        type="submit"
+        class="btn btn-success w-100">
+
+        <i class="bi bi-cart-plus"></i>
+
+        Add To Cart
+
+    </button>
+
+</form>
 
 </div>
 
@@ -1429,23 +1417,33 @@ image.classList.add("active-thumb");
 
 }
 
-function increaseQty(){
+function increaseQty() {
 
-let qty=document.getElementById("quantity");
+    const qty = document.getElementById("quantity");
 
-qty.value=parseInt(qty.value)+1;
+    const max = parseInt(qty.max);
 
-}
+    let value = parseInt(qty.value);
 
-function decreaseQty(){
+    if (value < max) {
 
-let qty=document.getElementById("quantity");
+        qty.value = value + 1;
 
-if(parseInt(qty.value)>1){
-
-qty.value=parseInt(qty.value)-1;
+    }
 
 }
+
+function decreaseQty() {
+
+    const qty = document.getElementById("quantity");
+
+    let value = parseInt(qty.value);
+
+    if (value > 1) {
+
+        qty.value = value - 1;
+
+    }
 
 }
 
