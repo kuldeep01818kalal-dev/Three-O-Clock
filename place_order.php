@@ -340,3 +340,80 @@ foreach ($cartItems as $item) {
     ]);
 
 }
+/*=========================================
+UPDATE PRODUCT STOCK
+=========================================*/
+
+$stockStmt = $pdo->prepare("
+UPDATE products
+SET stock = stock - ?
+WHERE product_id = ?
+");
+
+foreach ($cartItems as $item) {
+
+    $stockStmt->execute([
+
+        $item['quantity'],
+
+        $item['product_id']
+
+    ]);
+
+}
+
+/*=========================================
+CLEAR USER CART
+=========================================*/
+
+$deleteCart = $pdo->prepare("
+DELETE FROM cart
+WHERE user_id = ?
+");
+
+$deleteCart->execute([$user_id]);
+
+/*=========================================
+COMMIT TRANSACTION
+=========================================*/
+
+$pdo->commit();
+
+/*=========================================
+SUCCESS SESSION
+=========================================*/
+
+$_SESSION['last_order_id'] = $order_id;
+
+$_SESSION['order_number'] = $orderNumber;
+
+$_SESSION['success_message'] =
+"Your order has been placed successfully.";
+
+/*=========================================
+REDIRECT
+=========================================*/
+
+header("Location: order_success.php");
+
+exit();
+
+} catch (PDOException $e) {
+
+    if ($pdo->inTransaction()) {
+
+        $pdo->rollBack();
+
+    }
+
+    $_SESSION['checkout_error'] =
+    "Unable to place your order. Please try again.";
+
+    // Uncomment while developing
+    // die($e->getMessage());
+
+    header("Location: checkout.php");
+
+    exit();
+
+}
