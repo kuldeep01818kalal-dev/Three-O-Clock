@@ -724,7 +724,7 @@ Save
             <button
                 type="button"
                 class="qty-btn"
-                onclick="decreaseQty()">
+                onclick="decreaseQty(this)">
 
                 −
 
@@ -742,7 +742,7 @@ Save
             <button
                 type="button"
                 class="qty-btn"
-                onclick="increaseQty()">
+                onclick="increaseQty(this)">
 
                 +
 
@@ -1416,32 +1416,31 @@ item.classList.remove("active-thumb");
 image.classList.add("active-thumb");
 
 }
+function increaseQty(button){
 
-function increaseQty() {
+    let input = button.parentElement.querySelector("input");
 
-    const qty = document.getElementById("quantity");
+    let max = parseInt(input.max);
 
-    const max = parseInt(qty.max);
+    let value = parseInt(input.value);
 
-    let value = parseInt(qty.value);
+    if(value < max){
 
-    if (value < max) {
-
-        qty.value = value + 1;
+        input.value = value + 1;
 
     }
 
 }
 
-function decreaseQty() {
+function decreaseQty(button){
 
-    const qty = document.getElementById("quantity");
+    let input = button.parentElement.querySelector("input");
 
-    let value = parseInt(qty.value);
+    let value = parseInt(input.value);
 
-    if (value > 1) {
+    if(value > 1){
 
-        qty.value = value - 1;
+        input.value = value - 1;
 
     }
 
