@@ -136,3 +136,139 @@ $subtotal +
 $gst +
 
 $delivery;
+/*=========================================
+START TRANSACTION
+=========================================*/
+
+try {
+
+    $pdo->beginTransaction();
+        $stmt = $pdo->prepare("
+    INSERT INTO orders
+    (
+        user_id,
+        customer_name,
+        email,
+        phone,
+        address,
+        landmark,
+        city,
+        pincode,
+        subtotal,
+        gst,
+        delivery_charge,
+        total_amount,
+        payment_method,
+        payment_status,
+        order_status,
+        order_date
+    )
+    VALUES
+    (
+        ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW()
+    )
+    ");
+
+    $stmt->execute([
+
+        $user_id,
+        $full_name,
+        $email,
+        $phone,
+        $address,
+        $landmark,
+        $city,
+        $pincode,
+        $subtotal,
+        $gst,
+        $delivery,
+        $grandTotal,
+        $payment_method,
+        "Pending",
+        "Pending"
+
+    ]);
+
+    $order_id = $pdo->lastInsertId();
+        $itemStmt = $pdo->prepare("
+    INSERT INTO order_items
+    (
+        order_id,
+        product_id,
+        quantity,
+        price,
+        total_price
+    )
+    VALUES
+    (
+        ?,?,?,?,?
+    )
+    ");
+
+    foreach($cartItems as $item){
+
+        $lineTotal =
+            $item['price_after_discount'] *
+            $item['quantity'];
+
+        $itemStmt->execute([
+
+            $order_id,
+
+            $item['product_id'],
+
+            $item['quantity'],
+
+            $item['price_after_discount'],
+
+            $lineTotal
+
+        ]);
+
+    }
+        $stockStmt = $pdo->prepare("
+    UPDATE products
+    SET stock = stock - ?
+    WHERE product_id = ?
+    ");
+
+    foreach($cartItems as $item){
+
+        $stockStmt->execute([
+
+            $item['quantity'],
+
+            $item['product_id']
+
+        ]);
+
+    }
+        $stmt = $pdo->prepare("
+    DELETE FROM cart
+    WHERE user_id = ?
+    ");
+
+    $stmt->execute([$user_id]);
+        $pdo->commit();
+
+    $_SESSION['last_order_id'] = $order_id;
+
+    $_SESSION['order_success'] =
+        "Order placed successfully.";
+
+    header("Location: order_success.php");
+
+    exit();
+
+} catch (Exception $e) {
+
+    $pdo->rollBack();
+
+    $_SESSION['checkout_error'] =
+        "Unable to place order. Please try again.";
+
+    header("Location: checkout.php");
+
+    exit();
+
+}
