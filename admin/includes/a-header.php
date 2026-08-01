@@ -21,6 +21,13 @@ if(session_status()===PHP_SESSION_NONE){
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
 <link rel="stylesheet" href="../assets/css/admin.css">
+<?php
+if(basename($_SERVER['PHP_SELF'])=="a-dashboard.php" || basename($_SERVER['PHP_SELF'])=="a-dashboard.php"){
+?>
+
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+
+<?php } ?>
 
 </head>
 

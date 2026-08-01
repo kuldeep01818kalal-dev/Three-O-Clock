@@ -1,0 +1,384 @@
+/*==================================================
+ADMIN DASHBOARD
+Three O' Clock Cafe
+==================================================*/
+
+body{
+
+    background:#f5f7fb;
+
+    font-family:'Poppins',sans-serif;
+
+}
+
+/*==================================================
+PAGE HEADER
+==================================================*/
+
+.page-header{
+
+    margin-bottom:35px;
+
+}
+
+.page-header h2{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:#2d3748;
+
+    margin-bottom:6px;
+
+}
+
+.page-header p{
+
+    color:#718096;
+
+    margin:0;
+
+}
+
+/*==================================================
+DASHBOARD CARD
+==================================================*/
+
+.dashboard-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    padding:28px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    transition:.35s;
+
+    overflow:hidden;
+
+    position:relative;
+
+}
+
+.dashboard-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 20px 45px rgba(0,0,0,.12);
+
+}
+
+/*==================================================
+CARD ICON
+==================================================*/
+
+.card-icon{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:28px;
+
+    color:#fff;
+
+}
+
+/*==================================================
+CARD INFO
+==================================================*/
+
+.card-info{
+
+    text-align:right;
+
+}
+
+.card-info h3{
+
+    margin:0;
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:#2d3748;
+
+}
+
+.card-info p{
+
+    margin-top:6px;
+
+    color:#718096;
+
+    font-size:15px;
+
+}
+
+/*==================================================
+CARD COLORS
+==================================================*/
+
+.orders-card .card-icon{
+
+    background:#0d6efd;
+
+}
+
+.revenue-card .card-icon{
+
+    background:#198754;
+
+}
+
+.customer-card .card-icon{
+
+    background:#6f42c1;
+
+}
+
+.product-card .card-icon{
+
+    background:#fd7e14;
+
+}
+
+.pending-card .card-icon{
+
+    background:#ffc107;
+
+    color:#212529;
+
+}
+
+.complete-card .card-icon{
+
+    background:#20c997;
+
+}
+
+.today-card .card-icon{
+
+    background:#0dcaf0;
+
+}
+
+.stock-card .card-icon{
+
+    background:#dc3545;
+
+}
+
+/*==================================================
+OVERVIEW CARD
+==================================================*/
+
+.overview-card{
+
+    background:#fff;
+
+    border-radius:20px;
+
+    padding:30px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.overview-card h4{
+
+    font-size:30px;
+
+    color:#2d3748;
+
+    font-weight:700;
+
+}
+
+.overview-card p{
+
+    color:#718096;
+
+    margin:0;
+
+}
+
+/*==================================================
+RECENT TABLE
+==================================================*/
+
+.table-card{
+
+    background:#fff;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+}
+
+.table{
+
+    margin:0;
+
+}
+
+.table thead{
+
+    background:#2d3748;
+
+}
+
+.table thead th{
+
+    color:#fff;
+
+    padding:18px;
+
+    border:none;
+
+    font-weight:600;
+
+}
+
+.table tbody td{
+
+    padding:18px;
+
+    vertical-align:middle;
+
+}
+
+.table tbody tr{
+
+    transition:.3s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#f8f9fa;
+
+}
+
+/*==================================================
+STATUS BADGES
+==================================================*/
+
+.badge{
+
+    padding:8px 16px;
+
+    border-radius:50px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+}
+/*==================================================
+RECENT ORDERS
+==================================================*/
+
+.table-card h4{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#2d3748;
+
+}
+
+.table-card .btn-primary{
+
+    border-radius:30px;
+
+    padding:8px 22px;
+
+    font-weight:600;
+
+}
+
+.table tbody td strong{
+
+    color:#2d3748;
+
+}
+
+.table tbody tr{
+
+    transition:.3s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#f4f7fc;
+
+}
+/*==================================================
+RESPONSIVE
+==================================================*/
+
+@media(max-width:992px){
+
+.dashboard-card{
+
+margin-bottom:20px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.dashboard-card{
+
+flex-direction:column;
+
+text-align:center;
+
+gap:18px;
+
+}
+
+.card-info{
+
+text-align:center;
+
+}
+
+.page-header h2{
+
+font-size:28px;
+
+}
+
+.overview-card .col-md-4{
+
+margin-bottom:20px;
+
+}
+
+}
