@@ -143,3 +143,276 @@ LAYOUT
 require_once "includes/header.php";
 require_once "includes/navbar.php";
 ?>
+<div class="col-lg-8">
+
+<form action="place_order.php" method="POST">
+
+<div class="checkout-card">
+
+<h3 class="section-title">
+
+<i class="bi bi-person-circle me-2"></i>
+
+Customer Details
+
+</h3>
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">Full Name</label>
+
+<input
+type="text"
+name="full_name"
+class="form-control"
+value="<?= htmlspecialchars($user['full_name'] ?? ''); ?>"
+required>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">Email</label>
+
+<input
+type="email"
+name="email"
+class="form-control"
+value="<?= htmlspecialchars($user['email'] ?? ''); ?>"
+required>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">Mobile Number</label>
+
+<input
+type="text"
+name="phone"
+class="form-control"
+value="<?= htmlspecialchars($user['phone'] ?? ''); ?>"
+required>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">Pincode</label>
+
+<input
+type="text"
+name="pincode"
+class="form-control"
+value="<?= htmlspecialchars($user['pincode'] ?? ''); ?>">
+
+</div>
+
+</div>
+
+<h3 class="section-title mt-4">
+
+<i class="bi bi-geo-alt-fill me-2"></i>
+
+Delivery Address
+
+</h3>
+
+<div class="mb-3">
+
+<label class="form-label">Address</label>
+
+<textarea
+name="address"
+class="form-control"
+rows="3"
+required><?= htmlspecialchars($user['address'] ?? ''); ?></textarea>
+
+</div>
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">City</label>
+
+<input
+type="text"
+name="city"
+class="form-control"
+value="<?= htmlspecialchars($user['city'] ?? ''); ?>">
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<label class="form-label">Landmark</label>
+
+<input
+type="text"
+name="landmark"
+class="form-control"
+placeholder="Near School, Temple, Mall, etc.">
+
+</div>
+</div>
+
+<h3 class="section-title mt-4">
+
+<i class="bi bi-credit-card me-2"></i>
+
+Payment Method
+
+</h3>
+
+<div class="payment-option">
+
+<label>
+
+<input
+type="radio"
+name="payment_method"
+value="COD"
+checked>
+
+Cash On Delivery
+
+</label>
+
+</div>
+
+<div class="payment-option">
+
+<label>
+
+<input
+type="radio"
+name="payment_method"
+value="ONLINE">
+
+Online Payment (Razorpay)
+
+</label>
+
+</div>
+
+</div>
+<div class="col-lg-4">
+
+<div class="summary-card">
+
+<h3>
+
+Order Summary
+
+</h3>
+
+<?php foreach($cartItems as $item): ?>
+
+<div class="summary-item">
+
+<div class="d-flex justify-content-between">
+
+<div>
+
+<strong>
+
+<?= htmlspecialchars($item['product_name']); ?>
+
+</strong>
+
+<br>
+
+<small>
+
+Qty : <?= $item['quantity']; ?>
+
+</small>
+
+</div>
+
+<div>
+
+₹<?= number_format($item['item_total'],2); ?>
+
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+<?php endforeach; ?>
+
+<div class="summary-row">
+
+<span>Subtotal</span>
+
+<span>
+
+₹<?= number_format($subtotal,2); ?>
+
+</span>
+
+</div>
+
+<div class="summary-row">
+
+<span>GST (5%)</span>
+
+<span>
+
+₹<?= number_format($gst,2); ?>
+
+</span>
+
+</div>
+
+<div class="summary-row">
+
+<span>Delivery</span>
+
+<span>
+
+<?= $delivery==0 ? "FREE" : "₹".number_format($delivery,2); ?>
+
+</span>
+
+</div>
+
+<hr>
+
+<div class="summary-total">
+
+<h4>
+
+Total
+
+</h4>
+
+<h4>
+
+₹<?= number_format($grandTotal,2); ?>
+
+</h4>
+
+</div>
+
+<button
+type="submit"
+class="btn-place-order">
+
+<i class="bi bi-bag-check-fill me-2"></i>
+
+Place Order
+
+</button>
+
+</div>
+
+</div>
+
+</form>
