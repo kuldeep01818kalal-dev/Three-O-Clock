@@ -146,7 +146,7 @@ Thank you for ordering from
 
 <br>
 
-₹<?= number_format($order['total_amount'],2); ?>
+₹<?= number_format($order['grand_total'],2); ?>
 
 </p>
 

@@ -1,8 +1,5 @@
 <?php
-declare(strict_types=1);
-
 session_start();
-
 require_once "config/db.php";
 
 /*=========================================
@@ -211,9 +208,9 @@ try {
 
     $lastOrder = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $nextId = ($lastOrder['last_id'] ?? 0) + 1;
+    $nextId = (int)($lastOrder['last_id'] ?? 0) + 1;
 
-    $orderNumber = "TOC-" . str_pad($nextId, 6, "0", STR_PAD_LEFT);
+    $orderNumber = sprintf("TOC-%06d", $nextId);
 
     /*=========================================
     INSERT ORDER
@@ -252,7 +249,6 @@ try {
         NOW()
     )
     ");
-
     $stmt->execute([
 
         $orderNumber,
@@ -279,9 +275,9 @@ try {
 
         $tax,
 
-        $delivery_charge,
+        $delivery,
 
-        $grand_total,
+        $grandTotal,
 
         ($payment_method == "ONLINE") ? "Pending" : "Pending",
 
@@ -401,10 +397,27 @@ exit();
 } catch (PDOException $e) {
 
     if ($pdo->inTransaction()) {
-
         $pdo->rollBack();
-
     }
+
+    echo "<h3>Database Error</h3>";
+
+    echo "<strong>Message:</strong><br>";
+    echo $e->getMessage();
+
+    echo "<br><br>";
+
+    echo "<strong>File:</strong><br>";
+    echo $e->getFile();
+
+    echo "<br><br>";
+
+    echo "<strong>Line:</strong><br>";
+    echo $e->getLine();
+
+    exit();
+
+
 
     $_SESSION['checkout_error'] =
     "Unable to place your order. Please try again.";
