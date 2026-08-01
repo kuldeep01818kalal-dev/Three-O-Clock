@@ -130,3 +130,106 @@ if ($product['stock'] < $quantity) {
  * Check Existing Cart Item
  * Insert / Update Quantity
  *******************************************************/
+/*======================================================
+=            CHECK EXISTING CART ITEM
+======================================================*/
+
+$stmt = $pdo->prepare("
+    SELECT
+        cart_id,
+        quantity
+    FROM cart
+    WHERE user_id = ?
+    AND product_id = ?
+    LIMIT 1
+");
+
+$stmt->execute([
+    $user_id,
+    $product_id
+]);
+
+$cartItem = $stmt->fetch(PDO::FETCH_ASSOC);
+
+/*======================================================
+=            PRODUCT ALREADY EXISTS
+======================================================*/
+
+if ($cartItem) {
+
+    $newQuantity = $cartItem['quantity'] + $quantity;
+
+    /*----------------------------------------
+    Check Stock Again
+    ----------------------------------------*/
+
+    if ($newQuantity > $product['stock']) {
+
+        $_SESSION['cart_error'] =
+            "Maximum available stock is {$product['stock']}.";
+
+        header("Location: product_details.php?id=" . $product_id);
+
+        exit();
+
+    }
+
+    /*----------------------------------------
+    Update Quantity
+    ----------------------------------------*/
+
+    $stmt = $pdo->prepare("
+        UPDATE cart
+        SET quantity = ?
+        WHERE cart_id = ?
+    ");
+
+    $stmt->execute([
+        $newQuantity,
+        $cartItem['cart_id']
+    ]);
+
+    $_SESSION['cart_success'] =
+        "Cart updated successfully.";
+
+}
+
+/*======================================================
+=            NEW PRODUCT
+======================================================*/
+
+else {
+
+    $stmt = $pdo->prepare("
+        INSERT INTO cart
+        (
+            user_id,
+            product_id,
+            quantity
+        )
+        VALUES
+        (
+            ?,
+            ?,
+            ?
+        )
+    ");
+
+    $stmt->execute([
+        $user_id,
+        $product_id,
+        $quantity
+    ]);
+
+    $_SESSION['cart_success'] =
+        "Product added to cart.";
+
+}
+
+/*******************************************************
+ * Part 2 Ends Here
+ * Part 3:
+ * Redirect
+ * Success & Error Messages
+ * Cart Count Update
+ *******************************************************/
