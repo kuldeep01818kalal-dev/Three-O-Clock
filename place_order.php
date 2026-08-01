@@ -44,7 +44,6 @@ $landmark = trim($_POST['landmark'] ?? '');
 $pincode = trim($_POST['pincode'] ?? '');
 
 $payment_method = trim($_POST['payment_method'] ?? 'Cash');
-
 $notes = trim($_POST['notes'] ?? '');
 
 /*=========================================
