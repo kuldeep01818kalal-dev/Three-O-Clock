@@ -212,70 +212,49 @@ alt="<?= htmlspecialchars($item['product_name']); ?>">
 
 <div class="col-md-3">
 
-<form
+<form action="update_cart.php" method="POST">
 
-action="update_cart.php"
+    <input
+        type="hidden"
+        name="cart_id"
+        value="<?= $item['cart_id']; ?>">
 
-method="POST">
+    <div class="qty-box">
 
-<input
+        <button
+            type="button"
+            onclick="decreaseQty(this)">
 
-type="hidden"
+            -
 
-name="cart_id"
+        </button>
 
-value="<?= $item['cart_id']; ?>">
+        <input
+            type="number"
+            name="quantity"
+            value="<?= $item['quantity']; ?>"
+            min="1"
+            max="<?= $item['stock']; ?>">
 
-<div class="qty-wrapper">
+        <button
+            type="button"
+            onclick="increaseQty(this)">
 
-<button
+            +
 
-type="button"
+        </button>
 
-class="qty-btn"
+    </div>
 
-onclick="decreaseQty(this)">
+    <button
+        class="btn btn-update"
+        type="submit">
 
-−
+        Update
 
-</button>
-
-<input
-
-type="number"
-
-class="qty-input"
-
-name="quantity"
-
-value="<?= $item['quantity']; ?>"
-
-min="1"
-
-max="<?= $item['stock']; ?>">
-
-<button
-    type="button"
-    class="qty-btn"
-    onclick="increaseQty(this)">
-    +
-</button>
-
-</div>
-
-<button
-
-type="submit"
-
-class="btn btn-sm btn-outline-primary mt-2">
-
-Update
-
-</button>
+    </button>
 
 </form>
-
-</div>
 
 <!-- Total -->
 
@@ -291,22 +270,14 @@ Update
 
 <!-- Remove -->
 
-<div class="col-md-1 text-end">
-
 <a
-
-href="remove_cart.php?id=<?= $item['cart_id']; ?>"
-
-class="btn btn-danger btn-sm"
-
-onclick="return confirm('Remove this product?')">
+href="remove_cart.php?cart_id=<?= $item['cart_id']; ?>"
+class="btn btn-danger"
+onclick="return confirm('Remove this item?')">
 
 <i class="bi bi-trash"></i>
 
 </a>
-
-</div>
-
 </div>
 
 </div>
