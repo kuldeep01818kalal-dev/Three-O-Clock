@@ -22,12 +22,20 @@ if(session_status()===PHP_SESSION_NONE){
 
 <link rel="stylesheet" href="../assets/css/admin.css">
 <?php
-if(basename($_SERVER['PHP_SELF'])=="a-dashboard.php" || basename($_SERVER['PHP_SELF'])=="a-dashboard.php"){
+if(basename($_SERVER['PHP_SELF'])=="a-dashboard.php"|| basename($_SERVER['PHP_SELF'])=="a-dashboard.php"){
 ?>
 
 <link rel="stylesheet" href="../assets/css/dashboard.css">
 
 <?php } ?>
+<?php
+if(basename($_SERVER['PHP_SELF'])=="customer_details.php"|| basename($_SERVER['PHP_SELF'])=="customer_details.php"){
+?>
+
+<link rel="stylesheet" href="../assets/css/dashboard.css">
+
+<?php } ?>
+
 
 </head>
 

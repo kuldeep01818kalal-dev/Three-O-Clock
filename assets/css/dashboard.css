@@ -598,6 +598,249 @@ padding:18px 24px;
 
 }
 /*==================================================
+CUSTOMER DETAILS
+==================================================*/
+
+.customer-page{
+
+    padding:30px;
+
+}
+
+/* Cards */
+
+.card{
+
+    border:none;
+
+    border-radius:18px;
+
+    overflow:hidden;
+
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+    margin-bottom:30px;
+
+}
+
+/* Header */
+
+.card-header{
+
+    background:linear-gradient(135deg,#6f4e37,#8b5e3c);
+
+    color:#fff;
+
+    padding:18px 25px;
+
+    border:none;
+
+}
+
+.card-header h5{
+
+    margin:0;
+
+    font-size:20px;
+
+    font-weight:700;
+
+}
+
+/* Body */
+
+.card-body{
+
+    padding:30px;
+
+}
+
+/* Labels */
+
+.card-body strong{
+
+    display:block;
+
+    color:#6f4e37;
+
+    margin-bottom:8px;
+
+    font-size:15px;
+
+}
+
+.card-body p{
+
+    color:#555;
+
+    margin-bottom:25px;
+
+    font-size:15px;
+
+}
+
+/* Table */
+
+.table{
+
+    margin-bottom:0;
+
+}
+
+.table thead{
+
+    background:#f8f5f2;
+
+}
+
+.table thead th{
+
+    border:none;
+
+    color:#6f4e37;
+
+    font-size:14px;
+
+    font-weight:700;
+
+    padding:16px;
+
+}
+
+.table tbody td{
+
+    padding:18px 16px;
+
+    vertical-align:middle;
+
+    border-top:1px solid #eee;
+
+}
+
+.table tbody tr{
+
+    transition:.3s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#faf7f3;
+
+}
+
+/* Status Badge */
+
+.badge{
+
+    padding:8px 18px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+}
+
+/* Pending */
+
+.bg-primary{
+
+    background:#6f4e37 !important;
+
+    color:#e8edf1 !important;
+
+}
+
+/* View Button */
+
+.btn-dark{
+
+    width:42px;
+
+    height:42px;
+
+    border-radius:12px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:#6f4e37;
+
+    border:none;
+
+}
+
+.btn-dark:hover{
+
+    background:#523829;
+
+}
+
+/* Back Button */
+
+.btn-secondary{
+
+    background:#6f4e37;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px 28px;
+
+    font-weight:600;
+
+}
+
+.btn-secondary:hover{
+
+    background:#523829;
+
+}
+
+/* Customer Information */
+
+.customer-info{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:30px;
+
+}
+
+.customer-info div{
+
+    padding-bottom:15px;
+
+    border-bottom:1px dashed #ddd;
+
+}
+
+/* Responsive */
+
+@media(max-width:768px){
+
+.customer-info{
+
+grid-template-columns:1fr;
+
+}
+
+.table{
+
+font-size:13px;
+
+}
+
+}
+/*==================================================
 RESPONSIVE
 ==================================================*/
 
