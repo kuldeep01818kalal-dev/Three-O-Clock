@@ -493,6 +493,39 @@ ORDERS TABLE
     font-size:12px;
 
 }
+/*=========================================
+UPDATE ORDER
+=========================================*/
+
+.form-select{
+
+height:52px;
+
+border-radius:12px;
+
+font-weight:500;
+
+}
+
+.btn-success{
+
+padding:12px 30px;
+
+border-radius:10px;
+
+font-weight:600;
+
+}
+
+.btn-secondary{
+
+padding:12px 30px;
+
+border-radius:10px;
+
+margin-left:10px;
+
+}
 /*==================================================
 RESPONSIVE
 ==================================================*/
