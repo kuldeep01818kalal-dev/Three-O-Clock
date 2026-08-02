@@ -139,7 +139,7 @@ include "includes/a-navbar.php";
 
 <h6>Total Revenue</h6>
 
-<h2>₹<?= number_format($totalRevenue,2); ?></h2>
+<?= number_format((float)$totalRevenue, 2); ?>
 
 </div>
 
