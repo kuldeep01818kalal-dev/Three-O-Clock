@@ -21,22 +21,27 @@ if(session_status()===PHP_SESSION_NONE){
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
 <link rel="stylesheet" href="../assets/css/admin.css">
+<link rel="stylesheet" href="../assets/css/admin/a-dashboard.css">
 <?php
-if(basename($_SERVER['PHP_SELF'])=="a-dashboard.php"|| basename($_SERVER['PHP_SELF'])=="a-dashboard.php"){
+
+$currentPage = basename($_SERVER['PHP_SELF']);
+
+if(
+    in_array($currentPage,[
+        'a-dashboard.php',
+        'customer_details.php',
+        'kitchen.php',
+        'orders.php',
+        'view_order.php',
+        'edit_order.php'
+    ])
+){
+
 ?>
 
 <link rel="stylesheet" href="../assets/css/dashboard.css">
 
 <?php } ?>
-<?php
-if(basename($_SERVER['PHP_SELF'])=="customer_details.php"|| basename($_SERVER['PHP_SELF'])=="customer_details.php"){
-?>
-
-<link rel="stylesheet" href="../assets/css/dashboard.css">
-
-<?php } ?>
-
-
 </head>
 
 <body>

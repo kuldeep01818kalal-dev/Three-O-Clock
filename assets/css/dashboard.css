@@ -822,7 +822,222 @@ CUSTOMER DETAILS
     border-bottom:1px dashed #ddd;
 
 }
+/*=========================================
+KITCHEN DASHBOARD
+=========================================*/
 
+.dashboard-card{
+
+background:#fff;
+
+border-radius:16px;
+
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+transition:.3s;
+
+}
+
+.dashboard-card:hover{
+
+transform:translateY(-4px);
+
+}
+
+.dashboard-card .card-body{
+
+padding:22px;
+
+}
+
+.dashboard-card h3{
+
+font-size:34px;
+
+font-weight:700;
+
+margin-bottom:5px;
+
+}
+
+.dashboard-card p{
+
+margin:0;
+
+color:#666;
+
+font-weight:500;
+
+}
+
+.card{
+
+border-radius:16px;
+
+}
+/*=========================================
+KITCHEN CARDS
+=========================================*/
+
+.kitchen-card{
+
+background:#fff;
+
+border-radius:20px;
+
+padding:22px;
+
+box-shadow:0 12px 30px rgba(0,0,0,.08);
+
+transition:.35s;
+
+height:100%;
+
+}
+
+.kitchen-card:hover{
+
+transform:translateY(-6px);
+
+}
+
+.pending-card{
+
+border-left:8px solid #ffc107;
+
+}
+
+.preparing-card{
+
+border-left:8px solid #0dcaf0;
+
+}
+
+.ready-card{
+
+border-left:8px solid #198754;
+
+}
+
+.completed-card{
+
+border-left:8px solid #6c757d;
+
+}
+
+.kitchen-header{
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+}
+
+.kitchen-header h4{
+
+margin:0;
+
+font-size:22px;
+
+font-weight:700;
+
+}
+
+.status-badge{
+
+background:#f8f9fa;
+
+padding:8px 16px;
+
+border-radius:30px;
+
+font-size:13px;
+
+font-weight:600;
+
+}
+
+.customer-info{
+
+display:flex;
+
+justify-content:space-between;
+
+margin-bottom:20px;
+
+}
+
+.order-info{
+
+display:flex;
+
+justify-content:space-between;
+
+margin-bottom:20px;
+
+}
+
+.item-list{
+
+list-style:none;
+
+padding:0;
+
+margin:0 0 20px;
+
+}
+
+.item-list li{
+
+display:flex;
+
+justify-content:space-between;
+
+padding:10px 0;
+
+border-bottom:1px dashed #ddd;
+
+}
+
+.notes-box{
+
+background:#fff8e1;
+
+padding:15px;
+
+border-radius:12px;
+
+margin-bottom:20px;
+
+}
+
+.price-row{
+
+text-align:right;
+
+margin-bottom:20px;
+
+}
+
+.price-row h4{
+
+font-weight:700;
+
+color:#198754;
+
+}
+
+.kitchen-actions .btn{
+
+border-radius:12px;
+
+padding:12px;
+
+font-weight:600;
+
+}
 /* Responsive */
 
 @media(max-width:768px){
