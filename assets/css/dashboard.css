@@ -395,6 +395,105 @@ SEARCH FILTER
 
 }
 /*==================================================
+ORDERS TABLE
+==================================================*/
+
+.table-card{
+
+    background:#fff;
+
+    border-radius:18px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    overflow:hidden;
+
+}
+
+.table-card h4{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#2d3748;
+
+}
+
+.table thead{
+
+    background:#2d3748;
+
+}
+
+.table thead th{
+
+    color:#fff;
+
+    border:none;
+
+    padding:18px;
+
+    font-size:14px;
+
+    letter-spacing:.5px;
+
+}
+
+.table tbody td{
+
+    padding:18px;
+
+    vertical-align:middle;
+
+}
+
+.table tbody tr{
+
+    transition:.3s;
+
+}
+
+.table tbody tr:hover{
+
+    background:#f8fafc;
+
+}
+
+.table strong{
+
+    color:#2d3748;
+
+}
+
+.btn-sm{
+
+    width:38px;
+
+    height:38px;
+
+    display:inline-flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border-radius:10px;
+
+    margin:0 2px;
+
+}
+
+.badge{
+
+    padding:8px 14px;
+
+    border-radius:30px;
+
+    font-size:12px;
+
+}
+/*==================================================
 RESPONSIVE
 ==================================================*/
 

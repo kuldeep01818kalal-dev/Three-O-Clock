@@ -251,3 +251,232 @@ Manage customer orders and update their status.
     </div>
 
 </div>
+<!-- =========================================
+     ORDERS TABLE
+========================================= -->
+
+<div class="table-card">
+
+    <div class="d-flex justify-content-between align-items-center p-4">
+
+        <h4 class="mb-0">
+
+            <i class="bi bi-list-check me-2"></i>
+
+            All Orders
+
+        </h4>
+
+        <span class="badge bg-primary fs-6">
+
+            <?= count($orders); ?> Orders
+
+        </span>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table align-middle table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Order No.</th>
+
+                    <th>Customer</th>
+
+                    <th>Phone</th>
+
+                    <th>Total</th>
+
+                    <th>Payment</th>
+
+                    <th>Status</th>
+
+                    <th>Date</th>
+
+                    <th class="text-center">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            <?php if(empty($orders)): ?>
+
+                <tr>
+
+                    <td colspan="8" class="text-center py-5">
+
+                        <i class="bi bi-inbox display-6 text-muted"></i>
+
+                        <p class="mt-3 mb-0">
+
+                            No orders found.
+
+                        </p>
+
+                    </td>
+
+                </tr>
+
+            <?php else: ?>
+
+                <?php foreach($orders as $order): ?>
+
+                <?php
+
+                $statusColor = "secondary";
+
+                switch($order['order_status']){
+
+                    case "Pending":
+                        $statusColor="warning";
+                        break;
+
+                    case "Preparing":
+                        $statusColor="info";
+                        break;
+
+                    case "Ready":
+                        $statusColor="primary";
+                        break;
+
+                    case "Out for Delivery":
+                        $statusColor="dark";
+                        break;
+
+                    case "Completed":
+                        $statusColor="success";
+                        break;
+
+                    case "Cancelled":
+                        $statusColor="danger";
+                        break;
+
+                }
+
+                ?>
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+
+                            <?= htmlspecialchars($order['order_number']); ?>
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        <?= htmlspecialchars($order['customer_name']); ?>
+
+                    </td>
+
+                    <td>
+
+                        <?= htmlspecialchars($order['phone']); ?>
+
+                    </td>
+
+                    <td>
+
+                        <strong class="text-success">
+
+                            ₹<?= number_format((float)$order['grand_total'],2); ?>
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        <?php if($order['payment_method']=="Cash"): ?>
+
+                            <span class="badge bg-success">
+
+                                <i class="bi bi-cash-stack me-1"></i>
+
+                                Cash
+
+                            </span>
+
+                        <?php elseif($order['payment_method']=="Razorpay"): ?>
+
+                            <span class="badge bg-primary">
+
+                                <i class="bi bi-credit-card me-1"></i>
+
+                                Razorpay
+
+                            </span>
+
+                        <?php else: ?>
+
+                            <span class="badge bg-secondary">
+
+                                <?= htmlspecialchars($order['payment_method']); ?>
+
+                            </span>
+
+                        <?php endif; ?>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-<?= $statusColor; ?>">
+
+                            <?= htmlspecialchars($order['order_status']); ?>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <?= date("d M Y", strtotime($order['ordered_at'])); ?>
+
+                    </td>
+
+                    <td class="text-center">
+
+                        <a
+                            href="view_order.php?id=<?= $order['order_id']; ?>"
+                            class="btn btn-sm btn-dark"
+                            title="View">
+
+                            <i class="bi bi-eye-fill"></i>
+
+                        </a>
+
+                        <a
+                            href="edit_order.php?id=<?= $order['order_id']; ?>"
+                            class="btn btn-sm btn-warning"
+                            title="Update">
+
+                            <i class="bi bi-pencil-fill"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                <?php endforeach; ?>
+
+            <?php endif; ?>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
