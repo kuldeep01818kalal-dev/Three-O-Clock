@@ -97,3 +97,91 @@ include "includes/a-header.php";
 include "includes/a-sidebar.php";
 include "includes/a-navbar.php";
 ?>
+<div class="row mb-4">
+
+<div class="col-lg-4">
+
+<div class="card shadow-sm border-0">
+
+<div class="card-body">
+
+<h6>Total Customers</h6>
+
+<h2><?= $totalCustomers; ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-4">
+
+<div class="card shadow-sm border-0">
+
+<div class="card-body">
+
+<h6>Total Orders</h6>
+
+<h2><?= $totalOrders; ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-lg-4">
+
+<div class="card shadow-sm border-0">
+
+<div class="card-body">
+
+<h6>Total Revenue</h6>
+
+<h2>₹<?= number_format($totalRevenue,2); ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="card shadow-sm border-0 mb-4">
+
+<div class="card-body">
+
+<form method="GET">
+
+<div class="row">
+
+<div class="col-lg-10">
+
+<input
+type="text"
+name="search"
+class="form-control"
+placeholder="Search customer..."
+
+value="<?= htmlspecialchars($search); ?>">
+
+</div>
+
+<div class="col-lg-2 d-grid">
+
+<button class="btn btn-primary">
+
+Search
+
+</button>
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
