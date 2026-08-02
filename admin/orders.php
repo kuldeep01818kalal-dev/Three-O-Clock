@@ -95,8 +95,8 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 LAYOUT
 =========================================*/
 
-require_once "includes/header.php";
-require_once "includes/sidebar.php";
+require_once "includes/a-header.php";
+require_once "includes/a-sidebar.php";
 ?>
 
 <div class="admin-content">
