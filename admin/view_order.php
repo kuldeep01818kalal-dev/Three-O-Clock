@@ -135,7 +135,11 @@ Order Information
 
 <strong>Order Number</strong>
 
-<p><?= htmlspecialchars($order['order_number']); ?></p>
+<p>
+
+<?= htmlspecialchars($order['order_number']); ?>
+
+</p>
 
 </div>
 
@@ -153,7 +157,7 @@ Order Information
 
 <div class="col-md-6 mb-3">
 
-<strong>Customer</strong>
+<strong>Customer Name</strong>
 
 <p>
 
@@ -165,7 +169,7 @@ Order Information
 
 <div class="col-md-6 mb-3">
 
-<strong>Phone</strong>
+<strong>Mobile Number</strong>
 
 <p>
 
@@ -175,9 +179,9 @@ Order Information
 
 </div>
 
-<div class="col-md-6">
+<div class="col-md-6 mb-3">
 
-<strong>Email</strong>
+<strong>Email Address</strong>
 
 <p>
 
@@ -187,9 +191,9 @@ Order Information
 
 </div>
 
-<div class="col-md-6">
+<div class="col-md-6 mb-3">
 
-<strong>Payment</strong>
+<strong>Payment Method</strong>
 
 <p>
 
@@ -198,6 +202,152 @@ Order Information
 </p>
 
 </div>
+
+<div class="col-md-6 mb-3">
+
+<strong>Order Source</strong>
+
+<p>
+
+<?php
+
+switch($order['order_source']){
+
+    case "Website":
+
+        echo '<span class="badge bg-primary">
+
+        🌐 Website
+
+        </span>';
+
+        break;
+
+    case "Walk-In":
+
+        echo '<span class="badge bg-success">
+
+        🚶 Walk-In
+
+        </span>';
+
+        break;
+
+    case "Swiggy":
+
+        echo '<span class="badge bg-warning text-dark">
+
+        🟠 Swiggy
+
+        </span>';
+
+        break;
+
+    case "Zomato":
+
+        echo '<span class="badge bg-danger">
+
+        🟥 Zomato
+
+        </span>';
+
+        break;
+
+    default:
+
+        echo '<span class="badge bg-secondary">
+
+        Unknown
+
+        </span>';
+
+}
+
+?>
+
+</p>
+
+</div>
+
+<div class="col-md-6 mb-3">
+
+<strong>Order Type</strong>
+
+<p>
+
+<?php
+
+switch($order['order_type']){
+
+    case "Delivery":
+
+        echo '<span class="badge bg-info">
+
+        🚚 Delivery
+
+        </span>';
+
+        break;
+
+    case "Takeaway":
+
+        echo '<span class="badge bg-dark">
+
+        🥡 Takeaway
+
+        </span>';
+
+        break;
+
+    case "Dine-In":
+
+        echo '<span class="badge bg-success">
+
+        🍽 Dine-In
+
+        </span>';
+
+        break;
+
+    default:
+
+        echo "-";
+
+}
+
+?>
+
+</p>
+
+</div>
+
+<div class="col-12">
+
+<strong>Delivery Address</strong>
+
+<p>
+
+<?= nl2br(htmlspecialchars($order['address'])); ?>
+
+</p>
+
+</div>
+
+<?php if(!empty($order['notes'])): ?>
+
+<div class="col-12">
+
+<strong>Customer Notes</strong>
+
+<div class="alert alert-warning mb-0">
+
+<?= nl2br(htmlspecialchars($order['notes'])); ?>
+
+</div>
+
+</div>
+
+<?php endif; ?>
 
 </div>
 
@@ -232,15 +382,59 @@ Status
 
 <p>
 
+<p>
+
+<strong>Payment Method</strong>
+
+</p>
+
+<p>
+
+<?= htmlspecialchars($order['payment_method']); ?>
+
+</p>
+
+<hr>
+
+<p>
+
 <strong>Payment Status</strong>
 
 </p>
 
-<span class="badge bg-success">
+<?php
+
+$paymentColor="warning";
+
+if($order['payment_status']=="Paid"){
+
+    $paymentColor="success";
+
+}
+
+elseif($order['payment_status']=="Failed"){
+
+    $paymentColor="danger";
+
+}
+
+elseif($order['payment_status']=="Refunded"){
+
+    $paymentColor="primary";
+
+}
+
+?>
+
+<span class="badge bg-<?= $paymentColor; ?>">
 
 <?= htmlspecialchars($order['payment_status']); ?>
 
 </span>
+
+</p>
+
+
 
 <hr>
 
@@ -358,6 +552,87 @@ style="width:70px;height:70px;object-fit:cover;border-radius:10px;">
 <?php endforeach; ?>
 
 </tbody>
+
+</table>
+
+</div>
+
+</div>
+<div class="table-card mt-4">
+
+<div class="p-4">
+
+<h4>
+
+Bill Summary
+
+</h4>
+
+<table class="table">
+
+<tr>
+
+<th>Subtotal</th>
+
+<td class="text-end">
+
+₹<?= number_format((float)$order['subtotal'],2); ?>
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Discount</th>
+
+<td class="text-end text-danger">
+
+- ₹<?= number_format((float)$order['discount'],2); ?>
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>GST</th>
+
+<td class="text-end">
+
+₹<?= number_format((float)$order['tax'],2); ?>
+
+</td>
+
+</tr>
+
+<tr>
+
+<th>Delivery Charge</th>
+
+<td class="text-end">
+
+₹<?= number_format((float)$order['delivery_charge'],2); ?>
+
+</td>
+
+</tr>
+
+<tr class="table-success">
+
+<th>
+
+Grand Total
+
+</th>
+
+<th class="text-end">
+
+₹<?= number_format((float)$order['grand_total'],2); ?>
+
+</th>
+
+</tr>
 
 </table>
 
