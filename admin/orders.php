@@ -29,15 +29,23 @@ $status = trim($_GET['status'] ?? '');
 $sql = "
 SELECT
 
-order_id,
-order_number,
-customer_name,
-phone,
-grand_total,
-payment_method,
-payment_status,
-order_status,
-ordered_at
+    order_id,
+    order_number,
+
+    customer_name,
+    phone,
+
+    order_source,
+    order_type,
+
+    grand_total,
+
+    payment_method,
+    payment_status,
+
+    order_status,
+
+    ordered_at
 
 FROM orders
 
@@ -284,21 +292,15 @@ Manage customer orders and update their status.
                 <tr>
 
                     <th>Order No.</th>
-
                     <th>Customer</th>
-
                     <th>Phone</th>
-
+                    <th>Source</th>
+                    <th>Type</th>
                     <th>Total</th>
-
                     <th>Payment</th>
-
                     <th>Status</th>
-
                     <th>Date</th>
-
                     <th class="text-center">Action</th>
-
                 </tr>
 
             </thead>
@@ -309,7 +311,7 @@ Manage customer orders and update their status.
 
                 <tr>
 
-                    <td colspan="8" class="text-center py-5">
+                    <td colspan="10" class="text-center py-5">
 
                         <i class="bi bi-inbox display-6 text-muted"></i>
 
@@ -384,7 +386,96 @@ Manage customer orders and update their status.
                         <?= htmlspecialchars($order['phone']); ?>
 
                     </td>
+                     <td>
 
+<?php
+
+switch($order['order_source']){
+
+    case "Website":
+
+        echo '<span class="badge bg-primary-subtle text-primary border border-primary">
+        🌐 Website
+        </span>';
+
+        break;
+
+    case "Walk-In":
+
+        echo '<span class="badge bg-success-subtle text-success border border-success">
+        🚶 Walk-In
+        </span>';
+
+        break;
+
+    case "Swiggy":
+
+        echo '<span class="badge bg-warning-subtle text-dark border border-warning">
+        🟠 Swiggy
+        </span>';
+
+        break;
+
+    case "Zomato":
+
+        echo '<span class="badge bg-danger-subtle text-danger border border-danger">
+        🟥 Zomato
+        </span>';
+
+        break;
+
+    default:
+
+        echo '<span class="badge bg-secondary">
+        Unknown
+        </span>';
+
+}
+
+?>
+
+</td>       
+<td>
+
+<?php
+
+switch($order['order_type']){
+
+    case "Delivery":
+
+        echo '<span class="badge bg-info">
+        🚚 Delivery
+        </span>';
+
+        break;
+
+    case "Takeaway":
+
+        echo '<span class="badge bg-dark">
+        🥡 Takeaway
+        </span>';
+
+        break;
+
+    case "Dine-In":
+
+        echo '<span class="badge bg-success">
+        🍽 Dine-In
+        </span>';
+
+        break;
+
+    default:
+
+        echo '<span class="badge bg-secondary">
+        -
+        </span>';
+
+}
+
+?>
+
+</td>
                     <td>
 
                         <strong class="text-success">
