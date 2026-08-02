@@ -185,3 +185,208 @@ Search
 </div>
 
 </div>
+<!-- ==========================================
+     CUSTOMERS TABLE
+========================================== -->
+
+<div class="card shadow border-0">
+
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+
+            <i class="bi bi-people-fill me-2"></i>
+
+            Customer Management
+
+        </h5>
+
+        <span class="badge bg-light text-dark">
+
+            <?= count($customers); ?> Customers
+
+        </span>
+
+    </div>
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                <tr>
+
+                    <th width="70">#</th>
+
+                    <th width="80">Avatar</th>
+
+                    <th>Name</th>
+
+                    <th>Email</th>
+
+                    <th>Phone</th>
+
+                    <th>Total Orders</th>
+
+                    <th>Total Spent</th>
+
+                    <th>Joined</th>
+
+                    <th class="text-center" width="150">
+
+                        Actions
+
+                    </th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <?php if(count($customers)>0): ?>
+
+                <?php
+
+                $sr = 1;
+
+                foreach($customers as $customer):
+
+                ?>
+
+                <tr>
+
+                    <td>
+
+                        <?= $sr++; ?>
+
+                    </td>
+
+                    <td>
+
+                        <div class="customer-avatar">
+
+                            <?= strtoupper(substr($customer['full_name'],0,1)); ?>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <strong>
+
+                            <?= htmlspecialchars($customer['full_name']); ?>
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        <?= htmlspecialchars($customer['email']); ?>
+
+                    </td>
+
+                    <td>
+
+                        <?= htmlspecialchars($customer['phone']); ?>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-primary">
+
+                            <?= (int)$customer['total_orders']; ?>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <strong class="text-success">
+
+                            ₹<?= number_format((float)$customer['total_spent'],2); ?>
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        <?php
+
+                        if(!empty($customer['created_at'])){
+
+                            echo date("d M Y",strtotime($customer['created_at']));
+
+                        }else{
+
+                            echo "-";
+
+                        }
+
+                        ?>
+
+                    </td>
+
+                    <td class="text-center">
+
+                        <a
+                        href="customer_details.php?id=<?= $customer['user_id']; ?>"
+                        class="btn btn-sm btn-info text-white"
+                        title="View">
+
+                            <i class="bi bi-eye-fill"></i>
+
+                        </a>
+
+                        <a
+                        href="customer_orders.php?id=<?= $customer['user_id']; ?>"
+                        class="btn btn-sm btn-success"
+                        title="Orders">
+
+                            <i class="bi bi-bag-check-fill"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                <?php endforeach; ?>
+
+                <?php else: ?>
+
+                <tr>
+
+                    <td colspan="9" class="text-center py-5">
+
+                        <i class="bi bi-people display-5 text-muted"></i>
+
+                        <h5 class="mt-3">
+
+                            No Customers Found
+
+                        </h5>
+
+                    </td>
+
+                </tr>
+
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
