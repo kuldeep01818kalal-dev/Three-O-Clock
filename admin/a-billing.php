@@ -29,20 +29,23 @@ FETCH PRODUCTS
 
 $stmt = $pdo->query("
 SELECT
+p.product_id,
+p.product_name,
+p.price,
+p.discount_percent,
+p.stock,
+p.category_id,
+pi.image_name
 
-product_id,
-product_name,
-price,
-discount_percent,
-stock,
+FROM products p
 
-category_id
+LEFT JOIN product_images pi
+ON p.product_id = pi.product_id
+AND pi.is_primary = 1
 
-FROM products
+WHERE p.status='Active'
 
-WHERE status='Active'
-
-ORDER BY product_name
+ORDER BY p.product_name
 ");
 
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -176,15 +179,19 @@ if($discount > 0){
 ?>
 
 <div
-class="col-lg-4 col-md-6 product-card"
+class="col-xl-3 col-lg-4 col-md-6 mb-4 product-card"
 
 data-name="<?= strtolower($product['product_name']); ?>"
 
 data-category="<?= $product['category_id']; ?>">
 
-<div class="card h-100 product-item shadow-sm">
 
-<div class="card-body text-center">
+
+<div class="card product-card-new shadow-sm">
+
+
+
+<div class="card-body">
 
 <h6>
 
@@ -192,28 +199,37 @@ data-category="<?= $product['category_id']; ?>">
 
 </h6>
 
+<div class="price-area">
+
 <?php if($discount>0): ?>
 
-<small class="text-decoration-line-through text-muted">
+<small class="old-price">
 
 ₹<?= number_format($price,2); ?>
 
 </small>
 
-<br>
-
 <?php endif; ?>
 
-<h5 class="text-success">
+<h5>
 
 ₹<?= number_format($finalPrice,2); ?>
 
 </h5>
 
-<?php if($product['stock']>0): ?>
+</div>
+
+<div class="stock">
+
+Stock :
+
+<?= (int)$product['stock']; ?>
+
+</div>
 
 <button
-class="btn btn-success btn-sm mt-2 addToCart"
+
+class="btn btn-success w-100 mt-3 addToCart"
 
 data-id="<?= $product['product_id']; ?>"
 
@@ -221,23 +237,11 @@ data-name="<?= htmlspecialchars($product['product_name']); ?>"
 
 data-price="<?= $finalPrice; ?>">
 
-<i class="bi bi-plus-circle"></i>
+<i class="bi bi-plus-circle-fill"></i>
 
-Add
-
-</button>
-
-<?php else: ?>
-
-<button
-class="btn btn-secondary btn-sm mt-2"
-disabled>
-
-Out of Stock
+Add to Bill
 
 </button>
-
-<?php endif; ?>
 
 </div>
 
@@ -277,7 +281,7 @@ Current Bill
 
 <div id="cartItems">
 
-<div class="text-center text-muted py-5">
+<div class="empty-cart text-center text-muted py-5">
 
 <i class="bi bi-cart-x display-4"></i>
 
@@ -500,6 +504,193 @@ this.value==="Dine-In"
 "none";
 
 });
+</script>
+<script>
+
+let cart = {};
+
+const gstRate = 5;
+
+function renderCart(){
+
+const cartBox = document.getElementById("cartItems");
+
+let html = "";
+
+let subtotal = 0;
+
+let count = 0;
+
+for(const id in cart){
+
+count++;
+
+const item = cart[id];
+
+subtotal += item.price * item.qty;
+
+html += `
+
+<div class="cart-item mb-3">
+
+<div class="d-flex justify-content-between">
+
+<div>
+
+<strong>${item.name}</strong>
+
+<br>
+
+<small>₹${item.price.toFixed(2)}</small>
+
+</div>
+
+<div class="text-end">
+
+<div class="btn-group">
+
+<button class="btn btn-sm btn-outline-secondary"
+
+onclick="changeQty(${id},-1)">
+
+-
+
+</button>
+
+<button class="btn btn-sm btn-light">
+
+${item.qty}
+
+</button>
+
+<button class="btn btn-sm btn-outline-secondary"
+
+onclick="changeQty(${id},1)">
+
++
+
+</button>
+
+</div>
+
+<br>
+
+<button
+
+class="btn btn-link text-danger p-0 mt-2"
+
+onclick="removeItem(${id})">
+
+Remove
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+if(count===0){
+
+html = `
+
+<div class="empty-cart text-center text-muted py-5">
+
+<i class="bi bi-cart-x display-4"></i>
+
+<p class="mt-3">
+
+No Products Added
+
+</p>
+
+</div>
+
+`;
+
+}
+
+cartBox.innerHTML = html;
+
+const gst = subtotal * gstRate / 100;
+
+const total = subtotal + gst;
+
+document.getElementById("subtotal").innerHTML =
+
+"₹"+subtotal.toFixed(2);
+
+document.getElementById("gst").innerHTML =
+
+"₹"+gst.toFixed(2);
+
+document.getElementById("grandTotal").innerHTML =
+
+"₹"+total.toFixed(2);
+
+}
+
+document.querySelectorAll(".addToCart").forEach(btn=>{
+
+btn.addEventListener("click",function(){
+
+const id = this.dataset.id;
+
+const name = this.dataset.name;
+
+const price = parseFloat(this.dataset.price);
+
+if(cart[id]){
+
+cart[id].qty++;
+
+}else{
+
+cart[id]={
+
+name:name,
+
+price:price,
+
+qty:1
+
+};
+
+}
+
+renderCart();
+
+});
+
+});
+
+function changeQty(id,value){
+
+cart[id].qty += value;
+
+if(cart[id].qty<=0){
+
+delete cart[id];
+
+}
+
+renderCart();
+
+}
+
+function removeItem(id){
+
+delete cart[id];
+
+renderCart();
+
+}
+
 </script>
 
 <?php require_once "includes/a-footer.php"; ?>

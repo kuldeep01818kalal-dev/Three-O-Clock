@@ -1038,6 +1038,134 @@ padding:12px;
 font-weight:600;
 
 }
+/*==============================
+POS PRODUCT CARD
+==============================*/
+
+.product-card-new{
+
+border:none;
+
+border-radius:18px;
+
+overflow:hidden;
+
+transition:.35s;
+
+height:100%;
+
+}
+
+.product-card-new:hover{
+
+transform:translateY(-8px);
+
+box-shadow:0 18px 35px rgba(0,0,0,.12);
+
+}
+
+.product-card-new img{
+
+height:180px;
+
+width:100%;
+
+object-fit:cover;
+
+}
+
+.product-card-new .card-body{
+
+padding:18px;
+
+}
+
+.product-card-new h6{
+
+font-weight:700;
+
+margin-bottom:12px;
+
+min-height:48px;
+
+}
+
+.price-area{
+
+margin-bottom:10px;
+
+}
+
+.price-area h5{
+
+color:#198754;
+
+font-weight:700;
+
+margin:0;
+
+}
+
+.old-price{
+
+text-decoration:line-through;
+
+color:#999;
+
+}
+
+.stock{
+
+font-size:14px;
+
+color:#666;
+
+margin-top:8px;
+
+}
+
+.addToCart{
+
+border-radius:30px;
+
+font-weight:600;
+
+padding:10px;
+
+}
+/*=========================
+POS CART
+==========================*/
+
+.cart-item{
+
+background:#fff;
+
+padding:15px;
+
+border-radius:12px;
+
+box-shadow:0 5px 12px rgba(0,0,0,.08);
+
+}
+
+.cart-item strong{
+
+font-size:15px;
+
+}
+
+.cart-item .btn{
+
+border-radius:8px;
+
+}
+
+.empty-cart{
+
+opacity:.7;
+
+}
 /* Responsive */
 
 @media(max-width:768px){

@@ -33,7 +33,8 @@ if(
         'kitchen.php',
         'orders.php',
         'view_order.php',
-        'edit_order.php'
+        'edit_order.php',
+        'a-billing.php'
     ])
 ){
 
