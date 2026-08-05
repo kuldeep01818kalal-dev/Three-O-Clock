@@ -50,22 +50,17 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 /*=========================================
 FETCH TABLES
 =========================================*/
-
 $stmt = $pdo->query("
 SELECT
-
 table_id,
-table_name
-
+table_number,
+capacity,
+location
 FROM cafe_tables
-
 WHERE status='Available'
-
-ORDER BY table_name
+ORDER BY table_number
 ");
-
 $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 require_once "includes/a-header.php";
 require_once "includes/a-sidebar.php";
 ?>
@@ -92,8 +87,6 @@ Create Walk-In, Dine-In and Takeaway Orders.
 
 </div>
 <div class="row">
-
-<div class="col-lg-7">
 
 <div class="col-lg-7">
 
@@ -266,7 +259,187 @@ Out of Stock
 
 <div class="col-lg-5">
 
-<!-- Cart Area -->
+<div class="card shadow-sm border-0 rounded-4">
+
+<div class="card-header bg-success text-white">
+
+<h4 class="mb-0">
+
+<i class="bi bi-cart-fill me-2"></i>
+
+Current Bill
+
+</h4>
+
+</div>
+
+<div class="card-body">
+
+<div id="cartItems">
+
+<div class="text-center text-muted py-5">
+
+<i class="bi bi-cart-x display-4"></i>
+
+<p class="mt-3">
+
+No Products Added
+
+</p>
+
+</div>
+
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between">
+
+<strong>Subtotal</strong>
+
+<strong id="subtotal">
+
+₹0.00
+
+</strong>
+
+</div>
+
+<div class="d-flex justify-content-between mt-2">
+
+<strong>GST (5%)</strong>
+
+<strong id="gst">
+
+₹0.00
+
+</strong>
+
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between">
+
+<h4>
+
+Grand Total
+
+</h4>
+
+<h4 class="text-success" id="grandTotal">
+
+₹0.00
+
+</h4>
+
+</div>
+
+<hr>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Payment Method
+
+</label>
+
+<select
+class="form-select"
+id="paymentMethod">
+
+<option value="Cash">Cash</option>
+
+<option value="UPI">UPI</option>
+
+<option value="Card">Card</option>
+
+</select>
+
+</div>
+
+<div class="mb-3">
+
+<label class="form-label">
+
+Order Type
+
+</label>
+
+<select
+class="form-select"
+id="orderType">
+
+<option value="Walk-In">
+
+Walk-In
+
+</option>
+
+<option value="Dine-In">
+
+Dine-In
+
+</option>
+
+<option value="Takeaway">
+
+Takeaway
+
+</option>
+
+<option value="Delivery">
+
+Delivery
+
+</option>
+
+</select>
+
+</div>
+
+<div
+id="tableSection"
+style="display:none;">
+
+<label class="form-label">
+
+Select Table
+
+</label>
+
+<select class="form-select">
+
+<?php foreach($tables as $table): ?>
+
+<option value="<?= $table['table_id']; ?>">
+
+<?= htmlspecialchars($table['table_number']); ?>
+
+(<?= $table['capacity']; ?> Seats)
+
+</option>
+
+<?php endforeach; ?>
+
+</select>
+</div>
+
+<button
+class="btn btn-success w-100 py-3 mt-4">
+
+<i class="bi bi-receipt"></i>
+
+Generate Bill
+
+</button>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 
@@ -310,5 +483,23 @@ search.addEventListener("keyup",filterProducts);
 
 category.addEventListener("change",filterProducts);
 
+document
+.getElementById("orderType")
+.addEventListener("change",function(){
+
+document.getElementById("tableSection").style.display=
+
+this.value==="Dine-In"
+
+?
+
+"block"
+
+:
+
+"none";
+
+});
 </script>
+
 <?php require_once "includes/a-footer.php"; ?>
