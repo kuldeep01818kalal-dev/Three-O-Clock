@@ -27,17 +27,25 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
-<link rel="stylesheet" href="../assets/css/admin/layout.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
 
-<link rel="stylesheet" href="../assets/css/admin/sidebar.css">
+<link rel="stylesheet" href="../assets/css/sidebar.css">
 
-<link rel="stylesheet" href="../assets/css/admin/navbar.css">
+<link rel="stylesheet" href="../assets/css/navbar.css">
 
-<link rel="stylesheet" href="../assets/css/admin/footer.css">
+<link rel="stylesheet" href="../assets/css/footer.css">
 
-<link rel="stylesheet" href="../assets/css/admin/dashboard.css">
+<link rel="stylesheet" href="../assets/css/dashboard.css">
 
-<link rel="stylesheet" href="../assets/css/admin/responsive.css">
+<link rel="stylesheet" href="../assets/css/responsive.css">
+
+<link rel="stylesheet" href="../assets/css/responsive.css">
+
+<link rel="stylesheet" href="../assets/css/sidebar.css">
+
+<link rel="stylesheet" href="../assets/navbar.css">
+
+
 
 </head>
 

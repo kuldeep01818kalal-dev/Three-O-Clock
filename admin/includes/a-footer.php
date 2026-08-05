@@ -91,7 +91,55 @@ document.addEventListener("DOMContentLoaded",function(){
     });
 
 });
+const menuToggle=document.getElementById("menuToggle");
 
+const sidebar=document.getElementById("sidebar");
+
+const overlay=document.getElementById("sidebarOverlay");
+
+menuToggle.onclick=function(){
+
+sidebar.classList.toggle("show");
+
+overlay.classList.toggle("show");
+
+}
+
+overlay.onclick=function(){
+
+sidebar.classList.remove("show");
+
+overlay.classList.remove("show");
+
+}
+
+function updateClock(){
+
+const now=new Date();
+
+document.getElementById("clock").innerHTML=
+
+now.toLocaleTimeString();
+
+}
+
+setInterval(updateClock,1000);
+
+updateClock();
+
+document.getElementById("fullscreenBtn").onclick=function(){
+
+if(!document.fullscreenElement){
+
+document.documentElement.requestFullscreen();
+
+}else{
+
+document.exitFullscreen();
+
+}
+
+}
 </script>
 
 </body>
