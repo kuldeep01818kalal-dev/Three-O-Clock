@@ -34,7 +34,9 @@ if(
         'orders.php',
         'view_order.php',
         'edit_order.php',
-        'a-billing.php'
+        'a-billing.php',
+        'a-footer.php',
+        'a-sidebar.php'
     ])
 ){
 
@@ -43,6 +45,7 @@ if(
 <link rel="stylesheet" href="../assets/css/dashboard.css">
 
 <?php } ?>
+
 </head>
 
 <body>
