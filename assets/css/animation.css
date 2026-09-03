@@ -1,0 +1,736 @@
+/* =========================================================
+   THREE O' CLOCK CAFE
+   GLOBAL ANIMATION CSS
+   Smooth + Professional + Lightweight
+========================================================= */
+
+
+/* =========================================================
+   ROOT ANIMATION VARIABLES
+========================================================= */
+
+:root {
+    --animation-fast: 0.15s;
+    --animation-normal: 0.25s;
+    --animation-slow: 0.4s;
+
+    --animation-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-ease-out: cubic-bezier(0, 0, 0.2, 1);
+}
+
+
+/* =========================================================
+   FADE ANIMATIONS
+========================================================= */
+
+.animate-fade-in {
+    animation: cafeFadeIn var(--animation-normal) var(--animation-ease-out) both;
+}
+
+.animate-fade-in-up {
+    animation: cafeFadeInUp var(--animation-slow) var(--animation-ease-out) both;
+}
+
+.animate-fade-in-down {
+    animation: cafeFadeInDown var(--animation-slow) var(--animation-ease-out) both;
+}
+
+.animate-fade-in-left {
+    animation: cafeFadeInLeft var(--animation-slow) var(--animation-ease-out) both;
+}
+
+.animate-fade-in-right {
+    animation: cafeFadeInRight var(--animation-slow) var(--animation-ease-out) both;
+}
+
+@keyframes cafeFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes cafeFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cafeFadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes cafeFadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes cafeFadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* =========================================================
+   SCALE ANIMATIONS
+========================================================= */
+
+.animate-scale-in {
+    animation: cafeScaleIn var(--animation-normal) var(--animation-ease-out) both;
+}
+
+@keyframes cafeScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+/* =========================================================
+   SLIDE ANIMATIONS
+========================================================= */
+
+.animate-slide-up {
+    animation: cafeSlideUp var(--animation-normal) var(--animation-ease-out) both;
+}
+
+.animate-slide-down {
+    animation: cafeSlideDown var(--animation-normal) var(--animation-ease-out) both;
+}
+
+@keyframes cafeSlideUp {
+    from {
+        transform: translateY(20px);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes cafeSlideDown {
+    from {
+        transform: translateY(-20px);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   COMMON HOVER EFFECTS
+========================================================= */
+
+.hover-lift {
+    transition:
+        transform var(--animation-normal) var(--animation-ease),
+        box-shadow var(--animation-normal) var(--animation-ease);
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+}
+
+.hover-scale {
+    transition:
+        transform var(--animation-normal) var(--animation-ease);
+}
+
+.hover-scale:hover {
+    transform: scale(1.03);
+}
+
+.hover-scale-small {
+    transition:
+        transform var(--animation-normal) var(--animation-ease);
+}
+
+.hover-scale-small:hover {
+    transform: scale(1.01);
+}
+
+
+/* =========================================================
+   BUTTON ANIMATIONS
+========================================================= */
+
+button,
+.btn,
+.admin-btn,
+.login-button {
+    transition:
+        background-color var(--animation-fast) var(--animation-ease),
+        border-color var(--animation-fast) var(--animation-ease),
+        color var(--animation-fast) var(--animation-ease),
+        box-shadow var(--animation-fast) var(--animation-ease),
+        transform var(--animation-fast) var(--animation-ease);
+}
+
+button:not(:disabled):active,
+.btn:not(:disabled):active,
+.admin-btn:not(:disabled):active,
+.login-button:not(:disabled):active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   LINK ANIMATION
+========================================================= */
+
+a {
+    transition:
+        color var(--animation-fast) var(--animation-ease),
+        background-color var(--animation-fast) var(--animation-ease),
+        border-color var(--animation-fast) var(--animation-ease);
+}
+
+
+/* =========================================================
+   IMAGE ANIMATION
+========================================================= */
+
+.img-hover-zoom {
+    overflow: hidden;
+}
+
+.img-hover-zoom img {
+    transition:
+        transform var(--animation-slow) var(--animation-ease);
+}
+
+.img-hover-zoom:hover img {
+    transform: scale(1.05);
+}
+
+
+/* =========================================================
+   CARD ANIMATION
+========================================================= */
+
+.animate-card {
+    transition:
+        transform var(--animation-normal) var(--animation-ease),
+        box-shadow var(--animation-normal) var(--animation-ease),
+        border-color var(--animation-normal) var(--animation-ease);
+}
+
+.animate-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.07);
+}
+
+
+/* =========================================================
+   STAGGERED ANIMATION
+========================================================= */
+
+.animate-delay-1 {
+    animation-delay: 0.05s;
+}
+
+.animate-delay-2 {
+    animation-delay: 0.10s;
+}
+
+.animate-delay-3 {
+    animation-delay: 0.15s;
+}
+
+.animate-delay-4 {
+    animation-delay: 0.20s;
+}
+
+.animate-delay-5 {
+    animation-delay: 0.25s;
+}
+
+.animate-delay-6 {
+    animation-delay: 0.30s;
+}
+
+.animate-delay-7 {
+    animation-delay: 0.35s;
+}
+
+.animate-delay-8 {
+    animation-delay: 0.40s;
+}
+
+
+/* =========================================================
+   PULSE
+========================================================= */
+
+.animate-pulse {
+    animation: cafePulse 2s ease-in-out infinite;
+}
+
+@keyframes cafePulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.65;
+    }
+}
+
+
+/* =========================================================
+   SOFT PULSE
+========================================================= */
+
+.animate-soft-pulse {
+    animation: cafeSoftPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes cafeSoftPulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+
+/* =========================================================
+   BOUNCE
+========================================================= */
+
+.animate-bounce {
+    animation: cafeBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes cafeBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+
+/* =========================================================
+   SHAKE
+========================================================= */
+
+.animate-shake {
+    animation: cafeShake 0.4s ease-in-out;
+}
+
+@keyframes cafeShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-4px);
+    }
+
+    50% {
+        transform: translateX(4px);
+    }
+
+    75% {
+        transform: translateX(-3px);
+    }
+}
+
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+.animate-spin {
+    animation: cafeSpin 0.8s linear infinite;
+}
+
+@keyframes cafeSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   SKELETON LOADING
+========================================================= */
+
+.skeleton {
+    position: relative;
+
+    overflow: hidden;
+
+    background: #e9ecef;
+
+    border-radius: 6px;
+}
+
+.skeleton::after {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -150%;
+
+    width: 150%;
+    height: 100%;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.55),
+            transparent
+        );
+
+    animation: cafeSkeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes cafeSkeleton {
+    to {
+        left: 150%;
+    }
+}
+
+.skeleton-text {
+    width: 100%;
+    height: 12px;
+
+    margin-bottom: 8px;
+
+    border-radius: 5px;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.medium {
+    width: 80%;
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 180px;
+
+    border-radius: 8px;
+}
+
+
+/* =========================================================
+   ALERT ANIMATION
+========================================================= */
+
+.alert,
+.admin-alert,
+.login-alert,
+.profile-alert {
+    animation:
+        cafeAlertIn var(--animation-normal)
+        var(--animation-ease-out) both;
+}
+
+@keyframes cafeAlertIn {
+    from {
+        opacity: 0;
+        transform: translateY(-7px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   ALERT EXIT
+========================================================= */
+
+.alert.fade,
+.admin-alert.fade,
+.login-alert.fade,
+.profile-alert.fade {
+    opacity: 0;
+
+    transform: translateY(-5px);
+
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+}
+
+
+/* =========================================================
+   MODAL ANIMATION
+========================================================= */
+
+.modal.fade .modal-dialog {
+    transition:
+        transform .25s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+.modal.fade .modal-dialog {
+    transform: translateY(-15px);
+}
+
+
+/* =========================================================
+   DROPDOWN ANIMATION
+========================================================= */
+
+.dropdown-menu {
+    animation:
+        cafeDropdownIn .15s ease-out both;
+
+    transform-origin: top center;
+}
+
+@keyframes cafeDropdownIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   TOOLTIP ANIMATION
+========================================================= */
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+
+    position: absolute;
+
+    bottom: calc(100% + 8px);
+    left: 50%;
+
+    z-index: 1000;
+
+    padding: 6px 9px;
+
+    border-radius: 5px;
+
+    background: #111827;
+    color: #ffffff;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transform:
+        translateX(-50%)
+        translateY(3px);
+
+    transition:
+        opacity .15s ease,
+        transform .15s ease;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+
+    transform:
+        translateX(-50%)
+        translateY(0);
+}
+
+
+/* =========================================================
+   NAVIGATION ACTIVE EFFECT
+========================================================= */
+
+.sidebar a,
+.nav-link {
+    transition:
+        background-color var(--animation-normal) var(--animation-ease),
+        color var(--animation-normal) var(--animation-ease),
+        transform var(--animation-normal) var(--animation-ease);
+}
+
+
+/* =========================================================
+   TABLE ROW HOVER
+========================================================= */
+
+table tbody tr {
+    transition:
+        background-color .15s ease;
+}
+
+table tbody tr:hover {
+    background-color: rgba(139, 94, 60, 0.025);
+}
+
+
+/* =========================================================
+   STATUS DOT
+========================================================= */
+
+.status-dot {
+    display: inline-block;
+
+    width: 7px;
+    height: 7px;
+
+    margin-right: 5px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    vertical-align: middle;
+}
+
+.status-dot.pulse {
+    animation:
+        cafeStatusPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes cafeStatusPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.45;
+        transform: scale(0.8);
+    }
+}
+
+
+/* =========================================================
+   PAGE TRANSITION
+========================================================= */
+
+.page-transition {
+    animation:
+        cafePageTransition .3s var(--animation-ease-out) both;
+}
+
+@keyframes cafePageTransition {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+
+/* =========================================================
+   FOCUS ANIMATION
+========================================================= */
+
+.focus-ring:focus-visible {
+    outline: 2px solid #8b5e3c;
+
+    outline-offset: 3px;
+
+    animation:
+        cafeFocusRing .2s ease-out;
+}
+
+@keyframes cafeFocusRing {
+    from {
+        outline-offset: 0;
+    }
+
+    to {
+        outline-offset: 3px;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+}

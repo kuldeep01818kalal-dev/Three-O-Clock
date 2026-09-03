@@ -1,0 +1,706 @@
+/* =========================================================
+   THREE O' CLOCK CAFE
+   ADMIN RESPONSIVE CSS
+   Desktop + Tablet + Mobile
+========================================================= */
+
+/* ---------------------------------------------------------
+   GLOBAL RESPONSIVE SAFETY
+--------------------------------------------------------- */
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+iframe {
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   LARGE TABLET / SMALL DESKTOP
+   992px - 1199px
+========================================================= */
+
+@media (max-width: 1199px) {
+
+    /* Main content */
+    .admin-content {
+        padding: 25px;
+    }
+
+    /* Dashboard */
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid,
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Cards */
+    .dashboard-card,
+    .admin-card {
+        width: 100%;
+        min-width: 0;
+    }
+
+    /* Tables */
+    .table-responsive,
+    .orders-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    /* Forms */
+    .form-row,
+    .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Navbar */
+    .navbar-search {
+        max-width: 260px;
+    }
+
+    .search-box {
+        max-width: 260px;
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+   768px - 991px
+========================================================= */
+
+@media (max-width: 991px) {
+
+    /* -----------------------------------------------------
+       ADMIN LAYOUT
+    ----------------------------------------------------- */
+
+    .admin-layout {
+        display: block;
+        width: 100%;
+    }
+
+    .admin-main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .admin-content {
+        width: 100%;
+        padding: 22px;
+    }
+
+
+    /* -----------------------------------------------------
+       NAVBAR
+    ----------------------------------------------------- */
+
+    .admin-navbar,
+    .top-navbar {
+        width: 100%;
+    }
+
+    .navbar-page-info {
+        min-width: 0;
+    }
+
+    .navbar-page-info h1,
+    .navbar-page-info h2 {
+        font-size: 20px;
+    }
+
+    .navbar-search,
+    .search-box {
+        max-width: 220px;
+    }
+
+    .navbar-right {
+        gap: 8px;
+    }
+
+
+    /* -----------------------------------------------------
+       DASHBOARD
+    ----------------------------------------------------- */
+
+    .dashboard-page {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-heading {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .dashboard-heading h1 {
+        font-size: 26px;
+    }
+
+    .dashboard-heading p {
+        font-size: 14px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .dashboard-grid,
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    /* -----------------------------------------------------
+       CARDS
+    ----------------------------------------------------- */
+
+    .dashboard-card,
+    .admin-card,
+    .stat-card {
+        width: 100%;
+        min-width: 0;
+    }
+
+
+    /* -----------------------------------------------------
+       TABLES
+    ----------------------------------------------------- */
+
+    .table-responsive,
+    .orders-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive table,
+    .orders-table-wrapper table {
+        min-width: 700px;
+    }
+
+
+    /* -----------------------------------------------------
+       FORMS
+    ----------------------------------------------------- */
+
+    .form-grid,
+    .form-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .form-group {
+        min-width: 0;
+    }
+
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       BUTTONS
+    ----------------------------------------------------- */
+
+    .button-group,
+    .action-buttons,
+    .form-actions {
+        flex-wrap: wrap;
+    }
+
+
+    /* -----------------------------------------------------
+       FOOTER
+    ----------------------------------------------------- */
+
+    .admin-footer {
+        width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   576px - 767px
+========================================================= */
+
+@media (max-width: 767px) {
+
+    /* -----------------------------------------------------
+       CONTENT
+    ----------------------------------------------------- */
+
+    .admin-content {
+        padding: 18px 15px;
+    }
+
+    .admin-content > * {
+        max-width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       NAVBAR
+    ----------------------------------------------------- */
+
+    .admin-navbar,
+    .top-navbar {
+        min-height: 62px;
+    }
+
+    .navbar-page-info h1,
+    .navbar-page-info h2 {
+        font-size: 18px;
+    }
+
+    .navbar-page-info p {
+        display: none;
+    }
+
+    .navbar-search,
+    .search-box {
+        display: none;
+    }
+
+    .navbar-right {
+        margin-left: auto;
+    }
+
+    .navbar-icon-btn,
+    .nav-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .profile-button,
+    .profile-menu button {
+        max-width: 150px;
+    }
+
+
+    /* -----------------------------------------------------
+       DASHBOARD HEADER
+    ----------------------------------------------------- */
+
+    .dashboard-heading {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .dashboard-heading h1 {
+        font-size: 23px;
+        line-height: 1.3;
+    }
+
+    .dashboard-heading p {
+        font-size: 13px;
+    }
+
+
+    /* -----------------------------------------------------
+       STATISTICS
+    ----------------------------------------------------- */
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .stat-card {
+        width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       QUICK ACTIONS
+    ----------------------------------------------------- */
+
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       DASHBOARD SECTIONS
+    ----------------------------------------------------- */
+
+    .dashboard-grid,
+    .bottom-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+
+    /* -----------------------------------------------------
+       CARDS
+    ----------------------------------------------------- */
+
+    .dashboard-card,
+    .admin-card {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       TABLES
+    ----------------------------------------------------- */
+
+    .table-responsive,
+    .orders-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .table-responsive table,
+    .orders-table-wrapper table {
+        min-width: 650px;
+    }
+
+
+    /* -----------------------------------------------------
+       FORMS
+    ----------------------------------------------------- */
+
+    .form-grid,
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .form-control,
+    .form-select,
+    input,
+    select,
+    textarea {
+        width: 100%;
+        max-width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       BUTTONS
+    ----------------------------------------------------- */
+
+    .button-group,
+    .action-buttons,
+    .form-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .button-group .btn,
+    .action-buttons .btn,
+    .form-actions .btn {
+        min-height: 40px;
+    }
+
+
+    /* -----------------------------------------------------
+       FOOTER
+    ----------------------------------------------------- */
+
+    .admin-footer {
+        text-align: center;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   0px - 575px
+========================================================= */
+
+@media (max-width: 575px) {
+
+    .admin-content {
+        padding: 15px 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       NAVBAR
+    ----------------------------------------------------- */
+
+    .admin-navbar,
+    .top-navbar {
+        min-height: 60px;
+    }
+
+    .navbar-page-info h1,
+    .navbar-page-info h2 {
+        font-size: 17px;
+    }
+
+    .navbar-icon-btn,
+    .nav-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .profile-button {
+        padding: 6px;
+    }
+
+    .profile-button .profile-name {
+        display: none;
+    }
+
+
+    /* -----------------------------------------------------
+       DASHBOARD
+    ----------------------------------------------------- */
+
+    .dashboard-heading h1 {
+        font-size: 21px;
+    }
+
+    .dashboard-heading p {
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       CARDS
+    ----------------------------------------------------- */
+
+    .dashboard-card,
+    .admin-card,
+    .stat-card {
+        border-radius: 10px;
+    }
+
+
+    /* -----------------------------------------------------
+       TABLES
+    ----------------------------------------------------- */
+
+    .table-responsive,
+    .orders-table-wrapper {
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 8px;
+    }
+
+    .table-responsive table,
+    .orders-table-wrapper table {
+        min-width: 600px;
+    }
+
+
+    /* -----------------------------------------------------
+       BUTTONS
+    ----------------------------------------------------- */
+
+    .button-group,
+    .action-buttons,
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .button-group .btn,
+    .action-buttons .btn,
+    .form-actions .btn {
+        width: 100%;
+    }
+
+
+    /* -----------------------------------------------------
+       PAGINATION
+    ----------------------------------------------------- */
+
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+
+    /* -----------------------------------------------------
+       MODALS
+    ----------------------------------------------------- */
+
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .modal-content {
+        border-radius: 12px;
+    }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+   0px - 380px
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .admin-content {
+        padding: 12px 10px;
+    }
+
+    .dashboard-heading h1 {
+        font-size: 19px;
+    }
+
+    .navbar-page-info h1,
+    .navbar-page-info h2 {
+        font-size: 16px;
+    }
+
+    .navbar-right {
+        gap: 4px;
+    }
+
+    .navbar-icon-btn,
+    .nav-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .dashboard-card,
+    .admin-card,
+    .stat-card {
+        padding: 14px;
+    }
+
+    .table-responsive table,
+    .orders-table-wrapper table {
+        min-width: 560px;
+    }
+
+}
+
+
+/* =========================================================
+   LANDSCAPE MOBILE
+========================================================= */
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .admin-content {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+
+    .admin-navbar,
+    .top-navbar {
+        min-height: 56px;
+    }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE OVERFLOW PROTECTION
+========================================================= */
+
+.admin-content,
+.admin-main,
+.dashboard-page,
+.dashboard-grid,
+.bottom-grid,
+.stats-grid,
+.quick-actions,
+.dashboard-card,
+.admin-card {
+    min-width: 0;
+}
+
+pre,
+code {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.text-truncate-responsive {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   RESPONSIVE UTILITY CLASSES
+========================================================= */
+
+.mobile-only {
+    display: none !important;
+}
+
+.desktop-only {
+    display: block !important;
+}
+
+@media (max-width: 767px) {
+
+    .mobile-only {
+        display: block !important;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
+
+}

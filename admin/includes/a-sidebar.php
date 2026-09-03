@@ -1,146 +1,419 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+/* =========================================
+   CURRENT PAGE
+========================================= */
+
 $currentPage = basename($_SERVER['PHP_SELF']);
+
+
+/* =========================================
+   HELPER FUNCTION
+========================================= */
+
+function sidebarActive(array $pages, string $currentPage): string
+{
+    return in_array($currentPage, $pages, true) ? 'active' : '';
+}
 ?>
 
-<!-- Mobile Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- =========================================
+     MOBILE OVERLAY
+========================================= -->
 
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay">
+</div>
 
-    <!-- Logo -->
-    <div class="sidebar-header">
 
-        <a href="a-dashboard.php" class="logo">
+<!-- =========================================
+     ADMIN SIDEBAR
+========================================= -->
 
-            <div class="logo-icon">
+<aside
+    class="admin-sidebar"
+    id="sidebar">
 
-                <i class="bi bi-cup-hot-fill"></i>
 
-            </div>
+    <!-- =====================================
+         BRAND
+    ====================================== -->
 
-            <div class="logo-text">
+    <div class="sidebar-brand">
 
-                <h4>Three O' Clock</h4>
+        <div class="sidebar-brand-icon">
+            <i class="bi bi-cup-hot-fill"></i>
+        </div>
 
-                <span>Restaurant ERP</span>
+        <div class="sidebar-brand-text">
 
-            </div>
+            <strong>
+                Three O' Clock
+            </strong>
 
-        </a>
-
-    </div>
-
-    <div class="sidebar-body">
-
-        <!-- MAIN -->
-        <h6 class="menu-title">MAIN</h6>
-
-        <ul class="menu">
-
-            <li class="<?= $currentPage=='a-dashboard.php'?'active':''; ?>">
-                <a href="a-dashboard.php">
-                    <i class="bi bi-grid-fill"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-
-            <li class="<?= in_array($currentPage,['orders.php','view_order.php','edit_order.php'])?'active':''; ?>">
-                <a href="orders.php">
-                    <i class="bi bi-bag-check-fill"></i>
-                    <span>Orders</span>
-                    <small class="badge-count">5</small>
-                </a>
-            </li>
-
-            <li class="<?= $currentPage=='kitchen.php'?'active':''; ?>">
-                <a href="kitchen.php">
-                    <i class="bi bi-fire"></i>
-                    <span>Kitchen</span>
-                    <small class="badge-count danger">2</small>
-                </a>
-            </li>
-
-            <li class="<?= $currentPage=='a-billing.php'?'active':''; ?>">
-                <a href="a-billing.php">
-                    <i class="bi bi-receipt-cutoff"></i>
-                    <span>Billing / POS</span>
-                </a>
-            </li>
-
-        </ul>
-
-        <!-- MANAGEMENT -->
-        <h6 class="menu-title">MANAGEMENT</h6>
-
-        <ul class="menu">
-
-            <li><a href="products.php"><i class="bi bi-cup-straw"></i><span>Products</span></a></li>
-
-            <li><a href="categories.php"><i class="bi bi-grid-3x3-gap-fill"></i><span>Categories</span></a></li>
-
-            <li><a href="customers.php"><i class="bi bi-people-fill"></i><span>Customers</span></a></li>
-
-            <li><a href="table_management.php"><i class="bi bi-table"></i><span>Cafe Tables</span></a></li>
-
-            <li><a href="reservations.php"><i class="bi bi-calendar-check-fill"></i><span>Reservations</span></a></li>
-
-            <li><a href="gallery.php"><i class="bi bi-images"></i><span>Gallery</span></a></li>
-
-        </ul>
-
-        <!-- REPORTS -->
-        <h6 class="menu-title">REPORTS</h6>
-
-        <ul class="menu">
-
-            <li><a href="reports.php"><i class="bi bi-bar-chart-line-fill"></i><span>Analytics</span></a></li>
-
-        </ul>
-
-        <!-- SYSTEM -->
-        <h6 class="menu-title">SYSTEM</h6>
-
-        <ul class="menu">
-
-            <li><a href="settings.php"><i class="bi bi-gear-fill"></i><span>Settings</span></a></li>
-
-        </ul>
-
-    </div>
-
-    <!-- Footer -->
-    <div class="sidebar-footer">
-
-        <div class="admin-profile">
-
-            <div class="avatar">
-
-                <i class="bi bi-person-fill"></i>
-
-            </div>
-
-            <div>
-
-                <strong>Administrator</strong>
-
-                <small>Online</small>
-
-            </div>
+            <small>
+                Cafe Admin
+            </small>
 
         </div>
 
-        <a href="a-logout.php" class="logout-btn">
+    </div>
+
+
+    <!-- =====================================
+         ADMIN PROFILE
+    ====================================== -->
+
+    <div class="sidebar-profile">
+
+        <div class="sidebar-profile-icon">
+            <i class="bi bi-person-fill"></i>
+        </div>
+
+        <div class="sidebar-profile-info">
+
+            <strong>
+                <?= htmlspecialchars(
+                    $_SESSION['admin_name'] ?? 'Super Admin'
+                ); ?>
+            </strong>
+
+            <small>
+                Administrator
+            </small>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================
+         NAVIGATION
+    ====================================== -->
+
+    <nav class="sidebar-nav">
+
+
+        <!-- MAIN MENU -->
+
+        <div class="sidebar-section-title">
+            Main Menu
+        </div>
+
+
+        <!-- Dashboard -->
+
+        <a
+            href="a-dashboard.php"
+            class="sidebar-link <?= sidebarActive(
+                ['a-dashboard.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-grid-1x2-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Dashboard
+            </span>
+
+        </a>
+
+
+        <!-- Orders -->
+
+        <a
+            href="orders.php"
+            class="sidebar-link <?= sidebarActive(
+                ['orders.php', 'view_order.php', 'edit_order.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-receipt"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Orders
+            </span>
+
+        </a>
+
+
+        <!-- Kitchen -->
+
+        <a
+            href="kitchen.php"
+            class="sidebar-link <?= sidebarActive(
+                ['kitchen.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-fire"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Kitchen
+            </span>
+
+            <?php if (!empty($pendingKitchenOrders)): ?>
+
+                <span class="sidebar-badge">
+                    <?= (int)$pendingKitchenOrders; ?>
+                </span>
+
+            <?php endif; ?>
+
+        </a>
+
+
+        <!-- Billing -->
+
+        <a
+            href="a-billing.php"
+            class="sidebar-link <?= sidebarActive(
+                ['a-billing.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-receipt-cutoff"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Billing / POS
+            </span>
+
+        </a>
+
+
+        <!-- MANAGEMENT -->
+
+        <div class="sidebar-section-title">
+            Management
+        </div>
+
+
+        <!-- Products -->
+
+        <a
+            href="products.php"
+            class="sidebar-link <?= sidebarActive(
+                ['products.php', 'add_product.php', 'edit_product.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-box-seam"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Products
+            </span>
+
+        </a>
+
+
+        <!-- Categories -->
+
+        <a
+            href="categories.php"
+            class="sidebar-link <?= sidebarActive(
+                ['categories.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-tags"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Categories
+            </span>
+
+        </a>
+
+
+        <!-- Customers -->
+
+        <a
+            href="customers.php"
+            class="sidebar-link <?= sidebarActive(
+                ['customers.php', 'customer_details.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-people-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Customers
+            </span>
+
+        </a>
+
+
+        <!-- Cafe Tables -->
+
+        <a
+            href="cafe_tables.php"
+            class="sidebar-link <?= sidebarActive(
+                ['cafe_tables.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Cafe Tables
+            </span>
+
+        </a>
+
+
+        <!-- Reservations -->
+
+        <a
+            href="reservations.php"
+            class="sidebar-link <?= sidebarActive(
+                ['reservations.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-calendar-check"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Reservations
+            </span>
+
+        </a>
+
+
+        <!-- BUSINESS -->
+
+        <div class="sidebar-section-title">
+            Business
+        </div>
+
+
+        <!-- Invoices -->
+
+        <a
+            href="invoices.php"
+            class="sidebar-link <?= sidebarActive(
+                ['invoices.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Invoices
+            </span>
+
+        </a>
+
+
+        <!-- Reports -->
+
+        <a
+            href="reports.php"
+            class="sidebar-link <?= sidebarActive(
+                ['reports.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-bar-chart-line-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Reports
+            </span>
+
+        </a>
+
+
+        <!-- Reviews -->
+
+        <a
+            href="reviews.php"
+            class="sidebar-link <?= sidebarActive(
+                ['reviews.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-star-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Reviews
+            </span>
+
+        </a>
+
+
+        <!-- SETTINGS -->
+
+        <div class="sidebar-section-title">
+            System
+        </div>
+
+
+        <!-- Settings -->
+
+        <a
+            href="settings.php"
+            class="sidebar-link <?= sidebarActive(
+                ['settings.php'],
+                $currentPage
+            ); ?>">
+
+            <span class="sidebar-link-icon">
+                <i class="bi bi-gear-fill"></i>
+            </span>
+
+            <span class="sidebar-link-text">
+                Settings
+            </span>
+
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================
+         SIDEBAR FOOTER
+    ====================================== -->
+
+    <div class="sidebar-footer">
+
+        <a
+            href="logout.php"
+            class="sidebar-logout">
 
             <i class="bi bi-box-arrow-right"></i>
 
-            Logout
+            <span>
+                Logout
+            </span>
 
         </a>
 
     </div>
 
 </aside>
-
-<!-- Main Content -->
-<main class="main-content">

@@ -4,527 +4,437 @@ declare(strict_types=1);
 session_start();
 
 require_once "../config/db.php";
+require_once "includes/a-auth.php";
 
 $pageTitle = "Dashboard";
 
-/*=========================================
-ADMIN LOGIN CHECK
-=========================================*/
+/* ================================
+   DASHBOARD STATISTICS
 
-if (!isset($_SESSION['admin_id'])) {
+================================ */
 
-    header("Location: login.php");
+$totalOrders = (int)$pdo->query("
+    SELECT COUNT(*)
+    FROM orders
+")->fetchColumn();
 
-    exit();
+$totalRevenue = (float)$pdo->query("
+    SELECT COALESCE(SUM(grand_total),0)
+    FROM orders
+    WHERE payment_status = 'Paid'
+")->fetchColumn();
 
-}
+$pendingOrders = (int)$pdo->query("
+    SELECT COUNT(*)
+    FROM orders
+    WHERE order_status IN ('Pending','Confirmed')
+")->fetchColumn();
 
-/*=========================================
-TOTAL ORDERS
-=========================================*/
+$todayRevenue = (float)$pdo->query("
+    SELECT COALESCE(SUM(grand_total),0)
+    FROM orders
+    WHERE DATE(ordered_at) = CURDATE()
+    AND payment_status = 'Paid'
+")->fetchColumn();
 
-$stmt = $pdo->query("
-SELECT COUNT(*) AS total
-FROM orders
-");
+$todayOrders = (int)$pdo->query("
+    SELECT COUNT(*)
+    FROM orders
+    WHERE DATE(ordered_at) = CURDATE()
+")->fetchColumn();
 
-$totalOrders = (int)$stmt->fetchColumn();
-
-/*=========================================
-TOTAL CUSTOMERS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*) AS total
-FROM users
-");
-
-$totalCustomers = (int)$stmt->fetchColumn();
-
-/*=========================================
-TOTAL PRODUCTS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*) AS total
-FROM products
-");
-
-$totalProducts = (int)$stmt->fetchColumn();
-
-/*=========================================
-TOTAL REVENUE
-=========================================*/
+/* ================================
+   RECENT ORDERS
+================================ */
 
 $stmt = $pdo->query("
-SELECT
-COALESCE(SUM(grand_total),0)
-FROM orders
-WHERE order_status != 'Cancelled'
-");
-
-$totalRevenue = (float)$stmt->fetchColumn();
-
-/*=========================================
-PENDING ORDERS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*)
-FROM orders
-WHERE order_status='Pending'
-");
-
-$pendingOrders = (int)$stmt->fetchColumn();
-
-/*=========================================
-COMPLETED ORDERS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*)
-FROM orders
-WHERE order_status='Completed'
-");
-
-$completedOrders = (int)$stmt->fetchColumn();
-
-/*=========================================
-TODAY'S ORDERS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*)
-FROM orders
-WHERE DATE(ordered_at)=CURDATE()
-");
-
-$todayOrders = (int)$stmt->fetchColumn();
-
-/*=========================================
-TODAY'S REVENUE
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT
-COALESCE(SUM(grand_total),0)
-FROM orders
-WHERE DATE(ordered_at)=CURDATE()
-");
-
-$todayRevenue = (float)$stmt->fetchColumn();
-
-/*=========================================
-LOW STOCK PRODUCTS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT COUNT(*)
-FROM products
-WHERE stock<=5
-");
-
-$lowStockProducts = (int)$stmt->fetchColumn();
-
-/*=========================================
-RECENT ORDERS
-=========================================*/
-
-$stmt = $pdo->query("
-SELECT
-
-order_id,
-order_number,
-customer_name,
-grand_total,
-order_status,
-ordered_at
-
-FROM orders
-
-ORDER BY ordered_at DESC
-
-LIMIT 5
+    SELECT
+        order_id,
+        order_number,
+        customer_name,
+        grand_total,
+        order_status,
+        payment_status,
+        ordered_at
+    FROM orders
+    ORDER BY order_id DESC
+    LIMIT 6
 ");
 
 $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-/*=========================================
-LOW STOCK PRODUCT LIST
-=========================================*/
 
-$stmt = $pdo->query("
-SELECT
+/* ================================
+   ORDER STATUS
+================================ */
 
-product_id,
-product_name,
-stock
-
-FROM products
-
-WHERE stock <= 5
-
-ORDER BY stock ASC
-
-LIMIT 5
+$statusStmt = $pdo->query("
+    SELECT
+        order_status,
+        COUNT(*) AS total
+    FROM orders
+    GROUP BY order_status
 ");
 
-$lowStockList = $stmt->fetchAll(PDO::FETCH_ASSOC);
-/*=========================================
-LAYOUT
-=========================================*/
+$orderStatuses = $statusStmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* ================================
+   TODAY'S ORDERS
+================================ */
+
+$todayStatusStmt = $pdo->query("
+    SELECT
+        order_status,
+        COUNT(*) AS total
+    FROM orders
+    WHERE DATE(ordered_at) = CURDATE()
+    GROUP BY order_status
+");
+
+$todayStatuses = $todayStatusStmt->fetchAll(PDO::FETCH_ASSOC);
 
 require_once "includes/a-header.php";
 require_once "includes/a-sidebar.php";
 ?>
 
-<div class="admin-content">
+<div class="admin-main">
 
-<div class="container-fluid">
+    <?php require_once "includes/a-navbar.php"; ?>
 
-<div class="page-header">
+    <main class="admin-content">
 
-<h2>
+        <div class="dashboard-page">
 
-<i class="bi bi-speedometer2 me-2"></i>
+    <!-- =================================
+         DASHBOARD HEADER
+    ================================== -->
 
-Dashboard
+    <div class="dashboard-heading">
 
-</h2>
+        <div>
 
-<p>
+            <span class="dashboard-eyebrow">
+                RESTAURANT OVERVIEW
+            </span>
 
-Welcome back, Admin 👋
+            <h1>
+                Dashboard
+            </h1>
 
-</p>
+            <p>
+                Welcome back, Administrator 👋
+            </p>
 
-</div>
-</div>
+        </div>
 
-</div>
-<!-- =========================================
-     DASHBOARD CARDS
-========================================= -->
+        <div class="dashboard-date">
 
-<div class="row g-4 mb-5">
+            <i class="bi bi-calendar3"></i>
 
-    <!-- Total Orders -->
+            <?= date("d M Y"); ?>
 
-    <div class="col-xl-3 col-md-6">
+        </div>
 
-        <div class="dashboard-card orders-card">
+    </div>
 
-            <div class="card-icon">
 
-                <i class="bi bi-bag-check-fill"></i>
+    <!-- =================================
+         STATISTICS
+    ================================== -->
+
+    <div class="stats-grid">
+
+        <!-- TODAY ORDERS -->
+
+        <div class="stat-card blue">
+
+            <div class="stat-top">
+
+                <div class="stat-icon">
+
+                    <i class="bi bi-bag-check-fill"></i>
+
+                </div>
+
+                <span class="stat-label">
+                    TODAY
+                </span>
 
             </div>
 
-            <div class="card-info">
+            <div class="stat-value">
 
-                <h3>
+                <?= $todayOrders; ?>
 
-                    <?= number_format($totalOrders); ?>
+            </div>
 
-                </h3>
+            <div class="stat-title">
+                Orders Today
+            </div>
 
-                <p>Total Orders</p>
+        </div>
 
+
+        <!-- TODAY REVENUE -->
+
+        <div class="stat-card green">
+
+            <div class="stat-top">
+
+                <div class="stat-icon">
+
+                    <i class="bi bi-currency-rupee"></i>
+
+                </div>
+
+                <span class="stat-label">
+                    TODAY
+                </span>
+
+            </div>
+
+            <div class="stat-value">
+
+                ₹<?= number_format($todayRevenue, 2); ?>
+
+            </div>
+
+            <div class="stat-title">
+                Today's Revenue
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL ORDERS -->
+
+        <div class="stat-card purple">
+
+            <div class="stat-top">
+
+                <div class="stat-icon">
+
+                    <i class="bi bi-receipt"></i>
+
+                </div>
+
+                <span class="stat-label">
+                    ALL TIME
+                </span>
+
+            </div>
+
+            <div class="stat-value">
+
+                <?= $totalOrders; ?>
+
+            </div>
+
+            <div class="stat-title">
+                Total Orders
+            </div>
+
+        </div>
+
+
+        <!-- REVENUE -->
+
+        <div class="stat-card orange">
+
+            <div class="stat-top">
+
+                <div class="stat-icon">
+
+                    <i class="bi bi-graph-up-arrow"></i>
+
+                </div>
+
+                <span class="stat-label">
+                    ALL TIME
+                </span>
+
+            </div>
+
+            <div class="stat-value">
+
+                ₹<?= number_format($totalRevenue, 2); ?>
+
+            </div>
+
+            <div class="stat-title">
+                Total Revenue
             </div>
 
         </div>
 
     </div>
 
-    <!-- Revenue -->
 
-    <div class="col-xl-3 col-md-6">
+    <!-- =================================
+         QUICK ACTIONS
+    ================================== -->
 
-        <div class="dashboard-card revenue-card">
+    <div class="section-title">
 
-            <div class="card-icon">
+        <div>
 
-                <i class="bi bi-currency-rupee"></i>
+            <h3>
+                Quick Actions
+            </h3>
 
-            </div>
-
-            <div class="card-info">
-
-                <h3>
-
-                    ₹<?= number_format($totalRevenue,2); ?>
-
-                </h3>
-
-                <p>Total Revenue</p>
-
-            </div>
+            <p>
+                Frequently used operations
+            </p>
 
         </div>
 
     </div>
 
-    <!-- Customers -->
 
-    <div class="col-xl-3 col-md-6">
+    <div class="quick-actions">
 
-        <div class="dashboard-card customer-card">
+        <a href="a-billing.php" class="quick-action">
 
-            <div class="card-icon">
+            <span class="quick-icon green-icon">
 
-                <i class="bi bi-people-fill"></i>
+                <i class="bi bi-receipt-cutoff"></i>
 
-            </div>
+            </span>
 
-            <div class="card-info">
+            <span>
 
-                <h3>
+                <strong>
+                    New Billing
+                </strong>
 
-                    <?= number_format($totalCustomers); ?>
+                <small>
+                    Create new order
+                </small>
 
-                </h3>
+            </span>
 
-                <p>Customers</p>
+            <i class="bi bi-arrow-right"></i>
 
-            </div>
+        </a>
 
-        </div>
 
-    </div>
+        <a href="orders.php" class="quick-action">
 
-    <!-- Products -->
+            <span class="quick-icon blue-icon">
 
-    <div class="col-xl-3 col-md-6">
+                <i class="bi bi-bag-check"></i>
 
-        <div class="dashboard-card product-card">
+            </span>
 
-            <div class="card-icon">
+            <span>
 
-                <i class="bi bi-cup-hot-fill"></i>
+                <strong>
+                    View Orders
+                </strong>
 
-            </div>
+                <small>
+                    Manage customer orders
+                </small>
 
-            <div class="card-info">
+            </span>
 
-                <h3>
+            <i class="bi bi-arrow-right"></i>
 
-                    <?= number_format($totalProducts); ?>
+        </a>
 
-                </h3>
 
-                <p>Products</p>
+        <a href="kitchen.php" class="quick-action">
 
-            </div>
+            <span class="quick-icon orange-icon">
 
-        </div>
+                <i class="bi bi-fire"></i>
 
-    </div>
+            </span>
 
-</div>
-<div class="row g-4 mb-5">
+            <span>
 
-    <!-- Pending -->
+                <strong>
+                    Kitchen
+                </strong>
 
-    <div class="col-xl-3 col-md-6">
+                <small>
+                    Manage kitchen queue
+                </small>
 
-        <div class="dashboard-card pending-card">
+            </span>
 
-            <div class="card-icon">
+            <i class="bi bi-arrow-right"></i>
 
-                <i class="bi bi-hourglass-split"></i>
+        </a>
 
-            </div>
 
-            <div class="card-info">
+        <a href="products.php" class="quick-action">
 
-                <h3>
+            <span class="quick-icon purple-icon">
 
-                    <?= $pendingOrders; ?>
+                <i class="bi bi-cup-straw"></i>
 
-                </h3>
+            </span>
 
-                <p>Pending Orders</p>
+            <span>
 
-            </div>
+                <strong>
+                    Products
+                </strong>
 
-        </div>
+                <small>
+                    Manage menu items
+                </small>
 
-    </div>
+            </span>
 
-    <!-- Completed -->
+            <i class="bi bi-arrow-right"></i>
 
-    <div class="col-xl-3 col-md-6">
-
-        <div class="dashboard-card complete-card">
-
-            <div class="card-icon">
-
-                <i class="bi bi-check-circle-fill"></i>
-
-            </div>
-
-            <div class="card-info">
-
-                <h3>
-
-                    <?= $completedOrders; ?>
-
-                </h3>
-
-                <p>Completed</p>
-
-            </div>
-
-        </div>
+        </a>
 
     </div>
 
-    <!-- Today -->
 
-    <div class="col-xl-3 col-md-6">
+    <!-- =================================
+         MAIN DASHBOARD GRID
+    ================================== -->
 
-        <div class="dashboard-card today-card">
+    <div class="dashboard-grid">
 
-            <div class="card-icon">
 
-                <i class="bi bi-calendar2-check-fill"></i>
+        <!-- RECENT ORDERS -->
 
-            </div>
+        <div class="dashboard-card recent-orders">
 
-            <div class="card-info">
+            <div class="card-heading">
 
-                <h3>
+                <div>
 
-                    <?= $todayOrders; ?>
+                    <h3>
+                        Recent Orders
+                    </h3>
 
-                </h3>
+                    <p>
+                        Latest customer orders
+                    </p>
 
-                <p>Today's Orders</p>
+                </div>
 
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Low Stock -->
-
-    <div class="col-xl-3 col-md-6">
-
-        <div class="dashboard-card stock-card">
-
-            <div class="card-icon">
-
-                <i class="bi bi-exclamation-triangle-fill"></i>
-
-            </div>
-
-            <div class="card-info">
-
-                <h3>
-
-                    <?= $lowStockProducts; ?>
-
-                </h3>
-
-                <p>Low Stock</p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-<div class="row mb-5">
-
-<div class="col-lg-12">
-
-<div class="overview-card">
-
-<div class="row text-center">
-
-<div class="col-md-4">
-
-<h4>
-
-₹<?= number_format($todayRevenue,2); ?>
-
-</h4>
-
-<p>Today's Revenue</p>
-
-</div>
-
-<div class="col-md-4">
-
-<h4>
-
-<?= $todayOrders; ?>
-
-</h4>
-
-<p>Today's Orders</p>
-
-</div>
-
-<div class="col-md-4">
-
-<h4>
-
-<?= $pendingOrders; ?>
-
-</h4>
-
-<p>Orders Waiting</p>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-<!-- =========================================
-     RECENT ORDERS
-========================================= -->
-
-<div class="row">
-
-    <div class="col-lg-12">
-
-        <div class="table-card">
-
-            <div class="d-flex justify-content-between align-items-center p-4">
-
-                <h4 class="mb-0">
-
-                    <i class="bi bi-clock-history me-2"></i>
-
-                    Recent Orders
-
-                </h4>
-
-                <a
-                    href="orders.php"
-                    class="btn btn-primary">
-
+                <a href="orders.php">
                     View All
-
                 </a>
 
             </div>
 
-            <div class="table-responsive">
 
-                <table class="table align-middle">
+            <div class="orders-table-wrapper">
+
+                <table class="dashboard-table">
 
                     <thead>
 
                         <tr>
 
-                            <th>Order No.</th>
+                            <th>Order</th>
 
                             <th>Customer</th>
 
@@ -534,125 +444,113 @@ Welcome back, Admin 👋
 
                             <th>Date</th>
 
-                            <th>Action</th>
-
                         </tr>
 
                     </thead>
 
                     <tbody>
 
-                        <?php if(empty($recentOrders)): ?>
+                    <?php if(empty($recentOrders)): ?>
 
                         <tr>
 
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="5"
+                                class="empty-state">
 
-                                No recent orders found.
+                                No orders found.
 
                             </td>
 
                         </tr>
 
-                        <?php else: ?>
+                    <?php else: ?>
 
                         <?php foreach($recentOrders as $order): ?>
 
-                        <?php
+                            <?php
 
-                        $statusClass = "secondary";
+                            $status = strtolower(
+                                $order['order_status']
+                            );
 
-                        switch($order['order_status']){
+                            $statusClass = match($status){
 
-                            case "Pending":
-                                $statusClass="warning";
-                                break;
+                                'completed',
+                                'delivered' => 'success',
 
-                            case "Preparing":
-                                $statusClass="info";
-                                break;
+                                'ready' => 'ready',
 
-                            case "Ready":
-                                $statusClass="primary";
-                                break;
+                                'cancelled' => 'danger',
 
-                            case "Out for Delivery":
-                                $statusClass="dark";
-                                break;
+                                default => 'pending'
 
-                            case "Completed":
-                                $statusClass="success";
-                                break;
+                            };
 
-                            case "Cancelled":
-                                $statusClass="danger";
-                                break;
+                            ?>
 
-                        }
+                            <tr>
 
-                        ?>
+                                <td>
 
-                        <tr>
+                                    <strong>
 
-                            <td>
+                                        <?= htmlspecialchars(
+                                            $order['order_number']
+                                        ); ?>
 
-                                <strong>
+                                    </strong>
 
-                                    <?= htmlspecialchars($order['order_number']); ?>
+                                </td>
 
-                                </strong>
+                                <td>
 
-                            </td>
+                                    <?= htmlspecialchars(
+                                        $order['customer_name']
+                                    ); ?>
 
-                            <td>
+                                </td>
 
-                                <?= htmlspecialchars($order['customer_name']); ?>
+                                <td>
 
-                            </td>
+                                    <strong>
 
-                            <td>
+                                        ₹<?= number_format(
+                                            (float)$order['grand_total'],
+                                            2
+                                        ); ?>
 
-                                <strong class="text-success">
+                                    </strong>
 
-                                    ₹<?= number_format((float)$order['grand_total'],2); ?>
+                                </td>
 
-                                </strong>
+                                <td>
 
-                            </td>
+                                    <span class="order-status <?= $statusClass; ?>">
 
-                            <td>
+                                        <?= htmlspecialchars(
+                                            $order['order_status']
+                                        ); ?>
 
-                                <span class="badge bg-<?= $statusClass; ?>">
+                                    </span>
 
-                                    <?= htmlspecialchars($order['order_status']); ?>
+                                </td>
 
-                                </span>
+                                <td>
 
-                            </td>
+                                    <?= date(
+                                        "d M, h:i A",
+                                        strtotime(
+                                            $order['ordered_at']
+                                        )
+                                    ); ?>
 
-                            <td>
+                                </td>
 
-                                <?= date("d M Y", strtotime($order['ordered_at'])); ?>
-
-                            </td>
-
-                            <td>
-
-                                <a
-                                    href="order_details.php?id=<?= $order['order_id']; ?>"
-                                    class="btn btn-sm btn-dark">
-
-                                    <i class="bi bi-eye-fill"></i>
-
-                                </a>
-
-                            </td>
-
-                        </tr>
+                            </tr>
 
                         <?php endforeach; ?>
 
-                        <?php endif; ?>
+                    <?php endif; ?>
 
                     </tbody>
 
@@ -662,7 +560,201 @@ Welcome back, Admin 👋
 
         </div>
 
+
+        <!-- ORDER STATUS -->
+
+        <div class="dashboard-card order-overview">
+
+            <div class="card-heading">
+
+                <div>
+
+                    <h3>
+                        Order Overview
+                    </h3>
+
+                    <p>
+                        Current order status
+                    </p>
+
+                </div>
+
+                <i class="bi bi-pie-chart-fill"></i>
+
+            </div>
+
+
+            <div class="status-list">
+
+                <?php if(empty($orderStatuses)): ?>
+
+                    <div class="empty-state">
+                        No order data available.
+                    </div>
+
+                <?php else: ?>
+
+                    <?php foreach($orderStatuses as $item): ?>
+
+                        <?php
+
+                        $statusName = $item['order_status'];
+
+                        $statusTotal = (int)$item['total'];
+
+                        $percentage = $totalOrders > 0
+                            ? round(
+                                ($statusTotal / $totalOrders) * 100
+                            )
+                            : 0;
+
+                        ?>
+
+                        <div class="status-item">
+
+                            <div class="status-info">
+
+                                <span>
+
+                                    <?= htmlspecialchars(
+                                        $statusName
+                                    ); ?>
+
+                                </span>
+
+                                <strong>
+                                    <?= $statusTotal; ?>
+                                </strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:<?= $percentage; ?>%;">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    <?php endforeach; ?>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================
+         BOTTOM CARDS
+    ================================== -->
+
+    <div class="bottom-grid">
+
+
+        <!-- PENDING ORDERS -->
+
+        <div class="mini-dashboard-card">
+
+            <div class="mini-icon warning-icon">
+
+                <i class="bi bi-hourglass-split"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Pending Orders
+                </span>
+
+                <strong>
+                    <?= $pendingOrders; ?>
+                </strong>
+
+                <small>
+                    Need attention
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- KITCHEN -->
+
+        <a href="kitchen.php"
+           class="mini-dashboard-card">
+
+            <div class="mini-icon kitchen-icon">
+
+                <i class="bi bi-fire"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Kitchen Queue
+                </span>
+
+                <strong>
+                    <?= $pendingOrders; ?>
+                </strong>
+
+                <small>
+                    View kitchen
+                </small>
+
+            </div>
+
+        </a>
+
+
+        <!-- BILLING -->
+
+        <a href="a-billing.php"
+           class="mini-dashboard-card">
+
+            <div class="mini-icon billing-icon">
+
+                <i class="bi bi-credit-card"></i>
+
+            </div>
+
+            <div>
+
+                <span>
+                    Billing
+                </span>
+
+                <strong>
+                    POS
+                </strong>
+
+                <small>
+                    Create new bill
+                </small>
+
+            </div>
+
+        </a>
+
     </div>
 
 </div>
+  </div>
+        <!-- End Dashboard Page -->
+
+    </main>
+    <!-- End Admin Content -->
+
+</div>
+<!-- End Admin Main -->
+
 <?php require_once "includes/a-footer.php"; ?>

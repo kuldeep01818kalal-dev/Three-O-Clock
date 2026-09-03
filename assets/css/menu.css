@@ -1,0 +1,1115 @@
+/* =========================================================
+   THREE O' CLOCK CAFE
+   CUSTOMER MENU CSS
+   Professional + Responsive
+========================================================= */
+
+
+/* =========================================================
+   MENU PAGE
+========================================================= */
+
+.menu-page {
+    width: 100%;
+    min-width: 0;
+
+    padding: 20px 0;
+}
+
+
+/* =========================================================
+   MENU HEADER
+========================================================= */
+
+.menu-header {
+    width: 100%;
+
+    margin-bottom: 28px;
+
+    text-align: center;
+}
+
+.menu-header h1 {
+    margin: 0 0 8px;
+
+    color: #2f241e;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    line-height: 1.3;
+}
+
+.menu-header p {
+    max-width: 650px;
+
+    margin: 0 auto;
+
+    color: #6b7280;
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   MENU CATEGORY NAVIGATION
+========================================================= */
+
+.menu-categories {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    width: 100%;
+
+    margin-bottom: 30px;
+
+    flex-wrap: wrap;
+}
+
+.menu-category {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 38px;
+
+    padding: 8px 17px;
+
+    border: 1px solid #e5ddd7;
+    border-radius: 22px;
+
+    background: #ffffff;
+    color: #5f5148;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition:
+        background-color .2s ease,
+        border-color .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+.menu-category:hover {
+    border-color: #8b5e3c;
+
+    background: #f8f2ee;
+    color: #8b5e3c;
+
+    transform: translateY(-1px);
+}
+
+.menu-category.active {
+    border-color: #8b5e3c;
+
+    background: #8b5e3c;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   MENU TOOLBAR
+========================================================= */
+
+.menu-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    width: 100%;
+
+    margin-bottom: 22px;
+
+    flex-wrap: wrap;
+}
+
+.menu-toolbar-left,
+.menu-toolbar-right {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+
+/* =========================================================
+   MENU SEARCH
+========================================================= */
+
+.menu-search {
+    position: relative;
+
+    width: 100%;
+    max-width: 330px;
+}
+
+.menu-search input {
+    width: 100%;
+
+    min-height: 42px;
+
+    padding: 9px 42px 9px 13px;
+
+    border: 1px solid #ded8d3;
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: #2f241e;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    outline: none;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.menu-search input::placeholder {
+    color: #a39a94;
+}
+
+.menu-search input:focus {
+    border-color: #8b5e3c;
+
+    box-shadow:
+        0 0 0 3px rgba(139, 94, 60, .10);
+}
+
+.menu-search button {
+    position: absolute;
+
+    top: 50%;
+    right: 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 33px;
+    height: 33px;
+
+    padding: 0;
+
+    transform: translateY(-50%);
+
+    border: 0;
+    border-radius: 7px;
+
+    background: #f5eee9;
+    color: #8b5e3c;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   MENU SORT
+========================================================= */
+
+.menu-sort {
+    min-height: 40px;
+
+    padding: 8px 12px;
+
+    border: 1px solid #ded8d3;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #4b4039;
+
+    font-family: inherit;
+    font-size: 12px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.menu-sort:focus {
+    border-color: #8b5e3c;
+
+    box-shadow:
+        0 0 0 3px rgba(139, 94, 60, .10);
+}
+
+
+/* =========================================================
+   MENU GRID
+========================================================= */
+
+.menu-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 22px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   MENU CARD
+========================================================= */
+
+.menu-card {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+
+    background: #ffffff;
+
+    border: 1px solid #ece7e3;
+    border-radius: 13px;
+
+    box-shadow:
+        0 4px 18px rgba(53, 38, 27, .05);
+
+    overflow: hidden;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease,
+        border-color .25s ease;
+}
+
+.menu-card:hover {
+    border-color: #e0d3c9;
+
+    box-shadow:
+        0 10px 28px rgba(53, 38, 27, .09);
+
+    transform: translateY(-3px);
+}
+
+
+/* =========================================================
+   MENU PRODUCT IMAGE
+========================================================= */
+
+.menu-card-image {
+    position: relative;
+
+    width: 100%;
+
+    aspect-ratio: 4 / 3;
+
+    overflow: hidden;
+
+    background: #f5f1ee;
+}
+
+.menu-card-image img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transition: transform .35s ease;
+}
+
+.menu-card:hover .menu-card-image img {
+    transform: scale(1.04);
+}
+
+.menu-card-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 100%;
+
+    color: #b9aaa0;
+
+    font-size: 32px;
+}
+
+
+/* =========================================================
+   PRODUCT BADGE
+========================================================= */
+
+.menu-card-badge {
+    position: absolute;
+
+    top: 10px;
+    left: 10px;
+
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 25px;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    background: #8b5e3c;
+    color: #ffffff;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    z-index: 2;
+}
+
+.menu-card-badge.sale {
+    background: #dc2626;
+}
+
+.menu-card-badge.new {
+    background: #15803d;
+}
+
+.menu-card-badge.popular {
+    background: #b45309;
+}
+
+
+/* =========================================================
+   WISHLIST BUTTON
+========================================================= */
+
+.menu-wishlist {
+    position: absolute;
+
+    top: 10px;
+    right: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, .94);
+    color: #75675f;
+
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, .08);
+
+    cursor: pointer;
+
+    transition:
+        background-color .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+.menu-wishlist:hover {
+    background: #ffffff;
+    color: #dc2626;
+
+    transform: scale(1.05);
+}
+
+.menu-wishlist.active {
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   MENU CARD CONTENT
+========================================================= */
+
+.menu-card-content {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+
+    padding: 16px;
+}
+
+.menu-card-category {
+    margin-bottom: 5px;
+
+    color: #a0826e;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: .4px;
+
+    text-transform: uppercase;
+}
+
+.menu-card-title {
+    margin: 0 0 7px;
+
+    color: #2f241e;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    line-height: 1.4;
+}
+
+.menu-card-title a {
+    color: inherit;
+
+    text-decoration: none;
+}
+
+.menu-card-title a:hover {
+    color: #8b5e3c;
+}
+
+.menu-card-description {
+    display: -webkit-box;
+
+    margin: 0 0 13px;
+
+    color: #756b65;
+
+    font-size: 11px;
+    line-height: 1.6;
+
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   PRODUCT RATING
+========================================================= */
+
+.menu-card-rating {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    margin-bottom: 12px;
+}
+
+.menu-stars {
+    color: #f59e0b;
+
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.menu-rating-count {
+    color: #9ca3af;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   MENU PRICE
+========================================================= */
+
+.menu-card-price {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: auto;
+    margin-bottom: 13px;
+}
+
+.menu-price-current {
+    color: #8b5e3c;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.menu-price-old {
+    color: #aaa29d;
+
+    font-size: 11px;
+
+    text-decoration: line-through;
+}
+
+
+/* =========================================================
+   MENU CARD ACTIONS
+========================================================= */
+
+.menu-card-actions {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    width: 100%;
+}
+
+.menu-add-cart {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1;
+
+    min-height: 38px;
+
+    padding: 8px 12px;
+
+    border: 1px solid #8b5e3c;
+    border-radius: 8px;
+
+    background: #8b5e3c;
+    color: #ffffff;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        background-color .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.menu-add-cart:hover {
+    border-color: #70492f;
+
+    background: #70492f;
+    color: #ffffff;
+
+    box-shadow:
+        0 5px 14px rgba(139, 94, 60, .16);
+}
+
+.menu-view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    border: 1px solid #e2dad4;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #6b5b52;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        border-color .2s ease,
+        background-color .2s ease,
+        color .2s ease;
+}
+
+.menu-view-btn:hover {
+    border-color: #d5c3b6;
+
+    background: #f8f2ee;
+    color: #8b5e3c;
+}
+
+
+/* =========================================================
+   OUT OF STOCK
+========================================================= */
+
+.menu-card.out-of-stock {
+    opacity: .78;
+}
+
+.menu-card.out-of-stock .menu-card-image {
+    filter: grayscale(.25);
+}
+
+.menu-out-stock-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 35px;
+
+    padding: 7px 12px;
+
+    border-radius: 8px;
+
+    background: #f3f4f6;
+    color: #6b7280;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   MENU EMPTY STATE
+========================================================= */
+
+.menu-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    width: 100%;
+
+    min-height: 300px;
+
+    padding: 40px 20px;
+
+    text-align: center;
+}
+
+.menu-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 68px;
+    height: 68px;
+
+    margin-bottom: 15px;
+
+    border-radius: 50%;
+
+    background: #f5eee9;
+    color: #8b5e3c;
+
+    font-size: 28px;
+}
+
+.menu-empty h3 {
+    margin: 0 0 6px;
+
+    color: #2f241e;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.menu-empty p {
+    max-width: 430px;
+
+    margin: 0;
+
+    color: #756b65;
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   MENU PAGINATION
+========================================================= */
+
+.menu-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    width: 100%;
+
+    margin-top: 30px;
+
+    flex-wrap: wrap;
+}
+
+.menu-pagination a,
+.menu-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 34px;
+    height: 34px;
+
+    padding: 0 9px;
+
+    border: 1px solid #e4ddd8;
+    border-radius: 7px;
+
+    background: #ffffff;
+    color: #665a53;
+
+    font-size: 11px;
+
+    text-decoration: none;
+
+    transition:
+        border-color .2s ease,
+        background-color .2s ease,
+        color .2s ease;
+}
+
+.menu-pagination a:hover {
+    border-color: #cdb9aa;
+
+    background: #f8f2ee;
+    color: #8b5e3c;
+}
+
+.menu-pagination .active {
+    border-color: #8b5e3c;
+
+    background: #8b5e3c;
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   QUICK CATEGORY CARDS
+========================================================= */
+
+.menu-category-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 15px;
+
+    width: 100%;
+
+    margin-bottom: 30px;
+}
+
+.menu-category-card {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 15px;
+
+    border: 1px solid #ece7e3;
+    border-radius: 11px;
+
+    background: #ffffff;
+
+    text-decoration: none;
+
+    box-shadow:
+        0 3px 14px rgba(53, 38, 27, .04);
+
+    transition:
+        transform .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.menu-category-card:hover {
+    border-color: #d9c8bb;
+
+    box-shadow:
+        0 7px 20px rgba(53, 38, 27, .08);
+
+    transform: translateY(-2px);
+}
+
+.menu-category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 42px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 10px;
+
+    background: #f5eee9;
+    color: #8b5e3c;
+
+    font-size: 16px;
+}
+
+.menu-category-card-content {
+    min-width: 0;
+}
+
+.menu-category-card-content h3 {
+    margin: 0 0 3px;
+
+    color: #2f241e;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.menu-category-card-content span {
+    color: #9a918b;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   MENU RESPONSIVE - 1199px
+========================================================= */
+
+@media (max-width: 1199px) {
+
+    .menu-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .menu-category-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .menu-header h1 {
+        font-size: 29px;
+    }
+}
+
+
+/* =========================================================
+   MENU RESPONSIVE - 991px
+========================================================= */
+
+@media (max-width: 991px) {
+
+    .menu-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 18px;
+    }
+
+    .menu-category-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .menu-toolbar {
+        align-items: flex-start;
+    }
+
+    .menu-search {
+        max-width: 280px;
+    }
+}
+
+
+/* =========================================================
+   MENU RESPONSIVE - 767px
+========================================================= */
+
+@media (max-width: 767px) {
+
+    .menu-page {
+        padding: 15px 0;
+    }
+
+    .menu-header {
+        margin-bottom: 22px;
+    }
+
+    .menu-header h1 {
+        font-size: 25px;
+    }
+
+    .menu-header p {
+        font-size: 12px;
+    }
+
+    .menu-categories {
+        justify-content: flex-start;
+
+        margin-bottom: 22px;
+
+        overflow-x: auto;
+
+        flex-wrap: nowrap;
+
+        padding-bottom: 5px;
+
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .menu-category {
+        flex: 0 0 auto;
+    }
+
+    .menu-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .menu-toolbar-left,
+    .menu-toolbar-right {
+        width: 100%;
+    }
+
+    .menu-search {
+        max-width: 100%;
+    }
+
+    .menu-sort {
+        width: 100%;
+    }
+
+    .menu-grid {
+        gap: 15px;
+    }
+
+    .menu-category-grid {
+        gap: 12px;
+    }
+}
+
+
+/* =========================================================
+   MENU RESPONSIVE - 575px
+========================================================= */
+
+@media (max-width: 575px) {
+
+    .menu-grid {
+        grid-template-columns: 1fr;
+
+        gap: 15px;
+    }
+
+    .menu-category-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .menu-header h1 {
+        font-size: 23px;
+    }
+
+    .menu-card-content {
+        padding: 14px;
+    }
+
+    .menu-card-title {
+        font-size: 15px;
+    }
+
+    .menu-card-description {
+        font-size: 11px;
+    }
+
+    .menu-card-image {
+        aspect-ratio: 16 / 10;
+    }
+
+    .menu-category-card {
+        padding: 13px;
+    }
+}
+
+
+/* =========================================================
+   MENU RESPONSIVE - 380px
+========================================================= */
+
+@media (max-width: 380px) {
+
+    .menu-header h1 {
+        font-size: 21px;
+    }
+
+    .menu-category {
+        min-height: 35px;
+
+        padding: 7px 13px;
+
+        font-size: 11px;
+    }
+
+    .menu-card-content {
+        padding: 13px;
+    }
+
+    .menu-card-title {
+        font-size: 14px;
+    }
+
+    .menu-price-current {
+        font-size: 16px;
+    }
+
+    .menu-add-cart {
+        min-height: 36px;
+
+        font-size: 10px;
+    }
+
+    .menu-view-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+.menu-category:focus-visible,
+.menu-add-cart:focus-visible,
+.menu-view-btn:focus-visible,
+.menu-wishlist:focus-visible,
+.menu-search input:focus-visible,
+.menu-sort:focus-visible {
+    outline: 2px solid #8b5e3c;
+    outline-offset: 2px;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .menu-card,
+    .menu-card-image img,
+    .menu-category,
+    .menu-wishlist,
+    .menu-add-cart,
+    .menu-view-btn,
+    .menu-category-card {
+        transition: none;
+    }
+}
