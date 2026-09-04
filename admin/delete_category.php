@@ -9,16 +9,19 @@ require_once "includes/a-auth.php";
 |--------------------------------------------------------------------------
 | Delete Category
 |--------------------------------------------------------------------------
-| This file keeps the existing route:
+| Existing route:
 | delete_category.php?id=CATEGORY_ID
 |
 | Important:
-| A category cannot be deleted if products are assigned to it.
+| A category MUST NOT be deleted when products are assigned to it.
+| This prevents the categories -> products ON DELETE CASCADE from
+| accidentally deleting products.
 |--------------------------------------------------------------------------
 */
 
+
 /* =========================================================
-   Validate Category ID
+   1. Validate Category ID
 ========================================================= */
 
 if (
@@ -33,16 +36,31 @@ if (
     exit();
 }
 
-$category_id = (int) $_GET['id'];
+$categoryId = (int) $_GET['id'];
 
 
 /* =========================================================
-   Fetch Category
+   2. Variables
+========================================================= */
+
+$categoryName = "";
+$imagePath = null;
+
+
+/* =========================================================
+   3. Start Transaction
 ========================================================= */
 
 try {
 
-    $stmt = $pdo->prepare("
+    $pdo->beginTransaction();
+
+
+    /* =====================================================
+       4. Fetch & Lock Category
+    ===================================================== */
+
+    $categoryStmt = $pdo->prepare("
         SELECT
             category_id,
             category_name,
@@ -50,112 +68,116 @@ try {
         FROM categories
         WHERE category_id = :category_id
         LIMIT 1
+        FOR UPDATE
     ");
 
-    $stmt->execute([
-        ':category_id' => $category_id
+    $categoryStmt->execute([
+        ':category_id' => $categoryId
     ]);
 
-    $category = $stmt->fetch(PDO::FETCH_ASSOC);
+    $category = $categoryStmt->fetch(PDO::FETCH_ASSOC);
+
 
     if (!$category) {
 
-        $_SESSION['error'] = "Category not found.";
-
-        header("Location: categories.php");
-        exit();
+        throw new Exception("Category not found.");
     }
 
 
+    $categoryName = $category['category_name'];
+
+
     /* =====================================================
-       Check Assigned Products
+       5. Check Assigned Products
     ===================================================== */
 
-    $checkProducts = $pdo->prepare("
+    $productCheck = $pdo->prepare("
         SELECT COUNT(*)
         FROM products
         WHERE category_id = :category_id
     ");
 
-    $checkProducts->execute([
-        ':category_id' => $category_id
+    $productCheck->execute([
+        ':category_id' => $categoryId
     ]);
 
-    $productCount = (int) $checkProducts->fetchColumn();
+    $productCount = (int) $productCheck->fetchColumn();
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Never delete a category that contains products.
+    |--------------------------------------------------------------------------
+    */
 
     if ($productCount > 0) {
 
-        $_SESSION['error'] =
-            "Cannot delete '{$category['category_name']}'. "
+        throw new Exception(
+            "Cannot delete this category because "
             . $productCount
-            . " product(s) are assigned to this category. "
-            . "Please move or delete those products first.";
-
-        header("Location: categories.php");
-        exit();
+            . " product(s) are assigned to it. "
+            . "Move the products to another category first."
+        );
     }
 
 
     /* =====================================================
-       Store Image Path
-       Delete it only after successful DB deletion
+       6. Prepare Category Image Path
     ===================================================== */
-
-    $imagePath = null;
 
     if (!empty($category['category_image'])) {
 
-        $imageFileName = basename($category['category_image']);
+        $safeImageName = basename(
+            $category['category_image']
+        );
 
-        $imagePath = __DIR__
-            . "/../assets/images/categories/"
-            . $imageFileName;
+        if ($safeImageName !== "") {
+
+            $imagePath =
+                __DIR__
+                . "/../assets/images/categories/"
+                . $safeImageName;
+        }
     }
 
 
     /* =====================================================
-       Start Transaction
+       7. Delete Category
     ===================================================== */
 
-    $pdo->beginTransaction();
-
-
-    /* =====================================================
-       Delete Category
-    ===================================================== */
-
-    $delete = $pdo->prepare("
+    $deleteStmt = $pdo->prepare("
         DELETE FROM categories
         WHERE category_id = :category_id
         LIMIT 1
     ");
 
-    $delete->execute([
-        ':category_id' => $category_id
+    $deleteStmt->execute([
+        ':category_id' => $categoryId
     ]);
 
 
     /* =====================================================
-       Verify Deletion
+       8. Verify Database Deletion
     ===================================================== */
 
-    if ($delete->rowCount() !== 1) {
+    if ($deleteStmt->rowCount() !== 1) {
 
-        throw new Exception("Category could not be deleted.");
+        throw new Exception(
+            "Category could not be deleted."
+        );
     }
 
 
     /* =====================================================
-       Commit Transaction
+       9. Commit Transaction
     ===================================================== */
 
     $pdo->commit();
 
 
     /* =====================================================
-       Delete Category Image
-       Only after successful database deletion
+       10. Delete Physical Image
+       Only after successful DB commit
     ===================================================== */
 
     if (
@@ -168,16 +190,20 @@ try {
 
 
     /* =====================================================
-       Success Message
+       11. Success Message
     ===================================================== */
 
     $_SESSION['success'] =
-        "Category '{$category['category_name']}' deleted successfully.";
+        "Category \""
+        . $categoryName
+        . "\" deleted successfully.";
+
 
 } catch (Throwable $e) {
 
+
     /* =====================================================
-       Rollback
+       12. Rollback
     ===================================================== */
 
     if ($pdo->inTransaction()) {
@@ -187,16 +213,45 @@ try {
 
 
     /* =====================================================
-       Error Message
+       13. User-Friendly Error
     ===================================================== */
 
-    $_SESSION['error'] =
-        "Unable to delete the category. Please try again.";
+    $errorMessage = $e->getMessage();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expected business-rule errors can be shown directly.
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        str_contains(
+            $errorMessage,
+            "product(s) are assigned"
+        )
+        ||
+        $errorMessage === "Category not found."
+    ) {
+
+        $_SESSION['error'] = $errorMessage;
+
+    } else {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Do not expose database/internal errors to the admin.
+        |--------------------------------------------------------------------------
+        */
+
+        $_SESSION['error'] =
+            "Unable to delete the category. Please try again.";
+    }
 }
 
 
 /* =========================================================
-   Redirect
+   14. Redirect
 ========================================================= */
 
 header("Location: categories.php");

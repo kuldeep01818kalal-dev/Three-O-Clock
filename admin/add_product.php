@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 require_once "../config/db.php";
@@ -6,24 +7,41 @@ require_once "includes/a-auth.php";
 
 $pageTitle = "Add Product";
 
-/* ==========================================
-   Load Active Categories
-========================================== */
+$errors = [];
 
-$categoryStmt = $pdo->query("
-SELECT
-    category_id,
-    category_name
-FROM categories
-WHERE status='Active'
-ORDER BY category_name ASC
-");
+/*
+|--------------------------------------------------------------------------
+| Helper
+|--------------------------------------------------------------------------
+*/
 
-$categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
+function e($value)
+{
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
 
-/* ==========================================
-   Initialize Variables
-========================================== */
+
+/*
+|--------------------------------------------------------------------------
+| Generate Slug
+|--------------------------------------------------------------------------
+*/
+
+function generateSlug($text)
+{
+    $text = strtolower(trim($text));
+
+    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+
+    return trim($text, '-');
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Initial Values
+|--------------------------------------------------------------------------
+*/
 
 $product_name = "";
 $category_id = "";
@@ -31,7 +49,7 @@ $slug = "";
 $short_description = "";
 $description = "";
 $price = "";
-$discount_percent = "";
+$discount_price = "";
 $food_type = "";
 $spice_level = "";
 $preparation_time = "";
@@ -40,116 +58,496 @@ $featured = 0;
 $availability = "Available";
 $status = "Active";
 
-$errors = [];
 
-/* ==========================================
-   Generate Slug
-========================================== */
+/*
+|--------------------------------------------------------------------------
+| Load Active Categories
+|--------------------------------------------------------------------------
+*/
 
-function generateSlug($text)
-{
-    $text = strtolower(trim($text));
+try {
 
-    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+    $categoryStmt = $pdo->query("
+        SELECT
+            category_id,
+            category_name
+        FROM categories
+        WHERE status = 'Active'
+        ORDER BY category_name ASC
+    ");
 
-    $text = trim($text, '-');
+    $categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    return $text;
+} catch (Throwable $e) {
+
+    $categories = [];
+
+    $errors[] = "Unable to load categories.";
 }
 
-/* ==========================================
-   Form Submit
-========================================== */
 
-if ($_SERVER['REQUEST_METHOD'] === "POST") {
+/*
+|--------------------------------------------------------------------------
+| Form Submit
+|--------------------------------------------------------------------------
+*/
 
-    $product_name = trim($_POST['product_name']);
-    $category_id = trim($_POST['category_id']);
-    $short_description = trim($_POST['short_description']);
-    $description = trim($_POST['description']);
-    $price = trim($_POST['price']);
-    $discount_percent = trim($_POST['discount_percent']);
-    $food_type = trim($_POST['food_type']);
-    $spice_level = trim($_POST['spice_level']);
-    $preparation_time = trim($_POST['preparation_time']);
-    $stock = trim($_POST['stock']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get Form Values
+    |--------------------------------------------------------------------------
+    */
+
+    $product_name = trim($_POST['product_name'] ?? '');
+    $category_id = trim($_POST['category_id'] ?? '');
+    $short_description = trim($_POST['short_description'] ?? '');
+    $description = trim($_POST['description'] ?? '');
+    $price = trim($_POST['price'] ?? '');
+    $discount_price = trim($_POST['discount_price'] ?? '');
+    $food_type = trim($_POST['food_type'] ?? '');
+    $spice_level = trim($_POST['spice_level'] ?? '');
+    $preparation_time = trim($_POST['preparation_time'] ?? '');
+    $stock = trim($_POST['stock'] ?? '');
 
     $featured = isset($_POST['featured']) ? 1 : 0;
 
-    $availability = trim($_POST['availability']);
+    $availability = trim($_POST['availability'] ?? 'Available');
+    $status = trim($_POST['status'] ?? 'Active');
 
-    $status = trim($_POST['status']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Generate Slug
+    |--------------------------------------------------------------------------
+    */
 
     $slug = generateSlug($product_name);
 
-    /* ==========================================
-       Validation
-    ========================================== */
 
-    if ($product_name == "") {
-        $errors[] = "Product Name is required.";
+    /*
+    |--------------------------------------------------------------------------
+    | Basic Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if ($product_name === '') {
+
+        $errors[] = "Product name is required.";
+
+    } elseif (mb_strlen($product_name) > 255) {
+
+        $errors[] = "Product name cannot exceed 255 characters.";
     }
 
-    if ($category_id == "") {
+
+    if ($category_id === '') {
+
         $errors[] = "Category is required.";
+
+    } elseif (
+        !ctype_digit($category_id) ||
+        (int)$category_id <= 0
+    ) {
+
+        $errors[] = "Invalid category.";
     }
 
-    if ($price == "") {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Price Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if ($price === '') {
+
         $errors[] = "Price is required.";
+
+    } elseif (
+        !is_numeric($price) ||
+        (float)$price < 0
+    ) {
+
+        $errors[] = "Price must be a valid positive number.";
     }
 
-    if (!is_numeric($price)) {
-        $errors[] = "Price must be numeric.";
-    }
 
-    if ($discount_percent != "" && !is_numeric($discount_percent)) {
-        if($discount_percent < 0 || $discount_percent > 100){
-            $errors[] = "Discount must be between 0 and 100.";
+    /*
+    |--------------------------------------------------------------------------
+    | Discount Price Validation
+    |--------------------------------------------------------------------------
+    */
 
+    if ($discount_price !== '') {
+
+        if (
+            !is_numeric($discount_price) ||
+            (float)$discount_price < 0
+        ) {
+
+            $errors[] =
+                "Discount price must be a valid positive number.";
+
+        } elseif (
+            $price !== '' &&
+            is_numeric($price) &&
+            (float)$discount_price > (float)$price
+        ) {
+
+            $errors[] =
+                "Discount price cannot be greater than the product price.";
         }
     }
 
-    if ($stock == "") {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Food Type Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $allowedFoodTypes = [
+        'Veg',
+        'Non-Veg',
+        'Egg'
+    ];
+
+    if (!in_array($food_type, $allowedFoodTypes, true)) {
+
+        $errors[] = "Please select a valid food type.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spice Level Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $allowedSpiceLevels = [
+        'Mild',
+        'Medium',
+        'Hot'
+    ];
+
+    if ($spice_level !== '' &&
+        !in_array($spice_level, $allowedSpiceLevels, true)
+    ) {
+
+        $errors[] = "Invalid spice level.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preparation Time Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if ($preparation_time !== '') {
+
+        if (
+            !ctype_digit($preparation_time) ||
+            (int)$preparation_time < 0
+        ) {
+
+            $errors[] =
+                "Preparation time must be a valid number.";
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if ($stock === '') {
+
         $errors[] = "Stock is required.";
+
+    } elseif (
+        !ctype_digit($stock) ||
+        (int)$stock < 0
+    ) {
+
+        $errors[] =
+            "Stock must be a valid non-negative number.";
     }
 
-    if (!is_numeric($stock)) {
-        $errors[] = "Stock must be numeric.";
+
+    /*
+    |--------------------------------------------------------------------------
+    | Availability Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $allowedAvailability = [
+        'Available',
+        'Unavailable'
+    ];
+
+    if (
+        !in_array(
+            $availability,
+            $allowedAvailability,
+            true
+        )
+    ) {
+
+        $errors[] = "Invalid availability status.";
     }
 
-    if ($food_type == "") {
-        $errors[] = "Food Type is required.";
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $allowedStatuses = [
+        'Active',
+        'Inactive'
+    ];
+
+    if (
+        !in_array(
+            $status,
+            $allowedStatuses,
+            true
+        )
+    ) {
+
+        $errors[] = "Invalid product status.";
     }
 
-    if ($status == "") {
-        $errors[] = "Status is required.";
+
+    /*
+    |--------------------------------------------------------------------------
+    | Slug Validation
+    |--------------------------------------------------------------------------
+    */
+
+    if ($slug === '') {
+
+        $errors[] =
+            "A valid product name is required to generate the slug.";
     }
 
-    /* ==========================================
-       Duplicate Slug Check
-    ========================================== */
 
-    if (empty($errors)) {
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Category Exists
+    |--------------------------------------------------------------------------
+    */
 
-        $checkSlug = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM products
-        WHERE slug = ?
+    if (
+        empty($errors) &&
+        $category_id !== ''
+    ) {
+
+        $categoryCheck = $pdo->prepare("
+            SELECT category_id
+            FROM categories
+            WHERE category_id = :category_id
+              AND status = 'Active'
+            LIMIT 1
         ");
 
-        $checkSlug->execute([$slug]);
+        $categoryCheck->execute([
+            ':category_id' => (int)$category_id
+        ]);
 
-        if ($checkSlug->fetchColumn() > 0) {
+        if (!$categoryCheck->fetchColumn()) {
 
-            $slug .= "-" . time();
-
+            $errors[] =
+                "Selected category does not exist or is inactive.";
         }
-
     }
 
-    /* ==========================================
-       Insert Product
-    ========================================== */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Image Validation
+    |--------------------------------------------------------------------------
+    */
+
+    $uploadedFiles = [];
+
+    if (
+        isset($_FILES['product_images']) &&
+        isset($_FILES['product_images']['name']) &&
+        is_array($_FILES['product_images']['name'])
+    ) {
+
+        $fileCount = count(
+            $_FILES['product_images']['name']
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Maximum 10 Images
+        |--------------------------------------------------------------------------
+        */
+
+        if ($fileCount > 10) {
+
+            $errors[] =
+                "You can upload a maximum of 10 product images.";
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Allowed MIME Types
+        |--------------------------------------------------------------------------
+        */
+
+        $allowedMimeTypes = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp'
+        ];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Each Image
+        |--------------------------------------------------------------------------
+        */
+
+        if (empty($errors)) {
+
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+
+
+            foreach (
+                $_FILES['product_images']['tmp_name']
+                as $key => $tmpName
+            ) {
+
+                $originalName =
+                    $_FILES['product_images']['name'][$key] ?? '';
+
+                $errorCode =
+                    $_FILES['product_images']['error'][$key] ?? UPLOAD_ERR_NO_FILE;
+
+                $fileSize =
+                    $_FILES['product_images']['size'][$key] ?? 0;
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | No File
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    $errorCode === UPLOAD_ERR_NO_FILE ||
+                    $originalName === ''
+                ) {
+
+                    continue;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Upload Error
+                |--------------------------------------------------------------------------
+                */
+
+                if ($errorCode !== UPLOAD_ERR_OK) {
+
+                    $errors[] =
+                        "Unable to upload image: "
+                        . $originalName;
+
+                    continue;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Maximum 5MB
+                |--------------------------------------------------------------------------
+                */
+
+                if ($fileSize > 5 * 1024 * 1024) {
+
+                    $errors[] =
+                        "Image \""
+                        . $originalName
+                        . "\" exceeds the 5MB limit.";
+
+                    continue;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | MIME Validation
+                |--------------------------------------------------------------------------
+                */
+
+                $mimeType = $finfo->file($tmpName);
+
+
+                if (!isset($allowedMimeTypes[$mimeType])) {
+
+                    $errors[] =
+                        "Invalid image type for \""
+                        . $originalName
+                        . "\".";
+
+                    continue;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Verify Actual Image
+                |--------------------------------------------------------------------------
+                */
+
+                if (@getimagesize($tmpName) === false) {
+
+                    $errors[] =
+                        "\""
+                        . $originalName
+                        . "\" is not a valid image.";
+
+                    continue;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Store Valid Upload
+                |--------------------------------------------------------------------------
+                */
+
+                $uploadedFiles[] = [
+                    'key' => $key,
+                    'tmp_name' => $tmpName,
+                    'original_name' => $originalName,
+                    'mime_type' => $mimeType,
+                    'extension' => $allowedMimeTypes[$mimeType]
+                ];
+            }
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Insert Product
+    |--------------------------------------------------------------------------
+    */
 
     if (empty($errors)) {
 
@@ -157,638 +555,1197 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("
-            INSERT INTO products
-            (
-                category_id,
-                product_name,
-                slug,
-                description,
-                short_description,
-                price,
-                discount_percent,
-                food_type,
-                spice_level,
-                preparation_time,
-                stock,
-                featured,
-                availability,
-                status
-            )
-            VALUES
-            (
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?,
-                ?
-            )
-            ");
-
-            $stmt->execute([
-                $category_id,
-                $product_name,
-                $slug,
-                $description,
-                $short_description,
-                $price,
-                $discount_percent == "" ? null : $discount_percent,
-                $food_type,
-                $spice_level,
-                $preparation_time,
-                $stock,
-                $featured,
-                $availability,
-                $status
-            ]);
-
-            $product_id = $pdo->lastInsertId();
 
             /*
-             * Image upload and product_images insertion
-             * will be added in Part 2.
-             */
-            /* ==========================================
-               Upload Product Images
-            ========================================== */
+            |--------------------------------------------------------------------------
+            | Check Duplicate Slug
+            |--------------------------------------------------------------------------
+            */
 
-            if (
-                isset($_FILES['product_images']) &&
-                !empty($_FILES['product_images']['name'][0])
-            ) {
+            $baseSlug = $slug;
 
-                $uploadDir = "../assets/images/products/";
+            $slugCheck = $pdo->prepare("
+                SELECT COUNT(*)
+                FROM products
+                WHERE slug = :slug
+            ");
 
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
+            $slugCheck->execute([
+                ':slug' => $slug
+            ]);
 
-                $allowed = [
-                    "jpg",
-                    "jpeg",
-                    "png",
-                    "webp"
-                ];
+            $slugExists =
+                (int)$slugCheck->fetchColumn();
 
-                foreach ($_FILES['product_images']['name'] as $key => $imageName) {
 
-                    if ($_FILES['product_images']['error'][$key] != 0) {
-                        continue;
-                    }
+            if ($slugExists > 0) {
 
-                    $tmpName = $_FILES['product_images']['tmp_name'][$key];
+                $counter = 2;
 
-                    $extension = strtolower(
-                        pathinfo($imageName, PATHINFO_EXTENSION)
-                    );
+                do {
 
-                    if (!in_array($extension, $allowed)) {
-                        continue;
-                    }
+                    $slug = $baseSlug . '-' . $counter;
 
-                    $newImageName =
-                        time() .
-                        "_" .
-                        uniqid() .
-                        "." .
-                        $extension;
+                    $slugCheck->execute([
+                        ':slug' => $slug
+                    ]);
 
-                    if (move_uploaded_file(
-                        $tmpName,
-                        $uploadDir . $newImageName
-                    )) {
+                    $slugExists =
+                        (int)$slugCheck->fetchColumn();
 
-                        $isPrimary = ($key == 0) ? 1 : 0;
+                    $counter++;
 
-                        $displayOrder = $key + 1;
-
-                        $imgStmt = $pdo->prepare("
-                        INSERT INTO product_images
-                        (
-                            product_id,
-                            image_name,
-                            is_primary,
-                            display_order
-                        )
-                        VALUES
-                        (
-                            ?,
-                            ?,
-                            ?,
-                            ?
-                        )
-                        ");
-
-                        $imgStmt->execute([
-                            $product_id,
-                            $newImageName,
-                            $isPrimary,
-                            $displayOrder
-                        ]);
-
-                    }
-
-                }
-
+                } while ($slugExists > 0);
             }
 
-            /* ==========================================
-               Commit Transaction
-            ========================================== */
+
+            /*
+            |--------------------------------------------------------------------------
+            | Insert Product
+            |--------------------------------------------------------------------------
+            */
+
+            $productStmt = $pdo->prepare("
+                INSERT INTO products
+                (
+                    category_id,
+                    product_name,
+                    slug,
+                    description,
+                    short_description,
+                    price,
+                    discount_price,
+                    food_type,
+                    spice_level,
+                    preparation_time,
+                    stock,
+                    featured,
+                    availability,
+                    status
+                )
+                VALUES
+                (
+                    :category_id,
+                    :product_name,
+                    :slug,
+                    :description,
+                    :short_description,
+                    :price,
+                    :discount_price,
+                    :food_type,
+                    :spice_level,
+                    :preparation_time,
+                    :stock,
+                    :featured,
+                    :availability,
+                    :status
+                )
+            ");
+
+
+            $productStmt->execute([
+
+                ':category_id' =>
+                    (int)$category_id,
+
+                ':product_name' =>
+                    $product_name,
+
+                ':slug' =>
+                    $slug,
+
+                ':description' =>
+                    $description !== ''
+                    ? $description
+                    : null,
+
+                ':short_description' =>
+                    $short_description !== ''
+                    ? $short_description
+                    : null,
+
+                ':price' =>
+                    (float)$price,
+
+                ':discount_price' =>
+                    $discount_price !== ''
+                    ? (float)$discount_price
+                    : 0,
+
+                ':food_type' =>
+                    $food_type,
+
+                ':spice_level' =>
+                    $spice_level !== ''
+                    ? $spice_level
+                    : null,
+
+                ':preparation_time' =>
+                    $preparation_time !== ''
+                    ? (int)$preparation_time
+                    : null,
+
+                ':stock' =>
+                    (int)$stock,
+
+                ':featured' =>
+                    $featured,
+
+                ':availability' =>
+                    $availability,
+
+                ':status' =>
+                    $status
+            ]);
+
+
+            $productId =
+                (int)$pdo->lastInsertId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Directory
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($uploadedFiles)) {
+
+                $uploadDir =
+                    __DIR__
+                    . "/../assets/images/products/";
+
+
+                if (!is_dir($uploadDir)) {
+
+                    if (
+                        !mkdir(
+                            $uploadDir,
+                            0755,
+                            true
+                        )
+                    ) {
+
+                        throw new Exception(
+                            "Unable to create product image directory."
+                        );
+                    }
+                }
+
+
+                if (!is_writable($uploadDir)) {
+
+                    throw new Exception(
+                        "Product image directory is not writable."
+                    );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Insert Images
+                |--------------------------------------------------------------------------
+                */
+
+                $imageStmt = $pdo->prepare("
+                    INSERT INTO product_images
+                    (
+                        product_id,
+                        image_name,
+                        is_primary,
+                        display_order
+                    )
+                    VALUES
+                    (
+                        :product_id,
+                        :image_name,
+                        :is_primary,
+                        :display_order
+                    )
+                ");
+
+
+                foreach (
+                    $uploadedFiles
+                    as $index => $file
+                ) {
+
+                    $extension =
+                        $file['extension'];
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Random Safe Filename
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $newImageName =
+                        bin2hex(
+                            random_bytes(16)
+                        )
+                        . '.'
+                        . $extension;
+
+
+                    $destination =
+                        $uploadDir
+                        . $newImageName;
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Move Uploaded File
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        !move_uploaded_file(
+                            $file['tmp_name'],
+                            $destination
+                        )
+                    ) {
+
+                        throw new Exception(
+                            "Unable to save product image."
+                        );
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Track File For Rollback
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $uploadedImagePath =
+                        $destination;
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | First Image = Primary
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $isPrimary =
+                        $index === 0
+                        ? 1
+                        : 0;
+
+
+                    $displayOrder =
+                        $index + 1;
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Insert Image Record
+                    |--------------------------------------------------------------------------
+                    */
+
+                    try {
+
+                        $imageStmt->execute([
+
+                            ':product_id' =>
+                                $productId,
+
+                            ':image_name' =>
+                                $newImageName,
+
+                            ':is_primary' =>
+                                $isPrimary,
+
+                            ':display_order' =>
+                                $displayOrder
+                        ]);
+
+                    } catch (Throwable $imageException) {
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Remove image if DB insert fails
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            is_file(
+                                $uploadedImagePath
+                            )
+                        ) {
+
+                            @unlink(
+                                $uploadedImagePath
+                            );
+                        }
+
+                        throw $imageException;
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Track Uploaded File
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $createdImageFiles[] =
+                        $uploadedImagePath;
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Commit
+            |--------------------------------------------------------------------------
+            */
 
             $pdo->commit();
 
-            $_SESSION['success'] =
-                "Product added successfully.";
 
-            header("Location: products.php");
+            /*
+            |--------------------------------------------------------------------------
+            | Success
+            |--------------------------------------------------------------------------
+            */
+
+            $_SESSION['success'] =
+                "Product \""
+                . $product_name
+                . "\" added successfully.";
+
+
+            header(
+                "Location: products.php"
+            );
 
             exit();
 
-        } catch (Exception $e) {
 
-            $pdo->rollBack();
+        } catch (Throwable $e) {
 
-            $_SESSION['error'] =
-                "Something went wrong. " .
-                $e->getMessage();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Rollback
+            |--------------------------------------------------------------------------
+            */
+
+            if ($pdo->inTransaction()) {
+
+                $pdo->rollBack();
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove Uploaded Files
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                isset($createdImageFiles) &&
+                is_array($createdImageFiles)
+            ) {
+
+                foreach (
+                    $createdImageFiles
+                    as $createdFile
+                ) {
+
+                    if (is_file($createdFile)) {
+
+                        @unlink($createdFile);
+                    }
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Error
+            |--------------------------------------------------------------------------
+            */
+
+            $errors[] =
+                "Unable to add product. Please try again.";
 
         }
-
     }
-
 }
 
-/* ==========================================
-   Includes
-========================================== */
+
+/*
+|--------------------------------------------------------------------------
+| Includes
+|--------------------------------------------------------------------------
+*/
 
 include "includes/a-header.php";
 include "includes/a-sidebar.php";
 include "includes/a-navbar.php";
+
 ?>
 
 <div class="container-fluid mt-4">
-    <!-- ==========================================
-     Validation Errors
-========================================== -->
-
-<?php if(!empty($errors)): ?>
-
-<div class="alert alert-danger">
-
-    <ul class="mb-0">
-
-        <?php foreach($errors as $error): ?>
-
-            <li><?= htmlspecialchars($error); ?></li>
-
-        <?php endforeach; ?>
-
-    </ul>
-
-</div>
-
-<?php endif; ?>
 
 
-<div class="card shadow border-0">
+    <!-- =====================================================
+         Error Messages
+    ====================================================== -->
 
-    <div class="card-header bg-primary text-white">
+    <?php if (!empty($errors)) : ?>
 
-        <h4 class="mb-0">
+        <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert">
 
-            <i class="bi bi-plus-circle"></i>
+            <div class="fw-bold mb-2">
 
-            Add New Product
+                <i
+                    class="bi bi-exclamation-triangle-fill me-2">
+                </i>
 
-        </h4>
+                Please fix the following:
+
+            </div>
+
+            <ul class="mb-0">
+
+                <?php foreach ($errors as $error) : ?>
+
+                    <li>
+                        <?= e($error); ?>
+                    </li>
+
+                <?php endforeach; ?>
+
+            </ul>
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    <?php endif; ?>
+
+
+    <!-- =====================================================
+         Page Header
+    ====================================================== -->
+
+    <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+
+                <i
+                    class="bi bi-plus-circle me-2">
+                </i>
+
+                Add New Product
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Add a new food or beverage product to the menu.
+
+            </p>
+
+        </div>
+
+
+        <a
+            href="products.php"
+            class="btn btn-secondary">
+
+            <i
+                class="bi bi-arrow-left me-1">
+            </i>
+
+            Back to Products
+
+        </a>
 
     </div>
 
-    <div class="card-body">
 
-<form method="POST"
-      enctype="multipart/form-data">
+    <!-- =====================================================
+         Product Form
+    ====================================================== -->
 
-<div class="row">
+    <div class="card shadow border-0">
 
-<!-- Product Name -->
+        <div class="card-header bg-primary text-white">
 
-<div class="col-md-6 mb-3">
+            <h5 class="mb-0">
 
-<label class="form-label">
+                <i
+                    class="bi bi-box-seam me-2">
+                </i>
 
-Product Name
+                Product Information
 
-<span class="text-danger">*</span>
+            </h5>
 
-</label>
+        </div>
 
-<input
-type="text"
-name="product_name"
-id="product_name"
-class="form-control"
-required
-value="<?= htmlspecialchars($product_name); ?>">
 
-</div>
+        <div class="card-body">
 
-<!-- Slug -->
+            <form
+                method="POST"
+                enctype="multipart/form-data"
+                id="productForm">
 
-<div class="col-md-6 mb-3">
 
-<label class="form-label">
+                <!-- =================================================
+                     Basic Information
+                ================================================== -->
 
-Slug
+                <div class="row">
 
-</label>
 
-<input
-type="text"
-name="slug"
-id="slug"
-class="form-control"
-readonly
-value="<?= htmlspecialchars($slug); ?>">
+                    <!-- Product Name -->
 
-</div>
+                    <div class="col-md-6 mb-3">
 
-<!-- Category -->
+                        <label
+                            for="product_name"
+                            class="form-label fw-semibold">
 
-<div class="col-md-6 mb-3">
+                            Product Name
 
-<label class="form-label">
+                            <span class="text-danger">
+                                *
+                            </span>
 
-Category
+                        </label>
 
-<span class="text-danger">*</span>
+                        <input
+                            type="text"
+                            name="product_name"
+                            id="product_name"
+                            class="form-control"
+                            maxlength="255"
+                            required
+                            value="<?= e($product_name); ?>"
+                            placeholder="e.g. Cappuccino">
 
-</label>
+                    </div>
 
-<select
-name="category_id"
-class="form-select"
-required>
 
-<option value="">
+                    <!-- Slug -->
 
-Select Category
+                    <div class="col-md-6 mb-3">
 
-</option>
+                        <label
+                            for="slug"
+                            class="form-label fw-semibold">
 
-<?php foreach($categories as $cat): ?>
+                            Slug
 
-<option
-value="<?= $cat['category_id']; ?>"
-<?= ($category_id==$cat['category_id'])?'selected':''; ?>>
+                        </label>
 
-<?= htmlspecialchars($cat['category_name']); ?>
+                        <input
+                            type="text"
+                            id="slug"
+                            class="form-control"
+                            readonly
+                            value="<?= e($slug); ?>">
 
-</option>
+                        <small class="text-muted">
 
-<?php endforeach; ?>
+                            Automatically generated from product name.
 
-</select>
+                        </small>
 
-</div>
+                    </div>
 
-<!-- Food Type -->
 
-<div class="col-md-6 mb-3">
+                    <!-- Category -->
 
-<label class="form-label">
+                    <div class="col-md-6 mb-3">
 
-Food Type
+                        <label
+                            for="category_id"
+                            class="form-label fw-semibold">
 
-</label>
+                            Category
 
-<select
-name="food_type"
-class="form-select">
+                            <span class="text-danger">
+                                *
+                            </span>
 
-<option value="">
+                        </label>
 
-Select Food Type
+                        <select
+                            name="category_id"
+                            id="category_id"
+                            class="form-select"
+                            required>
 
-</option>
+                            <option value="">
+                                Select Category
+                            </option>
 
-<option value="Veg"
-<?= ($food_type=="Veg")?"selected":""; ?>>
+                            <?php foreach ($categories as $category) : ?>
 
-Veg
+                                <option
+                                    value="<?= (int)$category['category_id']; ?>"
+                                    <?= (string)$category_id ===
+                                        (string)$category['category_id']
+                                        ? 'selected'
+                                        : ''; ?>>
 
-</option>
+                                    <?= e($category['category_name']); ?>
 
-<option value="Non-Veg"
-<?= ($food_type=="Non-Veg")?"selected":""; ?>>
+                                </option>
 
-Non-Veg
+                            <?php endforeach; ?>
 
-</option>
+                        </select>
 
-<option value="Egg"
-<?= ($food_type=="Egg")?"selected":""; ?>>
+                    </div>
 
-Egg
 
-</option>
+                    <!-- Food Type -->
 
-</select>
+                    <div class="col-md-6 mb-3">
 
-</div>
+                        <label
+                            for="food_type"
+                            class="form-label fw-semibold">
 
-<!-- Short Description -->
+                            Food Type
 
-<div class="col-12 mb-3">
+                            <span class="text-danger">
+                                *
+                            </span>
 
-<label class="form-label">
+                        </label>
 
-Short Description
+                        <select
+                            name="food_type"
+                            id="food_type"
+                            class="form-select"
+                            required>
 
-</label>
+                            <option value="">
+                                Select Food Type
+                            </option>
 
-<textarea
-name="short_description"
-class="form-control"
-rows="2"><?= htmlspecialchars($short_description); ?></textarea>
+                            <option
+                                value="Veg"
+                                <?= $food_type === 'Veg'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-</div>
+                                Veg
 
-<!-- Description -->
+                            </option>
 
-<div class="col-12 mb-3">
+                            <option
+                                value="Non-Veg"
+                                <?= $food_type === 'Non-Veg'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-<label class="form-label">
+                                Non-Veg
 
-Description
+                            </option>
 
-</label>
+                            <option
+                                value="Egg"
+                                <?= $food_type === 'Egg'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-<textarea
-name="description"
-class="form-control"
-rows="5"><?= htmlspecialchars($description); ?></textarea>
+                                Egg
 
-</div>
+                            </option>
 
-<!-- Price -->
+                        </select>
 
-<div class="col-md-3 mb-3">
+                    </div>
 
-<label class="form-label">
 
-Price
+                    <!-- Short Description -->
 
-<span class="text-danger">*</span>
+                    <div class="col-12 mb-3">
 
-</label>
+                        <label
+                            for="short_description"
+                            class="form-label fw-semibold">
 
-<input
-type="number"
-step="0.01"
-name="price"
-class="form-control"
-required
-value="<?= htmlspecialchars($price); ?>">
+                            Short Description
 
-</div>
+                        </label>
 
-<!-- Discount Price -->
+                        <textarea
+                            name="short_description"
+                            id="short_description"
+                            class="form-control"
+                            rows="2"
+                            maxlength="500"
+                            placeholder="Short description for product cards..."><?= e($short_description); ?></textarea>
 
-<div class="col-md-3 mb-3">
+                    </div>
 
-<label class="form-label">
-Discount (%)
-</label>
 
-<input
-type="number"
-name="discount_percent"
-class="form-control"
-min="0"
-max="100"
-step="0.01"
-value="<?= htmlspecialchars($discount_percent); ?>">
+                    <!-- Description -->
 
-</div>
+                    <div class="col-12 mb-3">
 
-<!-- Stock -->
+                        <label
+                            for="description"
+                            class="form-label fw-semibold">
 
-<div class="col-md-3 mb-3">
+                            Description
 
-<label class="form-label">
+                        </label>
 
-Stock
+                        <textarea
+                            name="description"
+                            id="description"
+                            class="form-control"
+                            rows="5"
+                            placeholder="Enter complete product description..."><?= e($description); ?></textarea>
 
-</label>
+                    </div>
 
-<input
-type="number"
-name="stock"
-class="form-control"
-value="<?= htmlspecialchars($stock); ?>">
+                </div>
 
-</div>
 
-<!-- Preparation Time -->
+                <!-- =================================================
+                     Pricing & Inventory
+                ================================================== -->
 
-<div class="col-md-3 mb-3">
+                <hr class="my-4">
 
-<label class="form-label">
+                <h6 class="fw-bold mb-3">
 
-Preparation Time (Min)
+                    <i
+                        class="bi bi-currency-rupee me-1">
+                    </i>
 
-</label>
+                    Pricing & Inventory
 
-<input
-type="number"
-name="preparation_time"
-class="form-control"
-value="<?= htmlspecialchars($preparation_time); ?>">
+                </h6>
 
-</div>
 
-<!-- Spice Level -->
+                <div class="row">
 
-<div class="col-md-4 mb-3">
 
-<label class="form-label">
+                    <!-- Price -->
 
-Spice Level
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-</label>
+                        <label
+                            for="price"
+                            class="form-label fw-semibold">
 
-<select
-name="spice_level"
-class="form-select">
+                            Price (₹)
 
-<option value="">
+                            <span class="text-danger">
+                                *
+                            </span>
 
-Select
+                        </label>
 
-</option>
+                        <input
+                            type="number"
+                            name="price"
+                            id="price"
+                            class="form-control"
+                            min="0"
+                            step="0.01"
+                            required
+                            value="<?= e($price); ?>"
+                            placeholder="0.00">
 
-<option value="Mild"
-<?= ($spice_level=="Mild")?"selected":""; ?>>
+                    </div>
 
-Mild
 
-</option>
+                    <!-- Discount Price -->
 
-<option value="Medium"
-<?= ($spice_level=="Medium")?"selected":""; ?>>
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-Medium
+                        <label
+                            for="discount_price"
+                            class="form-label fw-semibold">
 
-</option>
+                            Discount Price (₹)
 
-<option value="Hot"
-<?= ($spice_level=="Hot")?"selected":""; ?>>
+                        </label>
 
-Hot
+                        <input
+                            type="number"
+                            name="discount_price"
+                            id="discount_price"
+                            class="form-control"
+                            min="0"
+                            step="0.01"
+                            value="<?= e($discount_price); ?>"
+                            placeholder="Optional">
 
-</option>
+                        <small class="text-muted">
 
-</select>
+                            Final selling price after discount.
 
-</div>
+                        </small>
 
-<!-- Availability -->
+                    </div>
 
-<div class="col-md-4 mb-3">
 
-<label class="form-label">
+                    <!-- Stock -->
 
-Availability
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-</label>
+                        <label
+                            for="stock"
+                            class="form-label fw-semibold">
 
-<select
-name="availability"
-class="form-select">
+                            Stock
 
-<option value="Available"
-<?= ($availability=="Available")?"selected":""; ?>>
+                            <span class="text-danger">
+                                *
+                            </span>
 
-Available
+                        </label>
 
-</option>
+                        <input
+                            type="number"
+                            name="stock"
+                            id="stock"
+                            class="form-control"
+                            min="0"
+                            step="1"
+                            required
+                            value="<?= e($stock); ?>"
+                            placeholder="0">
 
-<option value="Unavailable"
-<?= ($availability=="Unavailable")?"selected":""; ?>>
+                    </div>
 
-Unavailable
 
-</option>
+                    <!-- Preparation Time -->
 
-</select>
+                    <div class="col-lg-3 col-md-6 mb-3">
 
-</div>
+                        <label
+                            for="preparation_time"
+                            class="form-label fw-semibold">
 
-<!-- Status -->
+                            Preparation Time (Min)
 
-<div class="col-md-4 mb-3">
+                        </label>
 
-<label class="form-label">
+                        <input
+                            type="number"
+                            name="preparation_time"
+                            id="preparation_time"
+                            class="form-control"
+                            min="0"
+                            step="1"
+                            value="<?= e($preparation_time); ?>"
+                            placeholder="e.g. 15">
 
-Status
+                    </div>
 
-</label>
+                </div>
 
-<select
-name="status"
-class="form-select">
 
-<option value="Active"
-<?= ($status=="Active")?"selected":""; ?>>
+                <!-- =================================================
+                     Product Options
+                ================================================== -->
 
-Active
+                <div class="row">
 
-</option>
 
-<option value="Inactive"
-<?= ($status=="Inactive")?"selected":""; ?>>
+                    <!-- Spice Level -->
 
-Inactive
+                    <div class="col-md-4 mb-3">
 
-</option>
+                        <label
+                            for="spice_level"
+                            class="form-label fw-semibold">
 
-</select>
+                            Spice Level
 
-</div>
+                        </label>
 
-<!-- Featured -->
+                        <select
+                            name="spice_level"
+                            id="spice_level"
+                            class="form-select">
 
-<div class="col-md-12 mb-3">
+                            <option value="">
+                                Select Spice Level
+                            </option>
 
-<div class="form-check">
+                            <option
+                                value="Mild"
+                                <?= $spice_level === 'Mild'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-<input
-class="form-check-input"
-type="checkbox"
-name="featured"
-id="featured"
-value="1"
-<?= ($featured==1)?'checked':''; ?>>
+                                Mild
 
-<label
-class="form-check-label"
-for="featured">
+                            </option>
 
-Featured Product
+                            <option
+                                value="Medium"
+                                <?= $spice_level === 'Medium'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-</label>
+                                Medium
 
-</div>
+                            </option>
 
-</div>
+                            <option
+                                value="Hot"
+                                <?= $spice_level === 'Hot'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-<!-- Product Images -->
+                                Hot
 
-<div class="col-12 mb-4">
+                            </option>
 
-<label class="form-label">
+                        </select>
 
-Product Images
+                    </div>
 
-</label>
 
-<input
-type="file"
-name="product_images[]"
-id="product_images"
-class="form-control"
-multiple
-accept=".jpg,.jpeg,.png,.webp">
+                    <!-- Availability -->
 
-<small class="text-muted">
+                    <div class="col-md-4 mb-3">
 
-You can upload multiple images.
-The first uploaded image will be the primary image.
+                        <label
+                            for="availability"
+                            class="form-label fw-semibold">
 
-</small>
+                            Availability
 
-</div>
-<!-- Image Preview -->
+                        </label>
 
-<div class="row mb-4">
+                        <select
+                            name="availability"
+                            id="availability"
+                            class="form-select">
 
-    <div class="col-12">
+                            <option
+                                value="Available"
+                                <?= $availability === 'Available'
+                                    ? 'selected'
+                                    : ''; ?>>
 
-        <div
-            id="preview"
-            class="d-flex flex-wrap gap-3">
+                                Available
+
+                            </option>
+
+                            <option
+                                value="Unavailable"
+                                <?= $availability === 'Unavailable'
+                                    ? 'selected'
+                                    : ''; ?>>
+
+                                Unavailable
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Status -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label
+                            for="status"
+                            class="form-label fw-semibold">
+
+                            Status
+
+                        </label>
+
+                        <select
+                            name="status"
+                            id="status"
+                            class="form-select">
+
+                            <option
+                                value="Active"
+                                <?= $status === 'Active'
+                                    ? 'selected'
+                                    : ''; ?>>
+
+                                Active
+
+                            </option>
+
+                            <option
+                                value="Inactive"
+                                <?= $status === 'Inactive'
+                                    ? 'selected'
+                                    : ''; ?>>
+
+                                Inactive
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Featured -->
+
+                    <div class="col-12 mb-3">
+
+                        <div class="form-check">
+
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                name="featured"
+                                id="featured"
+                                value="1"
+                                <?= $featured == 1
+                                    ? 'checked'
+                                    : ''; ?>>
+
+                            <label
+                                class="form-check-label fw-semibold"
+                                for="featured">
+
+                                Featured Product
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     Product Images
+                ================================================== -->
+
+                <hr class="my-4">
+
+                <h6 class="fw-bold mb-3">
+
+                    <i
+                        class="bi bi-images me-1">
+                    </i>
+
+                    Product Images
+
+                </h6>
+
+
+                <div class="mb-3">
+
+                    <label
+                        for="product_images"
+                        class="form-label fw-semibold">
+
+                        Upload Images
+
+                    </label>
+
+                    <input
+                        type="file"
+                        name="product_images[]"
+                        id="product_images"
+                        class="form-control"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.webp">
+
+                    <small class="text-muted">
+
+                        Maximum 10 images.
+                        JPG, JPEG, PNG and WEBP.
+                        Maximum 5MB per image.
+                        First image becomes the primary image.
+
+                    </small>
+
+                </div>
+
+
+                <!-- Image Preview -->
+
+                <div
+                    id="preview"
+                    class="row g-3 mb-4">
+                </div>
+
+
+                <!-- =================================================
+                     Buttons
+                ================================================== -->
+
+                <div
+                    class="d-flex flex-wrap gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-success">
+
+                        <i
+                            class="bi bi-check-circle me-1">
+                        </i>
+
+                        Save Product
+
+                    </button>
+
+
+                    <button
+                        type="reset"
+                        class="btn btn-warning"
+                        id="resetForm">
+
+                        <i
+                            class="bi bi-arrow-clockwise me-1">
+                        </i>
+
+                        Reset
+
+                    </button>
+
+
+                    <a
+                        href="products.php"
+                        class="btn btn-secondary">
+
+                        <i
+                            class="bi bi-arrow-left me-1">
+                        </i>
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+
+            </form>
 
         </div>
 
@@ -796,146 +1753,310 @@ The first uploaded image will be the primary image.
 
 </div>
 
-<!-- Buttons -->
 
-<div class="row">
-
-    <div class="col-12">
-
-        <button
-            type="submit"
-            class="btn btn-success">
-
-            <i class="bi bi-check-circle"></i>
-
-            Save Product
-
-        </button>
-
-        <button
-            type="reset"
-            class="btn btn-warning">
-
-            <i class="bi bi-arrow-clockwise"></i>
-
-            Reset
-
-        </button>
-
-        <a
-            href="products.php"
-            class="btn btn-secondary">
-
-            <i class="bi bi-arrow-left"></i>
-
-            Back
-
-        </a>
-
-    </div>
-
-</div>
-
-</form>
-
-    </div>
-
-</div>
-
-</div>
-
-<!-- ==========================================
+<!-- =========================================================
      JavaScript
-========================================== -->
+========================================================== -->
 
 <script>
 
-const productName =
-document.getElementById("product_name");
+document.addEventListener("DOMContentLoaded", function () {
 
-const slug =
-document.getElementById("slug");
+    const productName =
+        document.getElementById("product_name");
 
-productName.addEventListener("keyup",function(){
+    const slug =
+        document.getElementById("slug");
 
-    slug.value=this.value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g,"-")
-    .replace(/^-|-$/g,"");
+    const imageInput =
+        document.getElementById("product_images");
 
-});
+    const preview =
+        document.getElementById("preview");
 
-const imageInput =
-document.getElementById("product_images");
+    const price =
+        document.getElementById("price");
 
-const preview =
-document.getElementById("preview");
+    const discountPrice =
+        document.getElementById("discount_price");
 
-imageInput.addEventListener("change",function(){
+    const form =
+        document.getElementById("productForm");
 
-    preview.innerHTML="";
 
-    Array.from(this.files).forEach(function(file){
+    /* =====================================================
+       Generate Slug
+    ====================================================== */
 
-        if(!file.type.startsWith("image/")){
-            return;
-        }
+    function updateSlug() {
 
-        const reader =
-        new FileReader();
-
-        reader.onload=function(e){
-
-            const card=
-            document.createElement("div");
-
-            card.className="text-center";
-
-            card.innerHTML=`
-                <img
-                    src="${e.target.result}"
-                    class="img-thumbnail"
-                    style="
-                        width:120px;
-                        height:120px;
-                        object-fit:cover;
-                    ">
-
-                <div class="small mt-2">
-
-                    ${file.name}
-
-                </div>
-            `;
-
-            preview.appendChild(card);
-
-        };
-
-        reader.readAsDataURL(file);
-
-    });
-
-});
-
-document.querySelector("form")
-.addEventListener("submit",function(e){
-
-    if(productName.value.trim()==""){
-
-        alert("Please enter Product Name");
-
-        productName.focus();
-
-        e.preventDefault();
-
-        return;
+        slug.value =
+            productName.value
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "");
 
     }
+
+
+    productName.addEventListener(
+        "input",
+        updateSlug
+    );
+
+
+    /* =====================================================
+       Image Preview
+    ====================================================== */
+
+    imageInput.addEventListener(
+        "change",
+        function () {
+
+            preview.innerHTML = "";
+
+            const files =
+                Array.from(this.files);
+
+
+            if (files.length > 10) {
+
+                alert(
+                    "You can upload a maximum of 10 images."
+                );
+
+                this.value = "";
+
+                return;
+            }
+
+
+            files.forEach(function (file, index) {
+
+                if (!file.type.startsWith("image/")) {
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function (event) {
+
+                        const column =
+                            document.createElement("div");
+
+                        column.className =
+                            "col-xl-2 col-lg-3 col-md-4 col-6";
+
+
+                        const card =
+                            document.createElement("div");
+
+                        card.className =
+                            "card h-100 shadow-sm";
+
+
+                        const image =
+                            document.createElement("img");
+
+                        image.src =
+                            event.target.result;
+
+                        image.className =
+                            "card-img-top";
+
+                        image.style.height =
+                            "140px";
+
+                        image.style.objectFit =
+                            "cover";
+
+
+                        const body =
+                            document.createElement("div");
+
+                        body.className =
+                            "card-body p-2 text-center";
+
+
+                        const name =
+                            document.createElement("div");
+
+                        name.className =
+                            "small text-truncate";
+
+                        name.title =
+                            file.name;
+
+                        name.textContent =
+                            file.name;
+
+
+                        const primary =
+                            document.createElement("span");
+
+                        if (index === 0) {
+
+                            primary.className =
+                                "badge bg-success mt-1";
+
+                            primary.textContent =
+                                "Primary";
+                        }
+
+
+                        body.appendChild(name);
+
+                        if (index === 0) {
+
+                            body.appendChild(primary);
+                        }
+
+
+                        card.appendChild(image);
+
+                        card.appendChild(body);
+
+                        column.appendChild(card);
+
+                        preview.appendChild(column);
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            });
+
+        }
+    );
+
+
+    /* =====================================================
+       Discount Price Validation
+    ====================================================== */
+
+    function validateDiscount() {
+
+        const productPrice =
+            parseFloat(price.value);
+
+        const discount =
+            parseFloat(discountPrice.value);
+
+
+        if (
+            !isNaN(productPrice) &&
+            !isNaN(discount) &&
+            discount > productPrice
+        ) {
+
+            discountPrice.setCustomValidity(
+                "Discount price cannot be greater than product price."
+            );
+
+        } else {
+
+            discountPrice.setCustomValidity("");
+
+        }
+
+    }
+
+
+    price.addEventListener(
+        "input",
+        validateDiscount
+    );
+
+    discountPrice.addEventListener(
+        "input",
+        validateDiscount
+    );
+
+
+    /* =====================================================
+       Form Validation
+    ====================================================== */
+
+    form.addEventListener(
+        "submit",
+        function (event) {
+
+            updateSlug();
+
+            validateDiscount();
+
+
+            if (!productName.value.trim()) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please enter the product name."
+                );
+
+                productName.focus();
+
+                return;
+            }
+
+
+            if (!price.value) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please enter the product price."
+                );
+
+                price.focus();
+
+                return;
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       Reset
+    ====================================================== */
+
+    document
+        .getElementById("resetForm")
+        .addEventListener(
+            "click",
+            function () {
+
+                setTimeout(
+                    function () {
+
+                        preview.innerHTML = "";
+
+                        slug.value = "";
+
+                        discountPrice.setCustomValidity("");
+
+                    },
+                    0
+                );
+
+            }
+        );
 
 });
 
 </script>
 
-<?php include "includes/a-footer.php"; ?>
+
+<?php
+
+include "includes/a-footer.php";
+
+?>

@@ -14,17 +14,55 @@ $errors = [];
 
 /*
 |--------------------------------------------------------------------------
-| HELPER
+| HELPERS
 |--------------------------------------------------------------------------
 */
 
-function e(?string $value): string
+function e(mixed $value): string
 {
     return htmlspecialchars(
         (string)$value,
         ENT_QUOTES,
         'UTF-8'
     );
+}
+
+
+function money(float $amount, string $currency = "₹"): string
+{
+    return e($currency) . number_format($amount, 2);
+}
+
+
+function paginationUrl(
+    int $pageNumber,
+    string $search,
+    string $category,
+    string $foodType,
+    string $status
+): string {
+
+    $query = [
+        'page' => $pageNumber
+    ];
+
+    if ($search !== '') {
+        $query['search'] = $search;
+    }
+
+    if ($category !== '') {
+        $query['category'] = $category;
+    }
+
+    if ($foodType !== '') {
+        $query['food_type'] = $foodType;
+    }
+
+    if ($status !== '') {
+        $query['status'] = $status;
+    }
+
+    return '?' . http_build_query($query);
 }
 
 
@@ -45,22 +83,35 @@ try {
         LIMIT 1
     ");
 
-    $currencyValue =
-        $currencyStmt->fetchColumn();
+    $currencyValue = $currencyStmt->fetchColumn();
 
     if (
         is_string($currencyValue) &&
         trim($currencyValue) !== ''
     ) {
 
-        $currency = trim($currencyValue);
+        $currencyValue = trim($currencyValue);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Convert database currency code to display symbol
+        |--------------------------------------------------------------------------
+        */
+
+        $currencyMap = [
+            'INR' => '₹',
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£'
+        ];
+
+        $currency = $currencyMap[$currencyValue]
+            ?? $currencyValue;
     }
 
 } catch (PDOException $e) {
 
     $currency = "₹";
-
 }
 
 
@@ -104,7 +155,6 @@ $allowedStatuses = [
     'Inactive'
 ];
 
-
 if (
     $foodType !== '' &&
     !in_array(
@@ -115,7 +165,6 @@ if (
 ) {
 
     $foodType = '';
-
 }
 
 
@@ -129,13 +178,12 @@ if (
 ) {
 
     $status = '';
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| CATEGORY FILTER VALIDATION
+| CATEGORY FILTER
 |--------------------------------------------------------------------------
 */
 
@@ -143,37 +191,37 @@ $categoryId = null;
 
 if ($category !== '') {
 
+    $validatedCategory = filter_var(
+        $category,
+        FILTER_VALIDATE_INT
+    );
+
     if (
-        filter_var(
-            $category,
-            FILTER_VALIDATE_INT
-        ) !== false
+        $validatedCategory !== false &&
+        $validatedCategory > 0
     ) {
 
-        $categoryId =
-            (int)$category;
+        $categoryId = (int)$validatedCategory;
 
     } else {
 
         $category = '';
-
     }
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD STATISTICS
+| STATISTICS
 |--------------------------------------------------------------------------
 */
 
 $totalProducts = 0;
 $activeProducts = 0;
+$inactiveProducts = 0;
 $featuredProducts = 0;
 $outOfStock = 0;
 $unavailableProducts = 0;
-
 
 try {
 
@@ -187,6 +235,13 @@ try {
         SELECT COUNT(*)
         FROM products
         WHERE status = 'Active'
+    ")->fetchColumn();
+
+
+    $inactiveProducts = (int)$pdo->query("
+        SELECT COUNT(*)
+        FROM products
+        WHERE status = 'Inactive'
     ")->fetchColumn();
 
 
@@ -210,18 +265,20 @@ try {
         WHERE availability = 'Unavailable'
     ")->fetchColumn();
 
-
 } catch (PDOException $e) {
 
     $errors[] =
         "Unable to load product statistics.";
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| CATEGORY DROPDOWN
+| CATEGORIES
+|--------------------------------------------------------------------------
+|
+| Load all categories so an administrator can find products
+| belonging to an inactive category as well.
 |--------------------------------------------------------------------------
 */
 
@@ -232,21 +289,20 @@ try {
     $categoryStmt = $pdo->query("
         SELECT
             category_id,
-            category_name
+            category_name,
+            status
         FROM categories
-        WHERE status = 'Active'
         ORDER BY category_name ASC
     ");
 
-    $categories =
-        $categoryStmt->fetchAll(
-            PDO::FETCH_ASSOC
-        );
+    $categories = $categoryStmt->fetchAll(
+        PDO::FETCH_ASSOC
+    );
 
 } catch (PDOException $e) {
 
-    $categories = [];
-
+    $errors[] =
+        "Unable to load categories.";
 }
 
 
@@ -269,21 +325,18 @@ if (
 ) {
 
     $page = 1;
-
 }
 
-$offset =
-    ($page - 1) * $limit;
+$offset = ($page - 1) * $limit;
 
 
 /*
 |--------------------------------------------------------------------------
-| BUILD WHERE CLAUSE
+| BUILD FILTER CONDITIONS
 |--------------------------------------------------------------------------
 */
 
 $where = [];
-
 $params = [];
 
 
@@ -300,12 +353,12 @@ if ($search !== '') {
             p.product_name LIKE :search
             OR p.slug LIKE :search
             OR p.short_description LIKE :search
+            OR p.description LIKE :search
         )
     ";
 
     $params[':search'] =
         '%' . $search . '%';
-
 }
 
 
@@ -322,7 +375,6 @@ if ($categoryId !== null) {
 
     $params[':category_id'] =
         $categoryId;
-
 }
 
 
@@ -339,7 +391,6 @@ if ($foodType !== '') {
 
     $params[':food_type'] =
         $foodType;
-
 }
 
 
@@ -356,7 +407,6 @@ if ($status !== '') {
 
     $params[':status'] =
         $status;
-
 }
 
 
@@ -371,18 +421,16 @@ $whereSQL = '';
 if (!empty($where)) {
 
     $whereSQL =
-        'WHERE ' .
-        implode(
+        'WHERE ' . implode(
             ' AND ',
             $where
         );
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| TOTAL FILTERED PRODUCTS
+| TOTAL FILTERED ROWS
 |--------------------------------------------------------------------------
 */
 
@@ -400,15 +448,13 @@ try {
         $pdo->prepare($countSQL);
 
     foreach (
-        $params
-        as $key => $value
+        $params as $key => $value
     ) {
 
         $countStmt->bindValue(
             $key,
             $value
         );
-
     }
 
     $countStmt->execute();
@@ -419,23 +465,21 @@ try {
 } catch (PDOException $e) {
 
     $errors[] =
-        "Unable to load product count.";
-
+        "Unable to load filtered product count.";
 }
 
 
-$totalPages =
-    max(
-        1,
-        (int)ceil(
-            $totalRows / $limit
-        )
-    );
+$totalPages = max(
+    1,
+    (int)ceil(
+        $totalRows / $limit
+    )
+);
 
 
 /*
 |--------------------------------------------------------------------------
-| KEEP PAGE IN RANGE
+| KEEP PAGE WITHIN RANGE
 |--------------------------------------------------------------------------
 */
 
@@ -445,22 +489,12 @@ if ($page > $totalPages) {
 
     $offset =
         ($page - 1) * $limit;
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
 | FETCH PRODUCTS
-|--------------------------------------------------------------------------
-|
-| IMPORTANT:
-| discount_price is the actual database field.
-|
-| The primary image is fetched using a correlated subquery
-| so the same product cannot appear multiple times because
-| of multiple product_images rows.
-|
 |--------------------------------------------------------------------------
 */
 
@@ -476,6 +510,7 @@ try {
             p.product_name,
             p.slug,
             p.short_description,
+            p.description,
             p.price,
             p.discount_price,
             p.food_type,
@@ -512,23 +547,18 @@ try {
         LIMIT :offset, :limit
     ";
 
-
     $stmt =
         $pdo->prepare($sql);
 
-
     foreach (
-        $params
-        as $key => $value
+        $params as $key => $value
     ) {
 
         $stmt->bindValue(
             $key,
             $value
         );
-
     }
-
 
     $stmt->bindValue(
         ':offset',
@@ -536,151 +566,431 @@ try {
         PDO::PARAM_INT
     );
 
-
     $stmt->bindValue(
         ':limit',
         $limit,
         PDO::PARAM_INT
     );
 
-
     $stmt->execute();
-
 
     $products =
         $stmt->fetchAll(
             PDO::FETCH_ASSOC
         );
 
-
 } catch (PDOException $e) {
 
     $errors[] =
         "Unable to load products.";
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| BUILD PAGINATION URL
+| PAGE RANGE
 |--------------------------------------------------------------------------
 */
 
-function paginationUrl(
-    int $pageNumber,
-    string $search,
-    string $category,
-    string $foodType,
-    string $status
-): string {
+$startItem = $totalRows > 0
+    ? $offset + 1
+    : 0;
 
-    $query = [
-        'page' => $pageNumber
-    ];
-
-
-    if ($search !== '') {
-
-        $query['search'] =
-            $search;
-
-    }
-
-
-    if ($category !== '') {
-
-        $query['category'] =
-            $category;
-
-    }
-
-
-    if ($foodType !== '') {
-
-        $query['food_type'] =
-            $foodType;
-
-    }
-
-
-    if ($status !== '') {
-
-        $query['status'] =
-            $status;
-
-    }
-
-
-    return '?' .
-        http_build_query(
-            $query
-        );
-}
+$endItem = min(
+    $offset + $limit,
+    $totalRows
+);
 
 
 /*
 |--------------------------------------------------------------------------
-| PAGE HEADER
+| HEADER
 |--------------------------------------------------------------------------
 */
 
 require_once "includes/a-header.php";
-
 require_once "includes/a-sidebar.php";
-
 require_once "includes/a-navbar.php";
 
 ?>
 
+<style>
 
-<div class="container-fluid mt-4 mb-5">
+/*
+|--------------------------------------------------------------------------
+| PRODUCT PAGE LAYOUT
+|--------------------------------------------------------------------------
+*/
+
+.product-page {
+    padding: 24px;
+}
+
+.product-page-header {
+    margin-bottom: 24px;
+}
+
+.product-title-wrap {
+    min-width: 0;
+}
+
+.product-title-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+}
+
+.product-title-text h2 {
+    font-size: 1.55rem;
+}
+
+.product-title-text p {
+    font-size: 0.9rem;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| STAT CARDS
+|--------------------------------------------------------------------------
+*/
+
+.product-stat-card {
+    min-height: 112px;
+    transition: transform 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.product-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.product-stat-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FILTER CARD
+|--------------------------------------------------------------------------
+*/
+
+.product-filter-card {
+    position: relative;
+    z-index: 2;
+}
+
+.product-filter-card .form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.product-filter-card .form-control,
+.product-filter-card .form-select {
+    min-height: 42px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PRODUCT TABLE
+|--------------------------------------------------------------------------
+*/
+
+.product-table-card {
+    overflow: hidden;
+}
+
+.product-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.product-table {
+    min-width: 1080px;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
+.product-table th {
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 13px 12px;
+}
+
+.product-table td {
+    padding: 13px 12px;
+}
+
+.product-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.product-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.025);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PRODUCT IMAGE
+|--------------------------------------------------------------------------
+*/
+
+.product-image {
+    width: 58px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+.product-image-placeholder {
+    width: 58px;
+    height: 58px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PRODUCT NAME
+|--------------------------------------------------------------------------
+*/
+
+.product-name {
+    max-width: 250px;
+}
+
+.product-name-title {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.product-short-description {
+    max-width: 250px;
+    font-size: 0.78rem;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PRICE
+|--------------------------------------------------------------------------
+*/
+
+.product-price-current {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.product-price-old {
+    font-size: 0.76rem;
+    white-space: nowrap;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| STOCK
+|--------------------------------------------------------------------------
+*/
+
+.stock-number {
+    font-weight: 700;
+}
+
+.stock-low {
+    color: #dc3545;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ACTIONS
+|--------------------------------------------------------------------------
+*/
+
+.product-actions {
+    white-space: nowrap;
+}
+
+.product-actions .btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| EMPTY STATE
+|--------------------------------------------------------------------------
+*/
+
+.product-empty-state {
+    padding: 55px 20px;
+}
+
+.product-empty-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PAGINATION
+|--------------------------------------------------------------------------
+*/
+
+.product-pagination {
+    gap: 4px;
+}
+
+.product-pagination .page-link {
+    min-width: 38px;
+    text-align: center;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MOBILE
+|--------------------------------------------------------------------------
+*/
+
+@media (max-width: 991.98px) {
+
+    .product-page {
+        padding: 18px;
+    }
+
+    .product-page-header {
+        align-items: flex-start !important;
+    }
+
+    .product-title-text h2 {
+        font-size: 1.35rem;
+    }
+
+}
+
+
+@media (max-width: 767.98px) {
+
+    .product-page {
+        padding: 14px;
+    }
+
+    .product-page-header {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .product-add-button {
+        width: 100%;
+    }
+
+    .product-add-button .btn {
+        width: 100%;
+    }
+
+    .product-title-icon {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+    }
+
+    .product-stat-card {
+        min-height: auto;
+    }
+
+    .product-filter-actions {
+        width: 100%;
+    }
+
+    .product-filter-actions .btn {
+        width: 100%;
+    }
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| VERY SMALL DEVICES
+|--------------------------------------------------------------------------
+*/
+
+@media (max-width: 420px) {
+
+    .product-page {
+        padding: 10px;
+    }
+
+    .product-title-text h2 {
+        font-size: 1.2rem;
+    }
+
+    .product-title-text p {
+        font-size: 0.8rem;
+    }
+
+}
+
+</style>
+
+
+<div class="container-fluid product-page">
 
 
     <!-- =========================================================
          PAGE HEADER
     ========================================================== -->
 
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div
+        class="product-page-header d-flex flex-wrap justify-content-between align-items-center gap-3"
+    >
+
+        <div class="product-title-wrap d-flex align-items-center gap-3">
+
+            <div
+                class="product-title-icon bg-primary text-white rounded-3 d-flex align-items-center justify-content-center"
+            >
+
+                <i class="bi bi-cup-straw fs-4"></i>
+
+            </div>
 
 
-        <div>
+            <div class="product-title-text">
 
-            <div class="d-flex align-items-center gap-2">
+                <h2 class="fw-bold mb-1">
+                    Products
+                </h2>
 
-                <div
-                    class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center"
-                    style="width:46px;height:46px;"
-                >
-
-                    <i class="bi bi-cup-straw fs-4"></i>
-
-                </div>
-
-
-                <div>
-
-                    <h2 class="fw-bold mb-0">
-
-                        Products
-
-                    </h2>
-
-
-                    <p class="text-muted mb-0">
-
-                        Manage your cafe menu and inventory.
-
-                    </p>
-
-                </div>
+                <p class="text-muted mb-0">
+                    Manage your cafe menu and inventory.
+                </p>
 
             </div>
 
         </div>
 
 
-        <div>
+        <div class="product-add-button">
 
             <a
                 href="add_product.php"
@@ -700,18 +1010,21 @@ require_once "includes/a-navbar.php";
 
 
     <!-- =========================================================
-         ERROR MESSAGES
+         ALERTS
     ========================================================== -->
 
     <?php if (!empty($errors)): ?>
 
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+        >
 
             <div class="fw-bold mb-1">
 
                 <i class="bi bi-exclamation-triangle-fill me-1"></i>
 
-                Product module warning
+                Product Module Warning
 
             </div>
 
@@ -719,9 +1032,7 @@ require_once "includes/a-navbar.php";
             <?php foreach ($errors as $error): ?>
 
                 <div>
-
                     <?= e($error); ?>
-
                 </div>
 
             <?php endforeach; ?>
@@ -738,23 +1049,19 @@ require_once "includes/a-navbar.php";
     <?php endif; ?>
 
 
-
-    <!-- =========================================================
-         SUCCESS MESSAGE
-    ========================================================== -->
-
     <?php if (
         isset($_SESSION['success']) &&
-        $_SESSION['success'] !== ''
+        trim((string)$_SESSION['success']) !== ''
     ): ?>
 
-        <div class="alert alert-success alert-dismissible fade show">
+        <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+        >
 
             <i class="bi bi-check-circle-fill me-1"></i>
 
-            <?= e(
-                (string)$_SESSION['success']
-            ); ?>
+            <?= e($_SESSION['success']); ?>
 
 
             <button
@@ -766,30 +1073,24 @@ require_once "includes/a-navbar.php";
         </div>
 
 
-        <?php unset(
-            $_SESSION['success']
-        ); ?>
+        <?php unset($_SESSION['success']); ?>
 
     <?php endif; ?>
 
 
-
-    <!-- =========================================================
-         ERROR FROM OTHER PRODUCT FILES
-    ========================================================== -->
-
     <?php if (
         isset($_SESSION['error']) &&
-        $_SESSION['error'] !== ''
+        trim((string)$_SESSION['error']) !== ''
     ): ?>
 
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+        >
 
             <i class="bi bi-exclamation-circle-fill me-1"></i>
 
-            <?= e(
-                (string)$_SESSION['error']
-            ); ?>
+            <?= e($_SESSION['error']); ?>
 
 
             <button
@@ -801,9 +1102,7 @@ require_once "includes/a-navbar.php";
         </div>
 
 
-        <?php unset(
-            $_SESSION['error']
-        ); ?>
+        <?php unset($_SESSION['error']); ?>
 
     <?php endif; ?>
 
@@ -820,34 +1119,27 @@ require_once "includes/a-navbar.php";
 
         <div class="col-xl-3 col-md-6">
 
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100 product-stat-card">
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
-
+                    <div class="d-flex justify-content-between align-items-center gap-3">
 
                         <div>
 
-                            <span class="text-muted small">
-
+                            <div class="text-muted small fw-semibold">
                                 TOTAL PRODUCTS
+                            </div>
 
-                            </span>
-
-
-                            <h2 class="fw-bold mb-0 mt-1">
-
+                            <div class="fs-3 fw-bold mt-1">
                                 <?= $totalProducts; ?>
-
-                            </h2>
+                            </div>
 
                         </div>
 
 
                         <div
-                            class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center"
-                            style="width:50px;height:50px;"
+                            class="product-stat-icon bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center"
                         >
 
                             <i class="bi bi-box-seam fs-4"></i>
@@ -868,34 +1160,27 @@ require_once "includes/a-navbar.php";
 
         <div class="col-xl-3 col-md-6">
 
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100 product-stat-card">
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
-
+                    <div class="d-flex justify-content-between align-items-center gap-3">
 
                         <div>
 
-                            <span class="text-muted small">
-
+                            <div class="text-muted small fw-semibold">
                                 ACTIVE PRODUCTS
+                            </div>
 
-                            </span>
-
-
-                            <h2 class="fw-bold text-success mb-0 mt-1">
-
+                            <div class="fs-3 fw-bold text-success mt-1">
                                 <?= $activeProducts; ?>
-
-                            </h2>
+                            </div>
 
                         </div>
 
 
                         <div
-                            class="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center"
-                            style="width:50px;height:50px;"
+                            class="product-stat-icon bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center"
                         >
 
                             <i class="bi bi-check-circle-fill fs-4"></i>
@@ -916,34 +1201,27 @@ require_once "includes/a-navbar.php";
 
         <div class="col-xl-3 col-md-6">
 
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100 product-stat-card">
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
-
+                    <div class="d-flex justify-content-between align-items-center gap-3">
 
                         <div>
 
-                            <span class="text-muted small">
-
+                            <div class="text-muted small fw-semibold">
                                 FEATURED PRODUCTS
+                            </div>
 
-                            </span>
-
-
-                            <h2 class="fw-bold text-warning mb-0 mt-1">
-
+                            <div class="fs-3 fw-bold text-warning mt-1">
                                 <?= $featuredProducts; ?>
-
-                            </h2>
+                            </div>
 
                         </div>
 
 
                         <div
-                            class="bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center"
-                            style="width:50px;height:50px;"
+                            class="product-stat-icon bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center"
                         >
 
                             <i class="bi bi-star-fill fs-4"></i>
@@ -960,41 +1238,34 @@ require_once "includes/a-navbar.php";
 
 
 
-        <!-- STOCK -->
+        <!-- OUT OF STOCK -->
 
         <div class="col-xl-3 col-md-6">
 
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100 product-stat-card">
 
                 <div class="card-body">
 
-                    <div class="d-flex justify-content-between align-items-center">
-
+                    <div class="d-flex justify-content-between align-items-center gap-3">
 
                         <div>
 
-                            <span class="text-muted small">
-
+                            <div class="text-muted small fw-semibold">
                                 OUT OF STOCK
+                            </div>
 
-                            </span>
-
-
-                            <h2 class="fw-bold text-danger mb-0 mt-1">
-
+                            <div class="fs-3 fw-bold text-danger mt-1">
                                 <?= $outOfStock; ?>
-
-                            </h2>
+                            </div>
 
                         </div>
 
 
                         <div
-                            class="bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center justify-content-center"
-                            style="width:50px;height:50px;"
+                            class="product-stat-icon bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center justify-content-center"
                         >
 
-                            <i class="bi bi-box2-fill fs-4"></i>
+                            <i class="bi bi-exclamation-octagon-fill fs-4"></i>
 
                         </div>
 
@@ -1006,111 +1277,89 @@ require_once "includes/a-navbar.php";
 
         </div>
 
-
     </div>
 
 
 
     <!-- =========================================================
-         ADDITIONAL INVENTORY INFO
+         FILTERS
     ========================================================== -->
 
-    <div class="d-flex flex-wrap gap-2 mb-4">
+    <div class="card border-0 shadow-sm mb-4 product-filter-card">
 
-        <span class="badge bg-light text-dark border px-3 py-2">
+        <div class="card-body p-3 p-lg-4">
 
-            <i class="bi bi-eye-slash me-1"></i>
+            <div class="d-flex justify-content-between align-items-center mb-3">
 
-            Unavailable:
-            <?= $unavailableProducts; ?>
+                <div>
 
-        </span>
+                    <h5 class="fw-bold mb-1">
+                        <i class="bi bi-funnel me-1"></i>
+                        Search & Filter
+                    </h5>
 
+                    <small class="text-muted">
+                        Find products quickly using the available filters.
+                    </small>
 
-        <span class="badge bg-light text-dark border px-3 py-2">
-
-            <i class="bi bi-list-check me-1"></i>
-
-            Showing:
-            <?= count($products); ?>
-            of
-            <?= $totalRows; ?>
-
-        </span>
-
-    </div>
+                </div>
 
 
+                <?php if (
+                    $search !== '' ||
+                    $category !== '' ||
+                    $foodType !== '' ||
+                    $status !== ''
+                ): ?>
 
-    <!-- =========================================================
-         SEARCH & FILTERS
-    ========================================================== -->
+                    <a
+                        href="products.php"
+                        class="btn btn-sm btn-outline-secondary"
+                    >
 
-    <div class="card shadow-sm border-0 mb-4">
+                        <i class="bi bi-x-circle me-1"></i>
 
+                        Clear
 
-        <div class="card-header bg-white py-3">
+                    </a>
 
-
-            <div class="d-flex align-items-center gap-2">
-
-                <i class="bi bi-funnel-fill text-primary"></i>
-
-
-                <h5 class="mb-0 fw-bold">
-
-                    Search & Filters
-
-                </h5>
+                <?php endif; ?>
 
             </div>
 
 
-        </div>
-
-
-        <div class="card-body">
-
-
             <form
                 method="GET"
-                action="a-products.php"
+                action="products.php"
             >
-
 
                 <div class="row g-3 align-items-end">
 
 
                     <!-- SEARCH -->
 
-                    <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="col-xl-4 col-lg-6">
 
                         <label
                             for="search"
                             class="form-label"
                         >
-
                             Search Product
-
                         </label>
-
 
                         <div class="input-group">
 
                             <span class="input-group-text">
-
                                 <i class="bi bi-search"></i>
-
                             </span>
 
-
                             <input
-                                type="text"
+                                type="search"
                                 name="search"
                                 id="search"
                                 class="form-control"
-                                placeholder="Product name..."
                                 value="<?= e($search); ?>"
+                                placeholder="Product name, slug or description..."
                             >
 
                         </div>
@@ -1121,17 +1370,14 @@ require_once "includes/a-navbar.php";
 
                     <!-- CATEGORY -->
 
-                    <div class="col-xl-2 col-lg-4 col-md-6">
+                    <div class="col-xl-2 col-lg-3 col-md-6">
 
                         <label
                             for="category"
                             class="form-label"
                         >
-
                             Category
-
                         </label>
-
 
                         <select
                             name="category"
@@ -1140,35 +1386,34 @@ require_once "includes/a-navbar.php";
                         >
 
                             <option value="">
-
                                 All Categories
-
                             </option>
 
 
                             <?php foreach (
-                                $categories
-                                as $cat
+                                $categories as $cat
                             ): ?>
 
                                 <option
                                     value="<?= (int)$cat['category_id']; ?>"
-                                    <?= (
-                                        $categoryId ===
-                                        (int)$cat['category_id']
-                                    )
+                                    <?= $categoryId === (int)$cat['category_id']
                                         ? 'selected'
                                         : ''; ?>
                                 >
 
-                                    <?= e(
-                                        $cat['category_name']
-                                    ); ?>
+                                    <?= e($cat['category_name']); ?>
+
+                                    <?php if (
+                                        ($cat['status'] ?? '') === 'Inactive'
+                                    ): ?>
+
+                                        (Inactive)
+
+                                    <?php endif; ?>
 
                                 </option>
 
                             <?php endforeach; ?>
-
 
                         </select>
 
@@ -1178,17 +1423,14 @@ require_once "includes/a-navbar.php";
 
                     <!-- FOOD TYPE -->
 
-                    <div class="col-xl-2 col-lg-4 col-md-6">
+                    <div class="col-xl-2 col-lg-3 col-md-6">
 
                         <label
                             for="food_type"
                             class="form-label"
                         >
-
                             Food Type
-
                         </label>
-
 
                         <select
                             name="food_type"
@@ -1197,11 +1439,8 @@ require_once "includes/a-navbar.php";
                         >
 
                             <option value="">
-
-                                All
-
+                                All Food Types
                             </option>
-
 
                             <option
                                 value="Veg"
@@ -1209,11 +1448,8 @@ require_once "includes/a-navbar.php";
                                     ? 'selected'
                                     : ''; ?>
                             >
-
                                 Veg
-
                             </option>
-
 
                             <option
                                 value="Non-Veg"
@@ -1221,11 +1457,8 @@ require_once "includes/a-navbar.php";
                                     ? 'selected'
                                     : ''; ?>
                             >
-
                                 Non-Veg
-
                             </option>
-
 
                             <option
                                 value="Egg"
@@ -1233,9 +1466,7 @@ require_once "includes/a-navbar.php";
                                     ? 'selected'
                                     : ''; ?>
                             >
-
                                 Egg
-
                             </option>
 
                         </select>
@@ -1246,17 +1477,14 @@ require_once "includes/a-navbar.php";
 
                     <!-- STATUS -->
 
-                    <div class="col-xl-2 col-lg-4 col-md-6">
+                    <div class="col-xl-2 col-lg-3 col-md-6">
 
                         <label
                             for="status"
                             class="form-label"
                         >
-
                             Status
-
                         </label>
-
 
                         <select
                             name="status"
@@ -1265,11 +1493,8 @@ require_once "includes/a-navbar.php";
                         >
 
                             <option value="">
-
-                                All
-
+                                All Status
                             </option>
-
 
                             <option
                                 value="Active"
@@ -1277,11 +1502,8 @@ require_once "includes/a-navbar.php";
                                     ? 'selected'
                                     : ''; ?>
                             >
-
                                 Active
-
                             </option>
-
 
                             <option
                                 value="Inactive"
@@ -1289,9 +1511,7 @@ require_once "includes/a-navbar.php";
                                     ? 'selected'
                                     : ''; ?>
                             >
-
                                 Inactive
-
                             </option>
 
                         </select>
@@ -1300,60 +1520,74 @@ require_once "includes/a-navbar.php";
 
 
 
-                    <!-- BUTTONS -->
+                    <!-- BUTTON -->
 
-                    <div class="col-xl-3 col-lg-4 col-md-12">
+                    <div class="col-xl-2 col-lg-3 col-md-6 product-filter-actions">
 
+                        <button
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
 
-                        <div class="d-flex flex-wrap gap-2">
+                            <i class="bi bi-search me-1"></i>
 
+                            Apply Filters
 
-                            <button
-                                type="submit"
-                                class="btn btn-primary"
-                            >
-
-                                <i class="bi bi-search me-1"></i>
-
-                                Search
-
-                            </button>
-
-
-                            <a
-                                href="a-products.php"
-                                class="btn btn-outline-secondary"
-                            >
-
-                                <i class="bi bi-arrow-counterclockwise me-1"></i>
-
-                                Reset
-
-                            </a>
-
-
-                            <a
-                                href="add_product.php"
-                                class="btn btn-success"
-                            >
-
-                                <i class="bi bi-plus-circle me-1"></i>
-
-                                Add
-
-                            </a>
-
-
-                        </div>
+                        </button>
 
                     </div>
 
-
                 </div>
-
 
             </form>
 
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         PRODUCT LIST HEADER
+    ========================================================== -->
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+
+        <div>
+
+            <h5 class="fw-bold mb-1">
+                Product List
+            </h5>
+
+            <div class="text-muted small">
+
+                <?php if ($totalRows > 0): ?>
+
+                    Showing
+                    <strong><?= $startItem; ?></strong>
+                    -
+                    <strong><?= $endItem; ?></strong>
+                    of
+                    <strong><?= $totalRows; ?></strong>
+                    products
+
+                <?php else: ?>
+
+                    No products found
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+
+        <div class="text-muted small">
+
+            Page
+            <strong><?= $page; ?></strong>
+            of
+            <strong><?= $totalPages; ?></strong>
 
         </div>
 
@@ -1365,664 +1599,618 @@ require_once "includes/a-navbar.php";
          PRODUCT TABLE
     ========================================================== -->
 
-    <div class="card shadow-sm border-0">
+    <div class="card border-0 shadow-sm product-table-card">
+
+        <div class="product-table-wrapper">
+
+            <table class="table table-hover product-table">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>
+                            Product
+                        </th>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th>
+                            Price
+                        </th>
+
+                        <th>
+                            Food Type
+                        </th>
+
+                        <th>
+                            Spice
+                        </th>
+
+                        <th>
+                            Stock
+                        </th>
+
+                        <th>
+                            Availability
+                        </th>
+
+                        <th>
+                            Featured
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-center">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
 
 
-        <div class="card-header bg-primary text-white py-3">
+                <tbody>
+
+                <?php if (empty($products)): ?>
+
+                    <tr>
+
+                        <td
+                            colspan="10"
+                            class="text-center"
+                        >
+
+                            <div class="product-empty-state">
+
+                                <div
+                                    class="product-empty-icon bg-light text-muted rounded-circle d-flex align-items-center justify-content-center"
+                                >
+
+                                    <i class="bi bi-box-seam fs-2"></i>
+
+                                </div>
+
+                                <h5 class="fw-bold">
+                                    No Products Found
+                                </h5>
+
+                                <p class="text-muted mb-3">
+
+                                    <?php if (
+                                        $search !== '' ||
+                                        $category !== '' ||
+                                        $foodType !== '' ||
+                                        $status !== ''
+                                    ): ?>
+
+                                        Try changing your filters or search term.
+
+                                    <?php else: ?>
+
+                                        Start by adding your first product.
+
+                                    <?php endif; ?>
+
+                                </p>
 
 
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-
-
-                <h5 class="mb-0">
-
-                    <i class="bi bi-box-seam me-2"></i>
-
-                    Product Management
-
-                </h5>
-
-
-                <span class="badge bg-white text-primary">
-
-                    <?= $totalRows; ?>
-                    Products
-
-                </span>
-
-
-            </div>
-
-
-        </div>
-
-
-        <div class="card-body p-0">
-
-
-            <div class="table-responsive">
-
-
-                <table class="table table-hover align-middle mb-0">
-
-
-                    <thead class="table-light">
-
-                        <tr>
-
-                            <th class="ps-3">
-                                #
-                            </th>
-
-                            <th>
-                                Image
-                            </th>
-
-                            <th>
-                                Product
-                            </th>
-
-                            <th>
-                                Category
-                            </th>
-
-                            <th>
-                                Price
-                            </th>
-
-                            <th>
-                                Stock
-                            </th>
-
-                            <th>
-                                Food
-                            </th>
-
-                            <th>
-                                Availability
-                            </th>
-
-                            <th>
-                                Featured
-                            </th>
-
-                            <th>
-                                Status
-                            </th>
-
-                            <th class="text-center">
-                                Actions
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-
-                    <?php if (
-                        empty($products)
-                    ): ?>
-
-
-                        <tr>
-
-                            <td
-                                colspan="11"
-                                class="text-center py-5"
-                            >
-
-                                <div class="text-muted">
-
-
-                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-
-
-                                    <h5>
-
-                                        No Products Found
-
-                                    </h5>
-
-
-                                    <p class="mb-3">
-
-                                        Try changing your search or filters.
-
-                                    </p>
-
+                                <?php if (
+                                    $search !== '' ||
+                                    $category !== '' ||
+                                    $foodType !== '' ||
+                                    $status !== ''
+                                ): ?>
 
                                     <a
-                                        href="a-products.php"
-                                        class="btn btn-outline-primary btn-sm"
+                                        href="products.php"
+                                        class="btn btn-outline-secondary me-1"
                                     >
+
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i>
 
                                         Clear Filters
 
                                     </a>
 
+                                <?php endif; ?>
+
+
+                                <a
+                                    href="add_product.php"
+                                    class="btn btn-success"
+                                >
+
+                                    <i class="bi bi-plus-circle me-1"></i>
+
+                                    Add Product
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                <?php else: ?>
+
+
+                    <?php foreach (
+                        $products as $product
+                    ): ?>
+
+                        <?php
+
+                        $productPrice =
+                            (float)($product['price'] ?? 0);
+
+                        $discountPrice =
+                            (float)($product['discount_price'] ?? 0);
+
+                        $hasDiscount =
+                            $discountPrice > 0 &&
+                            $discountPrice < $productPrice;
+
+                        $finalPrice =
+                            $hasDiscount
+                                ? $discountPrice
+                                : $productPrice;
+
+
+                        $imageName =
+                            trim(
+                                (string)(
+                                    $product['image_name']
+                                    ?? ''
+                                )
+                            );
+
+                        $safeImageName =
+                            $imageName !== ''
+                                ? basename($imageName)
+                                : '';
+
+                        $imagePath =
+                            "../assets/images/products/"
+                            . $safeImageName;
+
+
+                        $stock =
+                            (int)(
+                                $product['stock']
+                                ?? 0
+                            );
+
+
+                        $foodClass = match (
+                            $product['food_type']
+                            ?? ''
+                        ) {
+
+                            'Veg' =>
+                                'success',
+
+                            'Non-Veg' =>
+                                'danger',
+
+                            'Egg' =>
+                                'warning',
+
+                            default =>
+                                'secondary'
+                        };
+
+                        ?>
+
+
+                        <tr>
+
+
+                            <!-- PRODUCT -->
+
+                            <td>
+
+                                <div class="d-flex align-items-center gap-3 product-name">
+
+                                    <?php if (
+                                        $safeImageName !== '' &&
+                                        is_file(
+                                            __DIR__
+                                            . "/../assets/images/products/"
+                                            . $safeImageName
+                                        )
+                                    ): ?>
+
+                                        <img
+                                            src="<?= e($imagePath); ?>"
+                                            alt="<?= e($product['product_name']); ?>"
+                                            class="product-image"
+                                            loading="lazy"
+                                        >
+
+                                    <?php else: ?>
+
+                                        <div
+                                            class="product-image-placeholder d-flex align-items-center justify-content-center text-muted"
+                                        >
+
+                                            <i class="bi bi-image fs-4"></i>
+
+                                        </div>
+
+                                    <?php endif; ?>
+
+
+                                    <div class="min-width-0">
+
+                                        <div class="product-name-title">
+
+                                            <?= e(
+                                                $product['product_name']
+                                            ); ?>
+
+                                        </div>
+
+
+                                        <?php if (
+                                            !empty(
+                                                $product['short_description']
+                                            )
+                                        ): ?>
+
+                                            <div
+                                                class="product-short-description text-muted text-truncate mt-1"
+                                                title="<?= e(
+                                                    $product['short_description']
+                                                ); ?>"
+                                            >
+
+                                                <?= e(
+                                                    $product['short_description']
+                                                ); ?>
+
+                                            </div>
+
+                                        <?php endif; ?>
+
+
+                                        <?php if (
+                                            !empty(
+                                                $product['slug']
+                                            )
+                                        ): ?>
+
+                                            <div class="small text-muted mt-1">
+
+                                                <i class="bi bi-link-45deg"></i>
+
+                                                <?= e(
+                                                    $product['slug']
+                                                ); ?>
+
+                                            </div>
+
+                                        <?php endif; ?>
+
+                                    </div>
 
                                 </div>
 
                             </td>
 
-                        </tr>
 
 
-                    <?php else: ?>
+                            <!-- CATEGORY -->
 
+                            <td>
 
-                        <?php
-
-                        $serial =
-                            $offset + 1;
-
-                        ?>
-
-
-                        <?php foreach (
-                            $products
-                            as $product
-                        ): ?>
-
-
-                            <?php
-
-                            $regularPrice =
-                                (float)$product['price'];
-
-                            $discountPrice =
-                                $product['discount_price'] !== null
-                                    ? (float)$product['discount_price']
-                                    : null;
-
-
-                            $finalPrice =
-                                $regularPrice;
-
-
-                            $hasDiscount =
-                                $discountPrice !== null &&
-                                $discountPrice > 0 &&
-                                $discountPrice < $regularPrice;
-
-
-                            if ($hasDiscount) {
-
-                                $finalPrice =
-                                    $discountPrice;
-
-                            }
-
-
-                            $stock =
-                                (int)$product['stock'];
-
-
-                            $imageName =
-                                trim(
-                                    (string)(
-                                        $product['image_name']
-                                        ?? ''
+                                <?php if (
+                                    !empty(
+                                        $product['category_name']
                                     )
-                                );
+                                ): ?>
 
+                                    <span class="badge bg-light text-dark border">
 
-                            $imagePath =
-                                $imageName !== ''
-                                    ? "../assets/images/products/" .
-                                      $imageName
-                                    : "../assets/images/no-image.png";
-
-
-                            ?>
-
-
-                            <tr>
-
-
-                                <!-- SERIAL -->
-
-                                <td class="ps-3">
-
-                                    <?= $serial++; ?>
-
-                                </td>
-
-
-
-                                <!-- IMAGE -->
-
-                                <td>
-
-                                    <img
-                                        src="<?= e($imagePath); ?>"
-                                        alt="<?= e(
-                                            $product['product_name']
-                                        ); ?>"
-                                        class="img-thumbnail"
-                                        style="
-                                            width:70px;
-                                            height:70px;
-                                            object-fit:cover;
-                                        "
-                                        onerror="this.onerror=null;this.src='../assets/images/no-image.png';"
-                                    >
-
-                                </td>
-
-
-
-                                <!-- PRODUCT -->
-
-                                <td>
-
-
-                                    <div class="fw-semibold">
+                                        <i class="bi bi-tag me-1"></i>
 
                                         <?= e(
-                                            $product['product_name']
-                                        ); ?>
-
-                                    </div>
-
-
-                                    <?php if (
-                                        !empty(
-                                            $product[
-                                                'short_description'
-                                            ]
-                                        )
-                                    ): ?>
-
-                                        <small class="text-muted">
-
-                                            <?= e(
-                                                mb_strimwidth(
-                                                    (string)$product[
-                                                        'short_description'
-                                                    ],
-                                                    0,
-                                                    55,
-                                                    '...'
-                                                )
-                                            ); ?>
-
-                                        </small>
-
-                                    <?php endif; ?>
-
-
-                                    <div>
-
-                                        <small class="text-muted">
-
-                                            <?= e(
-                                                $product['slug']
-                                            ); ?>
-
-                                        </small>
-
-                                    </div>
-
-
-                                </td>
-
-
-
-                                <!-- CATEGORY -->
-
-                                <td>
-
-                                    <?= e(
-                                        $product[
-                                            'category_name'
-                                        ] ??
-                                        'N/A'
-                                    ); ?>
-
-                                </td>
-
-
-
-                                <!-- PRICE -->
-
-                                <td>
-
-
-                                    <?php if (
-                                        $hasDiscount
-                                    ): ?>
-
-
-                                        <div class="fw-bold text-success">
-
-                                            <?= e($currency); ?><?= number_format(
-                                                $finalPrice,
-                                                2
-                                            ); ?>
-
-                                        </div>
-
-
-                                        <small
-                                            class="text-muted text-decoration-line-through"
-                                        >
-
-                                            <?= e($currency); ?><?= number_format(
-                                                $regularPrice,
-                                                2
-                                            ); ?>
-
-                                        </small>
-
-
-                                        <div>
-
-                                            <span class="badge bg-danger">
-
-                                                <?= e($currency); ?><?= number_format(
-                                                    $regularPrice -
-                                                    $discountPrice,
-                                                    2
-                                                ); ?>
-
-                                                OFF
-
-                                            </span>
-
-                                        </div>
-
-
-                                    <?php else: ?>
-
-
-                                        <span class="fw-bold">
-
-                                            <?= e($currency); ?><?= number_format(
-                                                $regularPrice,
-                                                2
-                                            ); ?>
-
-                                        </span>
-
-
-                                    <?php endif; ?>
-
-
-                                </td>
-
-
-
-                                <!-- STOCK -->
-
-                                <td>
-
-
-                                    <?php if (
-                                        $stock <= 0
-                                    ): ?>
-
-
-                                        <span class="badge bg-danger">
-
-                                            Out of Stock
-
-                                        </span>
-
-
-                                    <?php elseif (
-                                        $stock <= 10
-                                    ): ?>
-
-
-                                        <span class="badge bg-warning text-dark">
-
-                                            <?= $stock; ?>
-
-                                            Low
-
-                                        </span>
-
-
-                                    <?php else: ?>
-
-
-                                        <span class="badge bg-success">
-
-                                            <?= $stock; ?>
-
-                                        </span>
-
-
-                                    <?php endif; ?>
-
-
-                                </td>
-
-
-
-                                <!-- FOOD TYPE -->
-
-                                <td>
-
-
-                                    <?php
-
-                                    $foodClass =
-                                        match (
-                                            $product[
-                                                'food_type'
-                                            ]
-                                        ) {
-
-                                            'Veg' =>
-                                                'success',
-
-                                            'Non-Veg' =>
-                                                'danger',
-
-                                            'Egg' =>
-                                                'warning',
-
-                                            default =>
-                                                'secondary'
-
-                                        };
-
-                                    ?>
-
-
-                                    <span
-                                        class="badge bg-<?= e(
-                                            $foodClass
-                                        ); ?> <?= $foodClass === 'warning'
-                                            ? 'text-dark'
-                                            : ''; ?>"
-                                    >
-
-                                        <?= e(
-                                            $product[
-                                                'food_type'
-                                            ]
+                                            $product['category_name']
                                         ); ?>
 
                                     </span>
 
+                                <?php else: ?>
 
-                                </td>
+                                    <span class="text-muted">
+                                        Uncategorized
+                                    </span>
 
+                                <?php endif; ?>
 
+                            </td>
 
-                                <!-- AVAILABILITY -->
 
-                                <td>
 
+                            <!-- PRICE -->
 
-                                    <?php if (
-                                        $product[
-                                            'availability'
-                                        ] === 'Available'
-                                    ): ?>
+                            <td>
 
+                                <div class="product-price-current">
 
-                                        <span class="badge bg-success">
+                                    <?= money(
+                                        $finalPrice,
+                                        $currency
+                                    ); ?>
 
-                                            Available
+                                </div>
 
-                                        </span>
 
+                                <?php if ($hasDiscount): ?>
 
-                                    <?php else: ?>
+                                    <div
+                                        class="product-price-old text-muted text-decoration-line-through"
+                                    >
 
-
-                                        <span class="badge bg-secondary">
-
-                                            Unavailable
-
-                                        </span>
-
-
-                                    <?php endif; ?>
-
-
-                                </td>
-
-
-
-                                <!-- FEATURED -->
-
-                                <td>
-
-
-                                    <?php if (
-                                        (int)$product[
-                                            'featured'
-                                        ] === 1
-                                    ): ?>
-
-
-                                        <span class="badge bg-warning text-dark">
-
-                                            <i class="bi bi-star-fill me-1"></i>
-
-                                            Yes
-
-                                        </span>
-
-
-                                    <?php else: ?>
-
-
-                                        <span class="badge bg-light text-dark border">
-
-                                            No
-
-                                        </span>
-
-
-                                    <?php endif; ?>
-
-
-                                </td>
-
-
-
-                                <!-- STATUS -->
-
-                                <td>
-
-
-                                    <?php if (
-                                        $product[
-                                            'status'
-                                        ] === 'Active'
-                                    ): ?>
-
-
-                                        <span class="badge bg-success">
-
-                                            Active
-
-                                        </span>
-
-
-                                    <?php else: ?>
-
-
-                                        <span class="badge bg-danger">
-
-                                            Inactive
-
-                                        </span>
-
-
-                                    <?php endif; ?>
-
-
-                                </td>
-
-
-
-                                <!-- ACTIONS -->
-
-                                <td class="text-center">
-
-
-                                    <div class="d-flex justify-content-center gap-1">
-
-
-                                        <a
-                                            href="edit_product.php?id=<?= (int)$product['product_id']; ?>"
-                                            class="btn btn-sm btn-outline-warning"
-                                            title="Edit Product"
-                                        >
-
-                                            <i class="bi bi-pencil-square"></i>
-
-                                        </a>
-
-
-                                        <a
-                                            href="delete_product.php?id=<?= (int)$product['product_id']; ?>"
-                                            class="btn btn-sm btn-outline-danger"
-                                            title="Delete Product"
-                                            onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.');"
-                                        >
-
-                                            <i class="bi bi-trash3"></i>
-
-                                        </a>
-
+                                        <?= money(
+                                            $productPrice,
+                                            $currency
+                                        ); ?>
 
                                     </div>
 
 
-                                </td>
+                                    <span class="badge bg-success mt-1">
+
+                                        Sale
+
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </td>
 
 
-                            </tr>
+
+                            <!-- FOOD TYPE -->
+
+                            <td>
+
+                                <span
+                                    class="badge bg-<?= e($foodClass); ?> <?= $foodClass === 'warning'
+                                        ? 'text-dark'
+                                        : ''; ?>"
+                                >
+
+                                    <?= e(
+                                        $product['food_type']
+                                    ); ?>
+
+                                </span>
+
+                            </td>
 
 
-                        <?php endforeach; ?>
+
+                            <!-- SPICE -->
+
+                            <td>
+
+                                <?php
+
+                                $spiceClass = match (
+                                    $product['spice_level']
+                                    ?? ''
+                                ) {
+
+                                    'Mild' =>
+                                        'success',
+
+                                    'Medium' =>
+                                        'warning',
+
+                                    'Hot' =>
+                                        'danger',
+
+                                    default =>
+                                        'secondary'
+                                };
+
+                                ?>
+
+                                <span
+                                    class="badge bg-<?= e($spiceClass); ?> <?= $spiceClass === 'warning'
+                                        ? 'text-dark'
+                                        : ''; ?>"
+                                >
+
+                                    <?= e(
+                                        $product['spice_level']
+                                    ); ?>
+
+                                </span>
+
+                            </td>
 
 
-                    <?php endif; ?>
+
+                            <!-- STOCK -->
+
+                            <td>
+
+                                <span
+                                    class="stock-number <?= $stock <= 0
+                                        ? 'stock-low'
+                                        : ''; ?>"
+                                >
+
+                                    <?= $stock; ?>
+
+                                </span>
 
 
-                    </tbody>
+                                <?php if ($stock <= 0): ?>
+
+                                    <div class="small text-danger">
+                                        Out of stock
+                                    </div>
+
+                                <?php elseif ($stock <= 10): ?>
+
+                                    <div class="small text-warning">
+                                        Low stock
+                                    </div>
+
+                                <?php endif; ?>
+
+                            </td>
 
 
-                </table>
+
+                            <!-- AVAILABILITY -->
+
+                            <td>
+
+                                <?php if (
+                                    ($product['availability'] ?? '')
+                                    === 'Available'
+                                ): ?>
+
+                                    <span class="badge bg-success">
+
+                                        <i class="bi bi-check-circle me-1"></i>
+
+                                        Available
+
+                                    </span>
+
+                                <?php else: ?>
+
+                                    <span class="badge bg-secondary">
+
+                                        <i class="bi bi-dash-circle me-1"></i>
+
+                                        Unavailable
+
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </td>
 
 
-            </div>
 
+                            <!-- FEATURED -->
+
+                            <td>
+
+                                <?php if (
+                                    (int)(
+                                        $product['featured']
+                                        ?? 0
+                                    ) === 1
+                                ): ?>
+
+                                    <span class="badge bg-warning text-dark">
+
+                                        <i class="bi bi-star-fill me-1"></i>
+
+                                        Yes
+
+                                    </span>
+
+                                <?php else: ?>
+
+                                    <span class="badge bg-light text-dark border">
+
+                                        No
+
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </td>
+
+
+
+                            <!-- STATUS -->
+
+                            <td>
+
+                                <?php if (
+                                    ($product['status'] ?? '')
+                                    === 'Active'
+                                ): ?>
+
+                                    <span class="badge bg-success">
+
+                                        Active
+
+                                    </span>
+
+                                <?php else: ?>
+
+                                    <span class="badge bg-danger">
+
+                                        Inactive
+
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </td>
+
+
+
+                            <!-- ACTIONS -->
+
+                            <td class="text-center product-actions">
+
+                                <a
+                                    href="edit_product.php?id=<?= (int)$product['product_id']; ?>"
+                                    class="btn btn-sm btn-outline-warning"
+                                    title="Edit Product"
+                                    aria-label="Edit Product"
+                                >
+
+                                    <i class="bi bi-pencil-square"></i>
+
+                                </a>
+
+
+                                <a
+                                    href="delete_product.php?id=<?= (int)$product['product_id']; ?>"
+                                    class="btn btn-sm btn-outline-danger"
+                                    title="Delete Product"
+                                    aria-label="Delete Product"
+                                    onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.');"
+                                >
+
+                                    <i class="bi bi-trash3"></i>
+
+                                </a>
+
+                            </td>
+
+
+                        </tr>
+
+
+                    <?php endforeach; ?>
+
+
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
 
         </div>
-
 
     </div>
 
@@ -2032,174 +2220,255 @@ require_once "includes/a-navbar.php";
          PAGINATION
     ========================================================== -->
 
-    <?php if (
-        $totalPages > 1
-    ): ?>
+    <?php if ($totalPages > 1): ?>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
+
+            <div class="text-muted small">
+
+                Showing
+                <strong><?= $startItem; ?></strong>
+                -
+                <strong><?= $endItem; ?></strong>
+                of
+                <strong><?= $totalRows; ?></strong>
+
+            </div>
 
 
-        <nav
-            class="mt-4"
-            aria-label="Product pagination"
-        >
+            <nav
+                aria-label="Product pagination"
+            >
+
+                <ul class="pagination product-pagination mb-0">
 
 
-            <ul class="pagination justify-content-center flex-wrap">
-
-
-                <!-- PREVIOUS -->
-
-                <li
-                    class="page-item <?= $page <= 1
-                        ? 'disabled'
-                        : ''; ?>"
-                >
-
-                    <?php if (
-                        $page > 1
-                    ): ?>
-
-                        <a
-                            class="page-link"
-                            href="<?= e(
-                                paginationUrl(
-                                    $page - 1,
-                                    $search,
-                                    $category,
-                                    $foodType,
-                                    $status
-                                )
-                            ); ?>"
-                        >
-
-                            <i class="bi bi-chevron-left"></i>
-
-                            Previous
-
-                        </a>
-
-                    <?php else: ?>
-
-                        <span class="page-link">
-
-                            <i class="bi bi-chevron-left"></i>
-
-                            Previous
-
-                        </span>
-
-                    <?php endif; ?>
-
-                </li>
-
-
-
-                <!-- PAGE NUMBERS -->
-
-                <?php
-
-                $startPage =
-                    max(
-                        1,
-                        $page - 2
-                    );
-
-                $endPage =
-                    min(
-                        $totalPages,
-                        $page + 2
-                    );
-
-                ?>
-
-
-                <?php for (
-                    $i = $startPage;
-                    $i <= $endPage;
-                    $i++
-                ): ?>
-
+                    <!-- PREVIOUS -->
 
                     <li
-                        class="page-item <?= $page === $i
-                            ? 'active'
+                        class="page-item <?= $page <= 1
+                            ? 'disabled'
                             : ''; ?>"
                     >
 
-                        <a
-                            class="page-link"
-                            href="<?= e(
-                                paginationUrl(
-                                    $i,
-                                    $search,
-                                    $category,
-                                    $foodType,
-                                    $status
-                                )
-                            ); ?>"
-                        >
+                        <?php if ($page > 1): ?>
 
-                            <?= $i; ?>
+                            <a
+                                class="page-link"
+                                href="<?= e(
+                                    paginationUrl(
+                                        $page - 1,
+                                        $search,
+                                        $category,
+                                        $foodType,
+                                        $status
+                                    )
+                                ); ?>"
+                                aria-label="Previous"
+                            >
 
-                        </a>
+                                <i class="bi bi-chevron-left"></i>
+
+                            </a>
+
+                        <?php else: ?>
+
+                            <span class="page-link">
+
+                                <i class="bi bi-chevron-left"></i>
+
+                            </span>
+
+                        <?php endif; ?>
 
                     </li>
 
 
-                <?php endfor; ?>
+
+                    <?php
+
+                    $startPage =
+                        max(
+                            1,
+                            $page - 2
+                        );
+
+                    $endPage =
+                        min(
+                            $totalPages,
+                            $page + 2
+                        );
+
+                    ?>
 
 
+                    <!-- FIRST PAGE -->
 
-                <!-- NEXT -->
+                    <?php if ($startPage > 1): ?>
 
-                <li
-                    class="page-item <?= $page >= $totalPages
-                        ? 'disabled'
-                        : ''; ?>"
-                >
+                        <li class="page-item">
 
-                    <?php if (
-                        $page < $totalPages
-                    ): ?>
+                            <a
+                                class="page-link"
+                                href="<?= e(
+                                    paginationUrl(
+                                        1,
+                                        $search,
+                                        $category,
+                                        $foodType,
+                                        $status
+                                    )
+                                ); ?>"
+                            >
+                                1
+                            </a>
 
-                        <a
-                            class="page-link"
-                            href="<?= e(
-                                paginationUrl(
-                                    $page + 1,
-                                    $search,
-                                    $category,
-                                    $foodType,
-                                    $status
-                                )
-                            ); ?>"
-                        >
+                        </li>
 
-                            Next
 
-                            <i class="bi bi-chevron-right"></i>
+                        <?php if ($startPage > 2): ?>
 
-                        </a>
+                            <li class="page-item disabled">
 
-                    <?php else: ?>
+                                <span class="page-link">
+                                    ...
+                                </span>
 
-                        <span class="page-link">
+                            </li>
 
-                            Next
-
-                            <i class="bi bi-chevron-right"></i>
-
-                        </span>
+                        <?php endif; ?>
 
                     <?php endif; ?>
 
-                </li>
 
 
-            </ul>
+                    <!-- PAGE NUMBERS -->
+
+                    <?php for (
+                        $i = $startPage;
+                        $i <= $endPage;
+                        $i++
+                    ): ?>
+
+                        <li
+                            class="page-item <?= $page === $i
+                                ? 'active'
+                                : ''; ?>"
+                        >
+
+                            <a
+                                class="page-link"
+                                href="<?= e(
+                                    paginationUrl(
+                                        $i,
+                                        $search,
+                                        $category,
+                                        $foodType,
+                                        $status
+                                    )
+                                ); ?>"
+                            >
+
+                                <?= $i; ?>
+
+                            </a>
+
+                        </li>
+
+                    <?php endfor; ?>
 
 
-        </nav>
 
+                    <!-- LAST PAGE -->
+
+                    <?php if ($endPage < $totalPages): ?>
+
+                        <?php if (
+                            $endPage < $totalPages - 1
+                        ): ?>
+
+                            <li class="page-item disabled">
+
+                                <span class="page-link">
+                                    ...
+                                </span>
+
+                            </li>
+
+                        <?php endif; ?>
+
+
+                        <li class="page-item">
+
+                            <a
+                                class="page-link"
+                                href="<?= e(
+                                    paginationUrl(
+                                        $totalPages,
+                                        $search,
+                                        $category,
+                                        $foodType,
+                                        $status
+                                    )
+                                ); ?>"
+                            >
+
+                                <?= $totalPages; ?>
+
+                            </a>
+
+                        </li>
+
+                    <?php endif; ?>
+
+
+
+                    <!-- NEXT -->
+
+                    <li
+                        class="page-item <?= $page >= $totalPages
+                            ? 'disabled'
+                            : ''; ?>"
+                    >
+
+                        <?php if ($page < $totalPages): ?>
+
+                            <a
+                                class="page-link"
+                                href="<?= e(
+                                    paginationUrl(
+                                        $page + 1,
+                                        $search,
+                                        $category,
+                                        $foodType,
+                                        $status
+                                    )
+                                ); ?>"
+                                aria-label="Next"
+                            >
+
+                                <i class="bi bi-chevron-right"></i>
+
+                            </a>
+
+                        <?php else: ?>
+
+                            <span class="page-link">
+
+                                <i class="bi bi-chevron-right"></i>
+
+                            </span>
+
+                        <?php endif; ?>
+
+                    </li>
+
+
+                </ul>
+
+            </nav>
+
+        </div>
 
     <?php endif; ?>
 

@@ -7,7 +7,7 @@ session_start();
 require_once "../config/db.php";
 require_once "includes/a-auth.php";
 
-$pageTitle = "Edit Category";
+$pageTitle = "Edit Product";
 
 $errors = [];
 
@@ -18,7 +18,7 @@ $errors = [];
 |--------------------------------------------------------------------------
 */
 
-function e(?string $value): string
+function e(mixed $value): string
 {
     return htmlspecialchars(
         (string)$value,
@@ -30,73 +30,157 @@ function e(?string $value): string
 
 /*
 |--------------------------------------------------------------------------
-| Get Category ID
+| Product ID
 |--------------------------------------------------------------------------
 */
 
-$categoryId = filter_input(
+$productId = filter_input(
     INPUT_GET,
     'id',
     FILTER_VALIDATE_INT
 );
 
 if (
-    !$categoryId
-    || $categoryId < 1
+    !$productId ||
+    $productId < 1
 ) {
 
     $_SESSION['error'] =
-        "Invalid category selected.";
+        "Invalid product selected.";
 
-    header(
-        "Location: categories.php"
-    );
-
+    header("Location: products.php");
     exit;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| Fetch Category
+| CSRF TOKEN
 |--------------------------------------------------------------------------
 */
 
-$stmt = $pdo->prepare("
+if (
+    !isset($_SESSION['csrf_token']) ||
+    !is_string($_SESSION['csrf_token']) ||
+    $_SESSION['csrf_token'] === ''
+) {
+
+    $_SESSION['csrf_token'] =
+        bin2hex(random_bytes(32));
+}
+
+$csrfToken =
+    $_SESSION['csrf_token'];
+
+
+/*
+|--------------------------------------------------------------------------
+| Fetch Product
+|--------------------------------------------------------------------------
+*/
+
+$productStmt = $pdo->prepare("
     SELECT
+        product_id,
         category_id,
-        category_name,
-        category_image,
+        product_name,
+        slug,
         description,
+        short_description,
+        price,
+        discount_price,
+        food_type,
+        spice_level,
+        preparation_time,
+        stock,
+        featured,
+        availability,
         status,
         created_at,
         updated_at
-    FROM categories
-    WHERE category_id = ?
+    FROM products
+    WHERE product_id = :product_id
     LIMIT 1
 ");
 
-$stmt->execute([
-    $categoryId
+$productStmt->execute([
+    ':product_id' => $productId
 ]);
 
-$category =
-    $stmt->fetch(
-        PDO::FETCH_ASSOC
-    );
+$product =
+    $productStmt->fetch(PDO::FETCH_ASSOC);
 
 
-if (!$category) {
+if (!$product) {
 
     $_SESSION['error'] =
-        "Category not found.";
+        "Product not found.";
 
-    header(
-        "Location: categories.php"
-    );
-
+    header("Location: products.php");
     exit;
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| Categories
+|--------------------------------------------------------------------------
+*/
+
+$categories = [];
+
+try {
+
+    $categoryStmt = $pdo->query("
+        SELECT
+            category_id,
+            category_name,
+            status
+        FROM categories
+        ORDER BY category_name ASC
+    ");
+
+    $categories =
+        $categoryStmt->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+
+} catch (PDOException $e) {
+
+    $errors[] =
+        "Unable to load categories.";
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Existing Product Images
+|--------------------------------------------------------------------------
+*/
+
+$imageStmt = $pdo->prepare("
+    SELECT
+        image_id,
+        product_id,
+        image_name,
+        is_primary,
+        display_order
+    FROM product_images
+    WHERE product_id = :product_id
+    ORDER BY
+        is_primary DESC,
+        display_order ASC,
+        image_id ASC
+");
+
+$imageStmt->execute([
+    ':product_id' => $productId
+]);
+
+$productImages =
+    $imageStmt->fetchAll(
+        PDO::FETCH_ASSOC
+    );
 
 
 /*
@@ -105,252 +189,777 @@ if (!$category) {
 |--------------------------------------------------------------------------
 */
 
-$categoryName =
+$productName =
     trim(
         (string)(
-            $_POST['category_name']
-            ?? $category['category_name']
+            $_POST['product_name']
+            ?? $product['product_name']
         )
     );
+
+
+$categoryId =
+    trim(
+        (string)(
+            $_POST['category_id']
+            ?? $product['category_id']
+        )
+    );
+
+
+$slug =
+    trim(
+        (string)(
+            $_POST['slug']
+            ?? $product['slug']
+        )
+    );
+
+
+$shortDescription =
+    trim(
+        (string)(
+            $_POST['short_description']
+            ?? ($product['short_description'] ?? '')
+        )
+    );
+
 
 $description =
     trim(
         (string)(
             $_POST['description']
-            ?? ($category['description'] ?? '')
+            ?? ($product['description'] ?? '')
         )
     );
 
-$status =
+
+$price =
     trim(
         (string)(
-            $_POST['status']
-            ?? $category['status']
+            $_POST['price']
+            ?? $product['price']
         )
     );
 
 
 /*
 |--------------------------------------------------------------------------
-| Update Category
+| IMPORTANT:
+| Database field is discount_price.
+|--------------------------------------------------------------------------
+*/
+
+$discountPrice =
+    trim(
+        (string)(
+            $_POST['discount_price']
+            ?? ($product['discount_price'] ?? '')
+        )
+    );
+
+
+$foodType =
+    trim(
+        (string)(
+            $_POST['food_type']
+            ?? $product['food_type']
+        )
+    );
+
+
+$spiceLevel =
+    trim(
+        (string)(
+            $_POST['spice_level']
+            ?? ($product['spice_level'] ?? '')
+        )
+    );
+
+
+$preparationTime =
+    trim(
+        (string)(
+            $_POST['preparation_time']
+            ?? ($product['preparation_time'] ?? '')
+        )
+    );
+
+
+$stock =
+    trim(
+        (string)(
+            $_POST['stock']
+            ?? $product['stock']
+        )
+    );
+
+
+$featured =
+    isset($_POST['featured'])
+        ? 1
+        : (int)$product['featured'];
+
+
+$availability =
+    trim(
+        (string)(
+            $_POST['availability']
+            ?? $product['availability']
+        )
+    );
+
+
+$status =
+    trim(
+        (string)(
+            $_POST['status']
+            ?? $product['status']
+        )
+    );
+
+
+/*
+|--------------------------------------------------------------------------
+| Allowed Values
+|--------------------------------------------------------------------------
+*/
+
+$allowedFoodTypes = [
+    'Veg',
+    'Non-Veg',
+    'Egg'
+];
+
+$allowedSpiceLevels = [
+    'Mild',
+    'Medium',
+    'Hot'
+];
+
+$allowedAvailability = [
+    'Available',
+    'Unavailable'
+];
+
+$allowedStatuses = [
+    'Active',
+    'Inactive'
+];
+
+
+/*
+|--------------------------------------------------------------------------
+| Deleted Images
+|--------------------------------------------------------------------------
+*/
+
+$deleteImageIds = [];
+
+
+/*
+|--------------------------------------------------------------------------
+| Update Product
 |--------------------------------------------------------------------------
 */
 
 if (
-    $_SERVER['REQUEST_METHOD'] === 'POST'
-    &&
-    isset($_POST['update_category'])
+    $_SERVER['REQUEST_METHOD'] === 'POST' &&
+    isset($_POST['update_product'])
 ) {
+
 
     /*
     |--------------------------------------------------------------------------
-    | Validate Name
+    | CSRF
     |--------------------------------------------------------------------------
     */
 
-    if ($categoryName === '') {
+    $submittedToken =
+        (string)(
+            $_POST['csrf_token']
+            ?? ''
+        );
 
-        $errors[] =
-            "Category name is required.";
 
-    } elseif (
-        mb_strlen($categoryName) < 2
+    if (
+        $submittedToken === '' ||
+        !hash_equals(
+            $csrfToken,
+            $submittedToken
+        )
     ) {
 
         $errors[] =
-            "Category name must contain at least 2 characters.";
-
-    } elseif (
-        mb_strlen($categoryName) > 100
-    ) {
-
-        $errors[] =
-            "Category name cannot exceed 100 characters.";
+            "Invalid security token. Please refresh the page and try again.";
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Validate Status
+    | Product Name
+    |--------------------------------------------------------------------------
+    */
+
+    if ($productName === '') {
+
+        $errors[] =
+            "Product name is required.";
+
+    } elseif (
+        mb_strlen($productName) < 2
+    ) {
+
+        $errors[] =
+            "Product name must contain at least 2 characters.";
+
+    } elseif (
+        mb_strlen($productName) > 150
+    ) {
+
+        $errors[] =
+            "Product name cannot exceed 150 characters.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Category
+    |--------------------------------------------------------------------------
+    */
+
+    $categoryIdValue =
+        filter_var(
+            $categoryId,
+            FILTER_VALIDATE_INT
+        );
+
+
+    if (
+        $categoryIdValue === false ||
+        $categoryIdValue < 1
+    ) {
+
+        $errors[] =
+            "Please select a valid category.";
+
+    } else {
+
+        $categoryCheck =
+            $pdo->prepare("
+                SELECT category_id
+                FROM categories
+                WHERE category_id = :category_id
+                LIMIT 1
+            ");
+
+        $categoryCheck->execute([
+            ':category_id' =>
+                $categoryIdValue
+        ]);
+
+
+        if (
+            !$categoryCheck->fetchColumn()
+        ) {
+
+            $errors[] =
+                "Selected category does not exist.";
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Slug
+    |--------------------------------------------------------------------------
+    */
+
+    if ($slug === '') {
+
+        $slug =
+            strtolower(
+                trim(
+                    preg_replace(
+                        '/[^a-zA-Z0-9]+/',
+                        '-',
+                        $productName
+                    ),
+                    '-'
+                )
+            );
+    }
+
+
+    if ($slug === '') {
+
+        $errors[] =
+            "Product slug is required.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Duplicate Slug
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        empty($errors) &&
+        $slug !== ''
+    ) {
+
+        $slugStmt =
+            $pdo->prepare("
+                SELECT product_id
+                FROM products
+                WHERE slug = :slug
+                AND product_id != :product_id
+                LIMIT 1
+            ");
+
+        $slugStmt->execute([
+            ':slug' =>
+                $slug,
+
+            ':product_id' =>
+                $productId
+        ]);
+
+
+        if (
+            $slugStmt->fetch()
+        ) {
+
+            $baseSlug =
+                $slug;
+
+            $counter = 2;
+
+
+            do {
+
+                $slug =
+                    $baseSlug .
+                    '-' .
+                    $counter;
+
+                $slugStmt->execute([
+                    ':slug' =>
+                        $slug,
+
+                    ':product_id' =>
+                        $productId
+                ]);
+
+                $counter++;
+
+            } while (
+                $slugStmt->fetch()
+            );
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Price
+    |--------------------------------------------------------------------------
+    */
+
+    if ($price === '') {
+
+        $errors[] =
+            "Price is required.";
+
+    } elseif (!is_numeric($price)) {
+
+        $errors[] =
+            "Price must be a valid number.";
+
+    } elseif ((float)$price <= 0) {
+
+        $errors[] =
+            "Price must be greater than 0.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discount Price
+    |--------------------------------------------------------------------------
+    */
+
+    if ($discountPrice !== '') {
+
+        if (!is_numeric($discountPrice)) {
+
+            $errors[] =
+                "Discount price must be a valid number.";
+
+        } elseif ((float)$discountPrice < 0) {
+
+            $errors[] =
+                "Discount price cannot be negative.";
+
+        } elseif (
+            is_numeric($price) &&
+            (float)$discountPrice >= (float)$price
+        ) {
+
+            $errors[] =
+                "Discount price must be lower than the original price.";
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Food Type
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !in_array(
+            $foodType,
+            $allowedFoodTypes,
+            true
+        )
+    ) {
+
+        $errors[] =
+            "Invalid food type.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spice Level
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $spiceLevel !== '' &&
+        !in_array(
+            $spiceLevel,
+            $allowedSpiceLevels,
+            true
+        )
+    ) {
+
+        $errors[] =
+            "Invalid spice level.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preparation Time
+    |--------------------------------------------------------------------------
+    */
+
+    if ($preparationTime !== '') {
+
+        if (
+            !ctype_digit($preparationTime)
+        ) {
+
+            $errors[] =
+                "Preparation time must be a whole number.";
+
+        } elseif (
+            (int)$preparationTime > 1440
+        ) {
+
+            $errors[] =
+                "Preparation time cannot exceed 1440 minutes.";
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stock
+    |--------------------------------------------------------------------------
+    */
+
+    if ($stock === '') {
+
+        $errors[] =
+            "Stock is required.";
+
+    } elseif (
+        !ctype_digit($stock)
+    ) {
+
+        $errors[] =
+            "Stock must be a whole number.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Availability
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !in_array(
+            $availability,
+            $allowedAvailability,
+            true
+        )
+    ) {
+
+        $errors[] =
+            "Invalid availability status.";
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Status
     |--------------------------------------------------------------------------
     */
 
     if (
         !in_array(
             $status,
-            [
-                'Active',
-                'Inactive'
-            ],
+            $allowedStatuses,
             true
         )
     ) {
 
         $errors[] =
-            "Invalid category status.";
+            "Invalid product status.";
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Duplicate Name
+    | Short Description
     |--------------------------------------------------------------------------
     */
 
     if (
-        empty($errors)
+        mb_strlen($shortDescription) > 500
     ) {
 
-        $duplicateStmt =
-            $pdo->prepare("
-                SELECT category_id
-                FROM categories
-                WHERE LOWER(category_name) = LOWER(?)
-                AND category_id != ?
-                LIMIT 1
-            ");
-
-        $duplicateStmt->execute([
-            $categoryName,
-            $categoryId
-        ]);
-
-
-        if (
-            $duplicateStmt->fetch()
-        ) {
-
-            $errors[] =
-                "Another category with this name already exists.";
-        }
+        $errors[] =
+            "Short description cannot exceed 500 characters.";
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Image Upload
+    | Image Deletion IDs
     |--------------------------------------------------------------------------
     */
 
-    $newImage = null;
-
     if (
-        isset($_FILES['category_image'])
-        &&
-        $_FILES['category_image']['error']
-        !== UPLOAD_ERR_NO_FILE
+        isset($_POST['delete_images']) &&
+        is_array($_POST['delete_images'])
     ) {
 
-        if (
-            $_FILES['category_image']['error']
-            !== UPLOAD_ERR_OK
+        foreach (
+            $_POST['delete_images']
+            as $imageId
         ) {
 
-            $errors[] =
-                "Unable to upload the category image.";
-
-        } else {
-
-            $tmpName =
-                $_FILES['category_image']['tmp_name'];
-
-            $originalName =
-                $_FILES['category_image']['name'];
-
-            $fileSize =
-                (int)(
-                    $_FILES['category_image']['size']
-                    ?? 0
+            $validatedImageId =
+                filter_var(
+                    $imageId,
+                    FILTER_VALIDATE_INT
                 );
-
-            $extension =
-                strtolower(
-                    pathinfo(
-                        $originalName,
-                        PATHINFO_EXTENSION
-                    )
-                );
-
-
-            $allowedExtensions = [
-                'jpg',
-                'jpeg',
-                'png',
-                'webp'
-            ];
 
 
             if (
-                !in_array(
-                    $extension,
-                    $allowedExtensions,
-                    true
+                $validatedImageId &&
+                $validatedImageId > 0
+            ) {
+
+                $deleteImageIds[] =
+                    (int)$validatedImageId;
+            }
+        }
+
+        $deleteImageIds =
+            array_values(
+                array_unique(
+                    $deleteImageIds
                 )
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | New Image Uploads
+    |--------------------------------------------------------------------------
+    */
+
+    $newImages = [];
+
+    $allowedMimeTypes = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/webp' => 'webp'
+    ];
+
+    $maxImageSize =
+        5 * 1024 * 1024;
+
+
+    if (
+        isset($_FILES['product_images']) &&
+        is_array(
+            $_FILES['product_images']['name']
+            ?? null
+        )
+    ) {
+
+        $fileCount =
+            count(
+                $_FILES['product_images']['name']
+            );
+
+
+        if ($fileCount > 10) {
+
+            $errors[] =
+                "You can upload a maximum of 10 images at once.";
+        }
+
+
+        for (
+            $i = 0;
+            $i < min($fileCount, 10);
+            $i++
+        ) {
+
+            $fileError =
+                (int)(
+                    $_FILES['product_images']['error'][$i]
+                    ?? UPLOAD_ERR_NO_FILE
+                );
+
+
+            if (
+                $fileError === UPLOAD_ERR_NO_FILE
+            ) {
+
+                continue;
+            }
+
+
+            if (
+                $fileError !== UPLOAD_ERR_OK
             ) {
 
                 $errors[] =
-                    "Only JPG, JPEG, PNG and WEBP images are allowed.";
+                    "One of the selected images could not be uploaded.";
 
-            } elseif (
-                $fileSize > 5 * 1024 * 1024
-            ) {
+                continue;
+            }
 
-                $errors[] =
-                    "Category image must be smaller than 5 MB.";
 
-            } elseif (
+            $tmpName =
+                (string)(
+                    $_FILES['product_images']['tmp_name'][$i]
+                    ?? ''
+                );
+
+
+            $fileSize =
+                (int)(
+                    $_FILES['product_images']['size'][$i]
+                    ?? 0
+                );
+
+
+            if (
                 !is_uploaded_file($tmpName)
             ) {
 
                 $errors[] =
-                    "Invalid image upload.";
+                    "Invalid image upload detected.";
 
-            } elseif (
+                continue;
+            }
+
+
+            if (
+                $fileSize <= 0 ||
+                $fileSize > $maxImageSize
+            ) {
+
+                $errors[] =
+                    "Each image must be smaller than 5 MB.";
+
+                continue;
+            }
+
+
+            $finfo =
+                new finfo(
+                    FILEINFO_MIME_TYPE
+                );
+
+
+            $mimeType =
+                $finfo->file(
+                    $tmpName
+                );
+
+
+            if (
+                !isset(
+                    $allowedMimeTypes[$mimeType]
+                )
+            ) {
+
+                $errors[] =
+                    "Only JPG, PNG and WEBP images are allowed.";
+
+                continue;
+            }
+
+
+            if (
                 @getimagesize($tmpName) === false
             ) {
 
                 $errors[] =
-                    "The uploaded file is not a valid image.";
+                    "One selected file is not a valid image.";
 
-            } else {
-
-                $newImage = [
-                    'tmp_name' =>
-                        $tmpName,
-
-                    'extension' =>
-                        $extension
-                ];
+                continue;
             }
+
+
+            $newImages[] = [
+
+                'tmp_name' =>
+                    $tmpName,
+
+                'extension' =>
+                    $allowedMimeTypes[$mimeType]
+
+            ];
         }
     }
 
 
     /*
     |--------------------------------------------------------------------------
-    | Delete Existing Image
+    | Save
     |--------------------------------------------------------------------------
     */
 
-    $removeImage =
-        isset(
-            $_POST['remove_image']
-        )
-        &&
-        $_POST['remove_image'] === '1';
+    if (empty($errors)) {
 
+        $createdFiles = [];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Save Changes
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        empty($errors)
-    ) {
-
-        $newImagePath = null;
+        $oldFilesToDelete = [];
 
         try {
 
@@ -359,43 +968,168 @@ if (
 
             /*
             |--------------------------------------------------------------------------
-            | Lock Category
+            | Lock Product
             |--------------------------------------------------------------------------
             */
 
             $lockStmt =
                 $pdo->prepare("
                     SELECT
-                        category_id,
-                        category_image
-                    FROM categories
-                    WHERE category_id = ?
+                        product_id,
+                        product_name
+                    FROM products
+                    WHERE product_id = :product_id
                     FOR UPDATE
                 ");
 
             $lockStmt->execute([
-                $categoryId
+                ':product_id' =>
+                    $productId
             ]);
 
-            $lockedCategory =
+
+            $lockedProduct =
                 $lockStmt->fetch(
                     PDO::FETCH_ASSOC
                 );
 
 
-            if (
-                !$lockedCategory
-            ) {
+            if (!$lockedProduct) {
 
                 throw new RuntimeException(
-                    "Category no longer exists."
+                    "Product no longer exists."
                 );
             }
 
 
-            $oldImage =
-                $lockedCategory['category_image']
-                ?? null;
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Selected Images
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($deleteImageIds)) {
+
+                $placeholders =
+                    implode(
+                        ',',
+                        array_fill(
+                            0,
+                            count($deleteImageIds),
+                            '?'
+                        )
+                    );
+
+
+                $imageCheck =
+                    $pdo->prepare("
+                        SELECT
+                            image_id,
+                            image_name,
+                            is_primary
+                        FROM product_images
+                        WHERE product_id = ?
+                        AND image_id IN ($placeholders)
+                    ");
+
+
+                $imageCheck->execute(
+                    array_merge(
+                        [$productId],
+                        $deleteImageIds
+                    )
+                );
+
+
+                $imagesToDelete =
+                    $imageCheck->fetchAll(
+                        PDO::FETCH_ASSOC
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Prevent deleting every image
+                |--------------------------------------------------------------------------
+                */
+
+                $existingImageCount =
+                    (int)$pdo->prepare("
+                        SELECT COUNT(*)
+                        FROM product_images
+                        WHERE product_id = ?
+                    ")
+                    ->execute([$productId]);
+
+
+                $countStmt =
+                    $pdo->prepare("
+                        SELECT COUNT(*)
+                        FROM product_images
+                        WHERE product_id = ?
+                    ");
+
+                $countStmt->execute([
+                    $productId
+                ]);
+
+                $currentImageCount =
+                    (int)$countStmt->fetchColumn();
+
+
+                $remainingImages =
+                    $currentImageCount -
+                    count($imagesToDelete) +
+                    count($newImages);
+
+
+                if (
+                    $remainingImages < 0
+                ) {
+
+                    $remainingImages = 0;
+                }
+
+
+                if (
+                    $remainingImages === 0 &&
+                    $currentImageCount > 0 &&
+                    empty($newImages)
+                ) {
+
+                    throw new RuntimeException(
+                        "A product must have at least one image. Upload a new image before deleting all existing images."
+                    );
+                }
+
+
+                foreach (
+                    $imagesToDelete as $image
+                ) {
+
+                    $oldFilesToDelete[] =
+                        "../assets/images/products/"
+                        . basename(
+                            (string)$image['image_name']
+                        );
+                }
+
+
+                $deleteStmt =
+                    $pdo->prepare("
+                        DELETE FROM product_images
+                        WHERE product_id = ?
+                        AND image_id IN ($placeholders)
+                    ");
+
+
+                $deleteStmt->execute(
+                    array_merge(
+                        [$productId],
+                        $deleteImageIds
+                    )
+                );
+            }
 
 
             /*
@@ -405,16 +1139,12 @@ if (
             */
 
             $uploadDir =
-                "../assets/images/categories/";
+                __DIR__
+                . "/../assets/images/products/";
 
 
             if (
-                (
-                    $newImage !== null
-                    ||
-                    $removeImage
-                )
-                &&
+                !empty($newImages) &&
                 !is_dir($uploadDir)
             ) {
 
@@ -427,7 +1157,7 @@ if (
                 ) {
 
                     throw new RuntimeException(
-                        "Unable to create image directory."
+                        "Unable to create product image directory."
                     );
                 }
             }
@@ -435,98 +1165,273 @@ if (
 
             /*
             |--------------------------------------------------------------------------
-            | Determine Image
-            |--------------------------------------------------------------------------
-            */
-
-            $imageName =
-                $oldImage;
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | New Image
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $newImage !== null
-            ) {
-
-                $imageName =
-                    'category_' .
-                    $categoryId .
-                    '_' .
-                    bin2hex(
-                        random_bytes(8)
-                    ) .
-                    '.' .
-                    $newImage['extension'];
-
-
-                $newImagePath =
-                    $uploadDir .
-                    $imageName;
-
-
-                if (
-                    !move_uploaded_file(
-                        $newImage['tmp_name'],
-                        $newImagePath
-                    )
-                ) {
-
-                    throw new RuntimeException(
-                        "Unable to save the new category image."
-                    );
-                }
-
-            } elseif (
-                $removeImage
-            ) {
-
-                $imageName = null;
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Update Category
+            | Update Product
             |--------------------------------------------------------------------------
             */
 
             $updateStmt =
                 $pdo->prepare("
-                    UPDATE categories
+                    UPDATE products
                     SET
-                        category_name = :category_name,
-                        category_image = :category_image,
+                        category_id = :category_id,
+                        product_name = :product_name,
+                        slug = :slug,
                         description = :description,
+                        short_description = :short_description,
+                        price = :price,
+                        discount_price = :discount_price,
+                        food_type = :food_type,
+                        spice_level = :spice_level,
+                        preparation_time = :preparation_time,
+                        stock = :stock,
+                        featured = :featured,
+                        availability = :availability,
                         status = :status
-                    WHERE category_id = :category_id
+                    WHERE product_id = :product_id
                 ");
 
 
             $updateStmt->execute([
 
-                ':category_name' =>
-                    $categoryName,
+                ':category_id' =>
+                    (int)$categoryIdValue,
 
-                ':category_image' =>
-                    $imageName,
+                ':product_name' =>
+                    $productName,
+
+                ':slug' =>
+                    $slug,
 
                 ':description' =>
                     $description !== ''
                         ? $description
                         : null,
 
+                ':short_description' =>
+                    $shortDescription !== ''
+                        ? $shortDescription
+                        : null,
+
+                ':price' =>
+                    number_format(
+                        (float)$price,
+                        2,
+                        '.',
+                        ''
+                    ),
+
+                ':discount_price' =>
+                    $discountPrice !== ''
+                        ? number_format(
+                            (float)$discountPrice,
+                            2,
+                            '.',
+                            ''
+                        )
+                        : null,
+
+                ':food_type' =>
+                    $foodType,
+
+                ':spice_level' =>
+                    $spiceLevel !== ''
+                        ? $spiceLevel
+                        : null,
+
+                ':preparation_time' =>
+                    $preparationTime !== ''
+                        ? (int)$preparationTime
+                        : null,
+
+                ':stock' =>
+                    (int)$stock,
+
+                ':featured' =>
+                    $featured,
+
+                ':availability' =>
+                    $availability,
+
                 ':status' =>
                     $status,
 
-                ':category_id' =>
-                    $categoryId
-
+                ':product_id' =>
+                    $productId
             ]);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Existing Image Count
+            |--------------------------------------------------------------------------
+            */
+
+            $countStmt =
+                $pdo->prepare("
+                    SELECT COUNT(*)
+                    FROM product_images
+                    WHERE product_id = ?
+                ");
+
+            $countStmt->execute([
+                $productId
+            ]);
+
+            $imageCount =
+                (int)$countStmt->fetchColumn();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Add New Images
+            |--------------------------------------------------------------------------
+            */
+
+            $imageStmt =
+                $pdo->prepare("
+                    INSERT INTO product_images
+                    (
+                        product_id,
+                        image_name,
+                        is_primary,
+                        display_order
+                    )
+                    VALUES
+                    (
+                        :product_id,
+                        :image_name,
+                        :is_primary,
+                        :display_order
+                    )
+                ");
+
+
+            foreach (
+                $newImages as $position => $image
+            ) {
+
+                $newImageName =
+                    $productId
+                    . "_"
+                    . bin2hex(
+                        random_bytes(8)
+                    )
+                    . "."
+                    . $image['extension'];
+
+
+                $destination =
+                    $uploadDir
+                    . $newImageName;
+
+
+                if (
+                    !move_uploaded_file(
+                        $image['tmp_name'],
+                        $destination
+                    )
+                ) {
+
+                    throw new RuntimeException(
+                        "Unable to save product image."
+                    );
+                }
+
+
+                $createdFiles[] =
+                    $destination;
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | First Image Becomes Primary
+                |--------------------------------------------------------------------------
+                */
+
+                $isPrimary =
+                    $imageCount === 0 &&
+                    $position === 0
+                        ? 1
+                        : 0;
+
+
+                $imageStmt->execute([
+
+                    ':product_id' =>
+                        $productId,
+
+                    ':image_name' =>
+                        $newImageName,
+
+                    ':is_primary' =>
+                        $isPrimary,
+
+                    ':display_order' =>
+                        $imageCount +
+                        $position +
+                        1
+
+                ]);
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Ensure One Primary Image
+            |--------------------------------------------------------------------------
+            */
+
+            $primaryCheck =
+                $pdo->prepare("
+                    SELECT image_id
+                    FROM product_images
+                    WHERE product_id = ?
+                    AND is_primary = 1
+                    LIMIT 1
+                ");
+
+            $primaryCheck->execute([
+                $productId
+            ]);
+
+
+            if (!$primaryCheck->fetchColumn()) {
+
+                $firstImageStmt =
+                    $pdo->prepare("
+                        SELECT image_id
+                        FROM product_images
+                        WHERE product_id = ?
+                        ORDER BY
+                            display_order ASC,
+                            image_id ASC
+                        LIMIT 1
+                    ");
+
+                $firstImageStmt->execute([
+                    $productId
+                ]);
+
+                $firstImageId =
+                    $firstImageStmt->fetchColumn();
+
+
+                if ($firstImageId) {
+
+                    $makePrimary =
+                        $pdo->prepare("
+                            UPDATE product_images
+                            SET is_primary = 1
+                            WHERE image_id = ?
+                            AND product_id = ?
+                        ");
+
+                    $makePrimary->execute([
+                        $firstImageId,
+                        $productId
+                    ]);
+                }
+            }
 
 
             /*
@@ -540,34 +1445,19 @@ if (
 
             /*
             |--------------------------------------------------------------------------
-            | Remove Old Image
+            | Delete Old Image Files
             |--------------------------------------------------------------------------
             */
 
-            if (
-                (
-                    $newImage !== null
-                    ||
-                    $removeImage
-                )
-                &&
-                !empty($oldImage)
+            foreach (
+                $oldFilesToDelete as $oldFile
             ) {
 
-                $oldImagePath =
-                    $uploadDir .
-                    basename(
-                        $oldImage
-                    );
-
-
                 if (
-                    is_file($oldImagePath)
+                    is_file($oldFile)
                 ) {
 
-                    @unlink(
-                        $oldImagePath
-                    );
+                    @unlink($oldFile);
                 }
             }
 
@@ -579,18 +1469,23 @@ if (
             */
 
             $_SESSION['success'] =
-                "Category updated successfully.";
-
+                "Product updated successfully.";
 
             header(
-                "Location: categories.php"
+                "Location: products.php"
             );
 
             exit;
 
-        } catch (
-            Throwable $e
-        ) {
+
+        } catch (Throwable $e) {
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Rollback
+            |--------------------------------------------------------------------------
+            */
 
             if (
                 $pdo->inTransaction()
@@ -602,26 +1497,80 @@ if (
 
             /*
             |--------------------------------------------------------------------------
-            | Remove New Image If Database Failed
+            | Remove Newly Uploaded Files
             |--------------------------------------------------------------------------
             */
 
-            if (
-                $newImagePath !== null
-                &&
-                is_file($newImagePath)
+            foreach (
+                $createdFiles as $createdFile
             ) {
 
-                @unlink(
-                    $newImagePath
-                );
+                if (
+                    is_file($createdFile)
+                ) {
+
+                    @unlink(
+                        $createdFile
+                    );
+                }
             }
 
 
             $errors[] =
-                "Unable to update category. Please try again.";
+                "Unable to update the product. Please try again.";
         }
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh Existing Images After Error
+    |--------------------------------------------------------------------------
+    */
+
+    $imageStmt->execute([
+        ':product_id' => $productId
+    ]);
+
+    $productImages =
+        $imageStmt->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Calculate Discount Percentage
+|--------------------------------------------------------------------------
+*/
+
+$originalPrice =
+    (float)$price;
+
+$currentDiscountPrice =
+    $discountPrice !== ''
+        ? (float)$discountPrice
+        : 0;
+
+$discountPercentage = 0;
+
+if (
+    $originalPrice > 0 &&
+    $currentDiscountPrice > 0 &&
+    $currentDiscountPrice < $originalPrice
+) {
+
+    $discountPercentage =
+        round(
+            (
+                (
+                    $originalPrice -
+                    $currentDiscountPrice
+                )
+                / $originalPrice
+            ) * 100
+        );
 }
 
 
@@ -632,9 +1581,7 @@ if (
 */
 
 require_once "includes/a-header.php";
-
 require_once "includes/a-sidebar.php";
-
 require_once "includes/a-navbar.php";
 
 ?>
@@ -643,12 +1590,12 @@ require_once "includes/a-navbar.php";
 
 /*
 |--------------------------------------------------------------------------
-| EDIT CATEGORY PAGE
+| PAGE
 |--------------------------------------------------------------------------
 */
 
-.category-edit-page {
-    padding: 24px 28px 40px;
+.edit-product-page {
+    padding: 24px;
 }
 
 
@@ -658,318 +1605,196 @@ require_once "includes/a-navbar.php";
 |--------------------------------------------------------------------------
 */
 
-.category-edit-header {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 20px;
-
+.edit-product-header {
     margin-bottom: 24px;
 }
 
-
-.category-edit-title {
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
+.edit-product-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
 }
 
 
-.category-edit-icon {
-    width: 52px;
-    height: 52px;
+/*
+|--------------------------------------------------------------------------
+| CARD
+|--------------------------------------------------------------------------
+*/
 
+.edit-product-card {
+    border: 0;
+    overflow: hidden;
+}
+
+.edit-product-card-header {
+    padding: 18px 22px;
+}
+
+.edit-product-card-body {
+    padding: 24px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FORM SECTIONS
+|--------------------------------------------------------------------------
+*/
+
+.product-form-section {
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.product-form-section:last-child {
+    border-bottom: 0;
+    margin-bottom: 0;
+}
+
+.product-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| LABELS
+|--------------------------------------------------------------------------
+*/
+
+.edit-product-page .form-label {
+    font-size: .86rem;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.edit-product-page .form-control,
+.edit-product-page .form-select {
+    min-height: 43px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| IMAGE GRID
+|--------------------------------------------------------------------------
+*/
+
+.product-image-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(140px, 1fr)
+    );
+    gap: 14px;
+}
+
+.product-image-card {
+    position: relative;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.product-existing-image {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    display: block;
+}
+
+.product-image-card-body {
+    padding: 9px;
+}
+
+.primary-image-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+}
+
+.image-delete-check {
+    margin-top: 5px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| UPLOAD
+|--------------------------------------------------------------------------
+*/
+
+.product-upload-box {
+    border: 2px dashed #dee2e6;
     border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    transition: .2s ease;
+}
 
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
+.product-upload-box:hover {
+    border-color: #0d6efd;
     background: rgba(
         13,
         110,
         253,
-        0.10
+        .02
     );
-
-    color: #0d6efd;
-
-    font-size: 23px;
 }
 
-
-.category-edit-title h2 {
-    margin: 0;
-
-    font-size: 28px;
-
-    font-weight: 700;
-}
-
-
-.category-edit-title p {
-    margin: 3px 0 0;
-
-    color: #6c757d;
-
-    font-size: 14px;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| FORM CARD
-|--------------------------------------------------------------------------
-*/
-
-.category-edit-card {
-    border: 0;
-
-    border-radius: 12px;
-
-    overflow: hidden;
-
-    box-shadow:
-        0 2px 12px
-        rgba(
-            0,
-            0,
-            0,
-            0.06
-        );
-}
-
-
-.category-edit-card-header {
-    padding: 17px 22px;
-
-    background: #0d6efd;
-
-    color: #fff;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-}
-
-
-.category-edit-card-header h5 {
-    margin: 0;
-
-    font-size: 17px;
-
-    font-weight: 600;
-}
-
-
-.category-id-badge {
-    background: rgba(
-        255,
-        255,
-        255,
-        0.18
+.new-image-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(120px, 1fr)
     );
-
-    padding: 5px 10px;
-
-    border-radius: 20px;
-
-    font-size: 12px;
+    gap: 12px;
+    margin-top: 16px;
 }
 
-
-.category-edit-body {
-    padding: 28px;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| FORM
-|--------------------------------------------------------------------------
-*/
-
-.category-edit-body .form-label {
-    margin-bottom: 7px;
-
-    font-size: 13px;
-
-    font-weight: 600;
-}
-
-
-.category-edit-body .form-control,
-.category-edit-body .form-select {
-    min-height: 45px;
-
+.new-image-preview {
+    width: 100%;
+    height: 115px;
+    object-fit: cover;
     border-radius: 8px;
-}
-
-
-.category-edit-body textarea {
-    min-height: 130px;
-
-    resize: vertical;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| CURRENT IMAGE
-|--------------------------------------------------------------------------
-*/
-
-.category-current-image-box {
-    border: 1px solid #dee2e6;
-
-    border-radius: 12px;
-
-    padding: 18px;
-
-    text-align: center;
-
-    background: #f8f9fa;
-}
-
-
-.category-current-image {
-    width: 100%;
-
-    max-width: 240px;
-
-    height: 160px;
-
-    object-fit: cover;
-
-    border-radius: 10px;
-
-    border: 1px solid #dee2e6;
-}
-
-
-.category-no-image {
-    width: 100%;
-
-    max-width: 240px;
-
-    height: 160px;
-
-    margin: auto;
-
-    border-radius: 10px;
-
-    background: #fff;
-
-    border: 1px dashed #ced4da;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    flex-direction: column;
-
-    color: #adb5bd;
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| IMAGE UPLOAD
-|--------------------------------------------------------------------------
-*/
-
-.category-edit-upload {
-    border: 2px dashed #dee2e6;
-
-    border-radius: 12px;
-
-    padding: 20px;
-
-    text-align: center;
-
-    transition:
-        border-color .2s ease,
-        background .2s ease;
-}
-
-
-.category-edit-upload:hover {
-    border-color: #0d6efd;
-
-    background:
-        rgba(
-            13,
-            110,
-            253,
-            0.02
-        );
-}
-
-
-.category-new-preview {
-    display: none;
-
-    width: 100%;
-
-    max-width: 240px;
-
-    height: 150px;
-
-    object-fit: cover;
-
-    border-radius: 10px;
-
-    margin: 15px auto 0;
-
     border: 1px solid #dee2e6;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| INFO CARDS
+| SIDE CARDS
 |--------------------------------------------------------------------------
 */
 
-.category-edit-info-card {
+.product-side-card {
     border: 0;
-
     border-radius: 12px;
-
     box-shadow:
         0 2px 12px
-        rgba(
-            0,
-            0,
-            0,
-            0.06
-        );
-
+        rgba(0, 0, 0, .06);
     margin-bottom: 20px;
 }
 
-
-.category-edit-info-card .card-header {
+.product-side-card .card-header {
     background: #fff;
-
     padding: 16px 20px;
-
-    border-bottom: 1px solid #eee;
 }
 
-
-.category-edit-info-card .card-body {
+.product-side-card .card-body {
     padding: 20px;
+}
+
+.product-side-preview {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
 }
 
 
@@ -979,19 +1804,10 @@ require_once "includes/a-navbar.php";
 |--------------------------------------------------------------------------
 */
 
-.category-edit-actions {
+.edit-product-actions {
     display: flex;
-
+    flex-wrap: wrap;
     gap: 10px;
-
-    padding-top: 10px;
-}
-
-
-.category-edit-actions .btn {
-    min-height: 44px;
-
-    border-radius: 8px;
 }
 
 
@@ -1003,54 +1819,42 @@ require_once "includes/a-navbar.php";
 
 @media (max-width: 991.98px) {
 
-    .category-edit-page {
-        padding: 20px 15px 30px;
-    }
-
-
-    .category-edit-header {
-        align-items: flex-start;
-
-        flex-direction: column;
-    }
-
-
-    .category-edit-header > a {
-        width: 100%;
-    }
-
-
-    .category-edit-body {
-        padding: 20px;
+    .edit-product-page {
+        padding: 18px;
     }
 
 }
 
 
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
 
-    .category-edit-title h2 {
-        font-size: 23px;
+    .edit-product-page {
+        padding: 14px;
     }
 
-
-    .category-edit-title p {
-        font-size: 13px;
+    .edit-product-card-body {
+        padding: 18px;
     }
 
-
-    .category-edit-body {
-        padding: 16px;
-    }
-
-
-    .category-edit-actions {
+    .edit-product-actions {
         flex-direction: column;
     }
 
-
-    .category-edit-actions .btn {
+    .edit-product-actions .btn {
         width: 100%;
+    }
+
+}
+
+
+@media (max-width: 420px) {
+
+    .edit-product-page {
+        padding: 10px;
+    }
+
+    .edit-product-card-body {
+        padding: 14px;
     }
 
 }
@@ -1058,38 +1862,32 @@ require_once "includes/a-navbar.php";
 </style>
 
 
-<div class="category-edit-page">
+<div class="container-fluid edit-product-page">
 
 
     <!-- =========================================================
-         PAGE HEADER
+         HEADER
     ========================================================== -->
 
-    <div class="category-edit-header">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 edit-product-header">
 
+        <div class="d-flex align-items-center gap-3">
 
-        <div class="category-edit-title">
+            <div class="edit-product-icon bg-primary text-white rounded-3 d-flex align-items-center justify-content-center">
 
-            <div class="category-edit-icon">
-
-                <i class="bi bi-pencil-square"></i>
+                <i class="bi bi-pencil-square fs-4"></i>
 
             </div>
 
 
             <div>
 
-                <h2>
-
-                    Edit Category
-
+                <h2 class="fw-bold mb-1">
+                    Edit Product
                 </h2>
 
-
-                <p>
-
-                    Update category information and settings.
-
+                <p class="text-muted mb-0">
+                    Update product information, pricing and images.
                 </p>
 
             </div>
@@ -1098,15 +1896,13 @@ require_once "includes/a-navbar.php";
 
 
         <a
-            href="categories.php"
+            href="products.php"
             class="btn btn-outline-secondary"
         >
 
-            <i
-                class="bi bi-arrow-left me-1"
-            ></i>
+            <i class="bi bi-arrow-left me-1"></i>
 
-            Back to Categories
+            Back to Products
 
         </a>
 
@@ -1118,19 +1914,16 @@ require_once "includes/a-navbar.php";
          ERRORS
     ========================================================== -->
 
-    <?php if (
-        !empty($errors)
-    ): ?>
+    <?php if (!empty($errors)): ?>
 
         <div
             class="alert alert-danger alert-dismissible fade show"
+            role="alert"
         >
 
             <div class="fw-semibold mb-2">
 
-                <i
-                    class="bi bi-exclamation-triangle-fill me-1"
-                ></i>
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
 
                 Please fix the following:
 
@@ -1139,15 +1932,10 @@ require_once "includes/a-navbar.php";
 
             <ul class="mb-0">
 
-                <?php foreach (
-                    $errors
-                    as $error
-                ): ?>
+                <?php foreach ($errors as $error): ?>
 
                     <li>
-
                         <?= e($error); ?>
-
                     </li>
 
                 <?php endforeach; ?>
@@ -1174,328 +1962,406 @@ require_once "includes/a-navbar.php";
     <form
         method="POST"
         enctype="multipart/form-data"
-        id="editCategoryForm"
+        id="editProductForm"
     >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="<?= e($csrfToken); ?>"
+        >
+
 
         <div class="row g-4">
 
 
             <!-- =====================================================
-                 MAIN COLUMN
+                 MAIN
             ====================================================== -->
 
             <div class="col-xl-8">
 
-
-                <div class="card category-edit-card">
-
-
-                    <div
-                        class="category-edit-card-header"
-                    >
-
-                        <div
-                            class="d-flex align-items-center gap-2"
-                        >
-
-                            <i
-                                class="bi bi-folder2-open"
-                            ></i>
+                <div class="card shadow-sm edit-product-card">
 
 
-                            <h5>
+                    <div class="card-header bg-primary text-white edit-product-card-header">
 
-                                Category Information
+                        <div class="d-flex align-items-center justify-content-between gap-3">
+
+                            <h5 class="mb-0">
+
+                                <i class="bi bi-box-seam me-2"></i>
+
+                                Product Information
 
                             </h5>
 
+
+                            <span class="badge bg-light text-dark">
+
+                                ID #<?= (int)$productId; ?>
+
+                            </span>
+
                         </div>
-
-
-                        <span
-                            class="category-id-badge"
-                        >
-
-                            ID #<?= (int)$categoryId; ?>
-
-                        </span>
 
                     </div>
 
 
 
-                    <div class="category-edit-body">
+                    <div class="card-body edit-product-card-body">
 
 
-                        <div class="row g-4">
+                        <!-- =================================================
+                             BASIC INFORMATION
+                        ================================================== -->
+
+                        <div class="product-form-section">
+
+                            <div class="product-section-title">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                Basic Information
+
+                            </div>
 
 
-                            <!-- CATEGORY NAME -->
-
-                            <div class="col-12">
-
-                                <label
-                                    for="category_name"
-                                    class="form-label"
-                                >
-
-                                    Category Name
-
-                                    <span class="text-danger">*</span>
-
-                                </label>
+                            <div class="row g-3">
 
 
-                                <input
-                                    type="text"
-                                    name="category_name"
-                                    id="category_name"
-                                    class="form-control form-control-lg"
-                                    maxlength="100"
-                                    value="<?= e($categoryName); ?>"
-                                    required
-                                    autofocus
-                                >
+                                <!-- PRODUCT NAME -->
+
+                                <div class="col-lg-6">
+
+                                    <label
+                                        for="product_name"
+                                        class="form-label"
+                                    >
+
+                                        Product Name
+                                        <span class="text-danger">*</span>
+
+                                    </label>
 
 
-                                <div class="form-text">
-
-                                    Maximum 100 characters.
+                                    <input
+                                        type="text"
+                                        name="product_name"
+                                        id="product_name"
+                                        class="form-control"
+                                        maxlength="150"
+                                        required
+                                        value="<?= e($productName); ?>"
+                                    >
 
                                 </div>
 
-                            </div>
 
 
+                                <!-- SLUG -->
 
-                            <!-- DESCRIPTION -->
+                                <div class="col-lg-6">
 
-                            <div class="col-12">
-
-                                <label
-                                    for="description"
-                                    class="form-label"
-                                >
-
-                                    Description
-
-                                </label>
-
-
-                                <textarea
-                                    name="description"
-                                    id="description"
-                                    class="form-control"
-                                    maxlength="500"
-                                    placeholder="Write a short description..."
-                                ><?= e($description); ?></textarea>
-
-
-                                <div
-                                    class="d-flex justify-content-between mt-1"
-                                >
-
-                                    <small class="text-muted">
-
-                                        Optional
-
-                                    </small>
-
-
-                                    <small
-                                        class="text-muted"
-                                        id="descriptionCount"
+                                    <label
+                                        for="slug"
+                                        class="form-label"
                                     >
 
-                                        0 / 500
+                                        Slug
 
-                                    </small>
+                                    </label>
+
+
+                                    <input
+                                        type="text"
+                                        name="slug"
+                                        id="slug"
+                                        class="form-control"
+                                        value="<?= e($slug); ?>"
+                                    >
 
                                 </div>
 
-                            </div>
 
 
+                                <!-- CATEGORY -->
 
-                            <!-- STATUS -->
+                                <div class="col-lg-6">
 
-                            <div class="col-md-6">
-
-                                <label
-                                    for="status"
-                                    class="form-label"
-                                >
-
-                                    Status
-
-                                </label>
-
-
-                                <select
-                                    name="status"
-                                    id="status"
-                                    class="form-select"
-                                >
-
-                                    <option
-                                        value="Active"
-                                        <?= $status === 'Active'
-                                            ? 'selected'
-                                            : ''; ?>
+                                    <label
+                                        for="category_id"
+                                        class="form-label"
                                     >
 
-                                        Active
+                                        Category
+                                        <span class="text-danger">*</span>
 
-                                    </option>
+                                    </label>
 
 
-                                    <option
-                                        value="Inactive"
-                                        <?= $status === 'Inactive'
-                                            ? 'selected'
-                                            : ''; ?>
+                                    <select
+                                        name="category_id"
+                                        id="category_id"
+                                        class="form-select"
+                                        required
                                     >
 
-                                        Inactive
-
-                                    </option>
-
-                                </select>
-
-                            </div>
+                                        <option value="">
+                                            Select Category
+                                        </option>
 
 
+                                        <?php foreach (
+                                            $categories as $cat
+                                        ): ?>
 
-                            <!-- CREATED DATE -->
-
-                            <div class="col-md-6">
-
-                                <label
-                                    class="form-label"
-                                >
-
-                                    Created
-
-                                </label>
-
-
-                                <div
-                                    class="form-control bg-light"
-                                >
-
-                                    <i
-                                        class="bi bi-calendar3 me-1 text-muted"
-                                    ></i>
-
-                                    <?= date(
-                                        'd M Y, h:i A',
-                                        strtotime(
-                                            $category['created_at']
-                                        )
-                                    ); ?>
-
-                                </div>
-
-                            </div>
-
-
-
-                            <!-- CURRENT IMAGE -->
-
-                            <div class="col-md-6">
-
-                                <label
-                                    class="form-label"
-                                >
-
-                                    Current Image
-
-                                </label>
-
-
-                                <div
-                                    class="category-current-image-box"
-                                >
-
-                                    <?php
-
-                                    $currentImagePath =
-                                        "../assets/images/categories/" .
-                                        basename(
-                                            (string)(
-                                                $category['category_image']
-                                                ?? ''
-                                            )
-                                        );
-
-                                    $hasCurrentImage =
-                                        !empty(
-                                            $category['category_image']
-                                        )
-                                        &&
-                                        is_file(
-                                            $currentImagePath
-                                        );
-
-                                    ?>
-
-
-                                    <?php if (
-                                        $hasCurrentImage
-                                    ): ?>
-
-                                        <img
-                                            src="<?= e($currentImagePath); ?>"
-                                            alt="<?= e($categoryName); ?>"
-                                            class="category-current-image"
-                                            id="currentImage"
-                                        >
-
-
-                                        <div class="mt-3">
-
-                                            <div
-                                                class="form-check d-inline-flex"
+                                            <option
+                                                value="<?= (int)$cat['category_id']; ?>"
+                                                <?= (string)$categoryId ===
+                                                    (string)$cat['category_id']
+                                                        ? 'selected'
+                                                        : ''; ?>
                                             >
 
-                                                <input
-                                                    type="checkbox"
-                                                    name="remove_image"
-                                                    value="1"
-                                                    id="remove_image"
-                                                    class="form-check-input"
-                                                >
+                                                <?= e(
+                                                    $cat['category_name']
+                                                ); ?>
+
+                                                <?php if (
+                                                    ($cat['status'] ?? '')
+                                                    === 'Inactive'
+                                                ): ?>
+
+                                                    (Inactive)
+
+                                                <?php endif; ?>
+
+                                            </option>
+
+                                        <?php endforeach; ?>
+
+                                    </select>
+
+                                </div>
 
 
-                                                <label
-                                                    for="remove_image"
-                                                    class="form-check-label text-danger small"
-                                                >
 
-                                                    Remove current image
+                                <!-- FOOD TYPE -->
 
-                                                </label>
+                                <div class="col-lg-6">
 
-                                            </div>
+                                    <label
+                                        for="food_type"
+                                        class="form-label"
+                                    >
 
-                                        </div>
+                                        Food Type
+                                        <span class="text-danger">*</span>
 
-                                    <?php else: ?>
+                                    </label>
 
-                                        <div
-                                            class="category-no-image"
+
+                                    <select
+                                        name="food_type"
+                                        id="food_type"
+                                        class="form-select"
+                                        required
+                                    >
+
+                                        <option value="">
+                                            Select Food Type
+                                        </option>
+
+                                        <option
+                                            value="Veg"
+                                            <?= $foodType === 'Veg'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Veg
+                                        </option>
+
+                                        <option
+                                            value="Non-Veg"
+                                            <?= $foodType === 'Non-Veg'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Non-Veg
+                                        </option>
+
+                                        <option
+                                            value="Egg"
+                                            <?= $foodType === 'Egg'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Egg
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <!-- SHORT DESCRIPTION -->
+
+                                <div class="col-12">
+
+                                    <label
+                                        for="short_description"
+                                        class="form-label"
+                                    >
+
+                                        Short Description
+
+                                    </label>
+
+
+                                    <textarea
+                                        name="short_description"
+                                        id="short_description"
+                                        class="form-control"
+                                        rows="2"
+                                        maxlength="500"
+                                    ><?= e($shortDescription); ?></textarea>
+
+
+                                    <div
+                                        class="form-text text-end"
+                                        id="shortDescriptionCount"
+                                    >
+                                        0 / 500
+                                    </div>
+
+                                </div>
+
+
+
+                                <!-- DESCRIPTION -->
+
+                                <div class="col-12">
+
+                                    <label
+                                        for="description"
+                                        class="form-label"
+                                    >
+
+                                        Description
+
+                                    </label>
+
+
+                                    <textarea
+                                        name="description"
+                                        id="description"
+                                        class="form-control"
+                                        rows="5"
+                                    ><?= e($description); ?></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             PRICE & INVENTORY
+                        ================================================== -->
+
+                        <div class="product-form-section">
+
+                            <div class="product-section-title">
+
+                                <i class="bi bi-currency-rupee me-1"></i>
+
+                                Pricing & Inventory
+
+                            </div>
+
+
+                            <div class="row g-3">
+
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label
+                                        for="price"
+                                        class="form-label"
+                                    >
+
+                                        Price
+                                        <span class="text-danger">*</span>
+
+                                    </label>
+
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            ₹
+                                        </span>
+
+
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            id="price"
+                                            class="form-control"
+                                            min="0.01"
+                                            step="0.01"
+                                            required
+                                            value="<?= e($price); ?>"
                                         >
 
-                                            <i
-                                                class="bi bi-image fs-2 mb-2"
-                                            ></i>
+                                    </div>
+
+                                </div>
 
 
-                                            <span class="small">
 
-                                                No image uploaded
+                                <div class="col-lg-4 col-md-6">
 
-                                            </span>
+                                    <label
+                                        for="discount_price"
+                                        class="form-label"
+                                    >
+
+                                        Discount Price
+
+                                    </label>
+
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            ₹
+                                        </span>
+
+
+                                        <input
+                                            type="number"
+                                            name="discount_price"
+                                            id="discount_price"
+                                            class="form-control"
+                                            min="0"
+                                            step="0.01"
+                                            value="<?= e($discountPrice); ?>"
+                                        >
+
+                                    </div>
+
+
+                                    <?php if ($discountPercentage > 0): ?>
+
+                                        <div class="form-text text-success">
+
+                                            <?= $discountPercentage; ?>%
+                                            discount
 
                                         </div>
 
@@ -1503,105 +2369,496 @@ require_once "includes/a-navbar.php";
 
                                 </div>
 
-                            </div>
 
 
-
-                            <!-- NEW IMAGE -->
-
-                            <div class="col-md-6">
-
-                                <label
-                                    class="form-label"
-                                >
-
-                                    Replace Image
-
-                                </label>
-
-
-                                <div
-                                    class="category-edit-upload"
-                                    id="uploadBox"
-                                >
-
-                                    <i
-                                        class="bi bi-cloud-arrow-up fs-2 text-muted"
-                                    ></i>
-
-
-                                    <div
-                                        class="small text-muted mt-2 mb-3"
-                                    >
-
-                                        JPG, JPEG, PNG or WEBP
-                                        <br>
-                                        Maximum 5 MB
-
-                                    </div>
-
+                                <div class="col-lg-4 col-md-6">
 
                                     <label
-                                        for="category_image"
-                                        class="btn btn-outline-primary btn-sm"
+                                        for="stock"
+                                        class="form-label"
                                     >
 
-                                        <i
-                                            class="bi bi-image me-1"
-                                        ></i>
-
-                                        Choose New Image
+                                        Stock
+                                        <span class="text-danger">*</span>
 
                                     </label>
 
 
                                     <input
-                                        type="file"
-                                        name="category_image"
-                                        id="category_image"
-                                        class="d-none"
-                                        accept=".jpg,.jpeg,.png,.webp"
+                                        type="number"
+                                        name="stock"
+                                        id="stock"
+                                        class="form-control"
+                                        min="0"
+                                        step="1"
+                                        required
+                                        value="<?= e($stock); ?>"
                                     >
 
-
-                                    <div
-                                        id="selectedFile"
-                                        class="small text-muted mt-2"
-                                    ></div>
+                                </div>
 
 
-                                    <img
-                                        id="newImagePreview"
-                                        class="category-new-preview"
-                                        alt="New image preview"
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label
+                                        for="preparation_time"
+                                        class="form-label"
                                     >
+
+                                        Preparation Time
+
+                                    </label>
+
+
+                                    <div class="input-group">
+
+                                        <input
+                                            type="number"
+                                            name="preparation_time"
+                                            id="preparation_time"
+                                            class="form-control"
+                                            min="0"
+                                            max="1440"
+                                            step="1"
+                                            value="<?= e($preparationTime); ?>"
+                                        >
+
+                                        <span class="input-group-text">
+                                            min
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label
+                                        for="spice_level"
+                                        class="form-label"
+                                    >
+
+                                        Spice Level
+
+                                    </label>
+
+
+                                    <select
+                                        name="spice_level"
+                                        id="spice_level"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">
+                                            Select Spice Level
+                                        </option>
+
+                                        <option
+                                            value="Mild"
+                                            <?= $spiceLevel === 'Mild'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Mild
+                                        </option>
+
+                                        <option
+                                            value="Medium"
+                                            <?= $spiceLevel === 'Medium'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Medium
+                                        </option>
+
+                                        <option
+                                            value="Hot"
+                                            <?= $spiceLevel === 'Hot'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Hot
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <div class="col-lg-4 col-md-6">
+
+                                    <label
+                                        for="availability"
+                                        class="form-label"
+                                    >
+
+                                        Availability
+
+                                    </label>
+
+
+                                    <select
+                                        name="availability"
+                                        id="availability"
+                                        class="form-select"
+                                    >
+
+                                        <option
+                                            value="Available"
+                                            <?= $availability === 'Available'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Available
+                                        </option>
+
+                                        <option
+                                            value="Unavailable"
+                                            <?= $availability === 'Unavailable'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Unavailable
+                                        </option>
+
+                                    </select>
 
                                 </div>
 
                             </div>
 
+                        </div>
+
+
+
+                        <!-- =================================================
+                             SETTINGS
+                        ================================================== -->
+
+                        <div class="product-form-section">
+
+                            <div class="product-section-title">
+
+                                <i class="bi bi-sliders me-1"></i>
+
+                                Product Settings
+
+                            </div>
+
+
+                            <div class="row g-3">
+
+
+                                <div class="col-md-6">
+
+                                    <label
+                                        for="status"
+                                        class="form-label"
+                                    >
+
+                                        Status
+
+                                    </label>
+
+
+                                    <select
+                                        name="status"
+                                        id="status"
+                                        class="form-select"
+                                    >
+
+                                        <option
+                                            value="Active"
+                                            <?= $status === 'Active'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Active
+                                        </option>
+
+                                        <option
+                                            value="Inactive"
+                                            <?= $status === 'Inactive'
+                                                ? 'selected'
+                                                : ''; ?>
+                                        >
+                                            Inactive
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <div class="col-md-6 d-flex align-items-end">
+
+                                    <div class="form-check mb-2">
+
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="featured"
+                                            id="featured"
+                                            value="1"
+                                            <?= $featured === 1
+                                                ? 'checked'
+                                                : ''; ?>
+                                        >
+
+                                        <label
+                                            class="form-check-label fw-semibold"
+                                            for="featured"
+                                        >
+
+                                            Featured Product
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
 
 
-                        <!-- ACTIONS -->
+                        <!-- =================================================
+                             EXISTING IMAGES
+                        ================================================== -->
 
-                        <div
-                            class="category-edit-actions mt-4"
-                        >
+                        <div class="product-form-section">
+
+                            <div class="product-section-title">
+
+                                <i class="bi bi-images me-1"></i>
+
+                                Existing Product Images
+
+                            </div>
+
+
+                            <?php if (!empty($productImages)): ?>
+
+                                <div class="product-image-grid">
+
+                                    <?php foreach (
+                                        $productImages as $image
+                                    ): ?>
+
+                                        <?php
+
+                                        $imageName =
+                                            basename(
+                                                (string)$image['image_name']
+                                            );
+
+                                        $imagePath =
+                                            "../assets/images/products/"
+                                            . $imageName;
+
+                                        ?>
+
+                                        <div class="product-image-card">
+
+                                            <?php if (
+                                                (int)$image['is_primary'] === 1
+                                            ): ?>
+
+                                                <span
+                                                    class="badge bg-primary primary-image-badge"
+                                                >
+
+                                                    <i class="bi bi-star-fill me-1"></i>
+
+                                                    Primary
+
+                                                </span>
+
+                                            <?php endif; ?>
+
+
+                                            <?php if (
+                                                is_file(
+                                                    __DIR__
+                                                    . "/../assets/images/products/"
+                                                    . $imageName
+                                                )
+                                            ): ?>
+
+                                                <img
+                                                    src="<?= e($imagePath); ?>"
+                                                    alt="<?= e($productName); ?>"
+                                                    class="product-existing-image"
+                                                >
+
+                                            <?php else: ?>
+
+                                                <div
+                                                    class="product-existing-image d-flex align-items-center justify-content-center text-muted"
+                                                >
+
+                                                    <i class="bi bi-image fs-2"></i>
+
+                                                </div>
+
+                                            <?php endif; ?>
+
+
+                                            <div class="product-image-card-body">
+
+                                                <div class="small text-muted text-truncate">
+
+                                                    <?= e(
+                                                        $imageName
+                                                    ); ?>
+
+                                                </div>
+
+
+                                                <div class="form-check image-delete-check">
+
+                                                    <input
+                                                        type="checkbox"
+                                                        class="form-check-input delete-image-checkbox"
+                                                        name="delete_images[]"
+                                                        value="<?= (int)$image['image_id']; ?>"
+                                                        id="delete_image_<?= (int)$image['image_id']; ?>"
+                                                    >
+
+
+                                                    <label
+                                                        class="form-check-label text-danger small"
+                                                        for="delete_image_<?= (int)$image['image_id']; ?>"
+                                                    >
+
+                                                        Delete image
+
+                                                    </label>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    <?php endforeach; ?>
+
+                                </div>
+
+                            <?php else: ?>
+
+                                <div class="alert alert-light border mb-0">
+
+                                    <i class="bi bi-image me-1"></i>
+
+                                    No product images uploaded yet.
+
+                                </div>
+
+                            <?php endif; ?>
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             NEW IMAGES
+                        ================================================== -->
+
+                        <div class="product-form-section">
+
+                            <div class="product-section-title">
+
+                                <i class="bi bi-cloud-arrow-up me-1"></i>
+
+                                Add New Images
+
+                            </div>
+
+
+                            <div
+                                class="product-upload-box"
+                                id="uploadBox"
+                            >
+
+                                <i class="bi bi-images fs-1 text-muted"></i>
+
+
+                                <h6 class="fw-bold mt-2">
+                                    Add product images
+                                </h6>
+
+
+                                <p class="text-muted small mb-3">
+
+                                    JPG, PNG or WEBP
+                                    <br>
+                                    Maximum 5 MB per image
+
+                                </p>
+
+
+                                <label
+                                    for="product_images"
+                                    class="btn btn-outline-primary"
+                                >
+
+                                    <i class="bi bi-folder2-open me-1"></i>
+
+                                    Choose Images
+
+                                </label>
+
+
+                                <input
+                                    type="file"
+                                    name="product_images[]"
+                                    id="product_images"
+                                    class="d-none"
+                                    multiple
+                                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                >
+
+
+                                <div
+                                    id="selectedFiles"
+                                    class="small text-muted mt-3"
+                                ></div>
+
+
+                                <div
+                                    id="newImagePreview"
+                                    class="new-image-preview-grid"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                             ACTIONS
+                        ================================================== -->
+
+                        <div class="edit-product-actions">
 
                             <button
                                 type="submit"
-                                name="update_category"
+                                name="update_product"
                                 value="1"
                                 class="btn btn-primary px-4"
-                                id="updateCategoryBtn"
+                                id="updateProductBtn"
                             >
 
-                                <i
-                                    class="bi bi-check-circle me-1"
-                                ></i>
+                                <i class="bi bi-check-circle me-1"></i>
 
                                 Save Changes
 
@@ -1609,20 +2866,17 @@ require_once "includes/a-navbar.php";
 
 
                             <a
-                                href="categories.php"
+                                href="products.php"
                                 class="btn btn-outline-secondary px-4"
                             >
 
-                                <i
-                                    class="bi bi-x-circle me-1"
-                                ></i>
+                                <i class="bi bi-x-circle me-1"></i>
 
                                 Cancel
 
                             </a>
 
                         </div>
-
 
                     </div>
 
@@ -1639,23 +2893,17 @@ require_once "includes/a-navbar.php";
             <div class="col-xl-4">
 
 
-                <!-- CATEGORY PREVIEW -->
+                <!-- PREVIEW -->
 
-                <div
-                    class="card category-edit-info-card"
-                >
+                <div class="card product-side-card">
 
                     <div class="card-header">
 
-                        <h6
-                            class="mb-0 fw-bold"
-                        >
+                        <h6 class="fw-bold mb-0">
 
-                            <i
-                                class="bi bi-eye me-2 text-primary"
-                            ></i>
+                            <i class="bi bi-eye me-2 text-primary"></i>
 
-                            Category Preview
+                            Product Preview
 
                         </h6>
 
@@ -1664,55 +2912,106 @@ require_once "includes/a-navbar.php";
 
                     <div class="card-body">
 
-                        <div
-                            class="text-center mb-3"
-                        >
+                        <?php
 
-                            <?php if (
-                                $hasCurrentImage
-                            ): ?>
+                        $previewImage = null;
 
-                                <img
-                                    src="<?= e($currentImagePath); ?>"
-                                    id="sidePreviewImage"
-                                    class="category-current-image"
-                                    alt="Category"
-                                >
+                        foreach (
+                            $productImages as $img
+                        ) {
 
-                            <?php else: ?>
+                            if (
+                                (int)$img['is_primary'] === 1
+                            ) {
 
-                                <div
-                                    class="category-no-image"
-                                    id="sidePreviewPlaceholder"
-                                >
+                                $previewImage =
+                                    basename(
+                                        (string)$img['image_name']
+                                    );
 
-                                    <i
-                                        class="bi bi-folder fs-2"
-                                    ></i>
+                                break;
+                            }
+                        }
 
-                                </div>
 
-                            <?php endif; ?>
+                        if (
+                            $previewImage === null &&
+                            !empty($productImages)
+                        ) {
 
-                        </div>
+                            $previewImage =
+                                basename(
+                                    (string)$productImages[0]['image_name']
+                                );
+                        }
+
+                        ?>
+
+
+                        <?php if (
+                            $previewImage !== null &&
+                            is_file(
+                                __DIR__
+                                . "/../assets/images/products/"
+                                . $previewImage
+                            )
+                        ): ?>
+
+                            <img
+                                src="../assets/images/products/<?= e($previewImage); ?>"
+                                id="sidePreviewImage"
+                                class="product-side-preview"
+                                alt="<?= e($productName); ?>"
+                            >
+
+                        <?php else: ?>
+
+                            <div
+                                id="sidePreviewPlaceholder"
+                                class="product-side-preview bg-light d-flex align-items-center justify-content-center text-muted"
+                            >
+
+                                <i class="bi bi-image fs-1"></i>
+
+                            </div>
+
+                        <?php endif; ?>
 
 
                         <h5
-                            class="text-center mb-1"
-                            id="sideCategoryName"
+                            class="fw-bold mt-3 mb-1"
+                            id="sideProductName"
                         >
 
-                            <?= e($categoryName); ?>
+                            <?= e($productName); ?>
 
                         </h5>
 
 
                         <div
-                            class="text-center"
+                            class="text-muted small mb-3"
+                            id="sideProductCategory"
                         >
 
+                            Category
+
+                        </div>
+
+
+                        <div class="d-flex flex-wrap gap-2">
+
                             <span
-                                id="sideCategoryStatus"
+                                id="sideFoodType"
+                                class="badge bg-success"
+                            >
+
+                                <?= e($foodType); ?>
+
+                            </span>
+
+
+                            <span
+                                id="sideStatus"
                                 class="badge <?= $status === 'Active'
                                     ? 'bg-success'
                                     : 'bg-danger'; ?>"
@@ -1730,23 +3029,17 @@ require_once "includes/a-navbar.php";
 
 
 
-                <!-- INFORMATION -->
+                <!-- PRODUCT INFO -->
 
-                <div
-                    class="card category-edit-info-card"
-                >
+                <div class="card product-side-card">
 
                     <div class="card-header">
 
-                        <h6
-                            class="mb-0 fw-bold"
-                        >
+                        <h6 class="fw-bold mb-0">
 
-                            <i
-                                class="bi bi-info-circle me-2 text-primary"
-                            ></i>
+                            <i class="bi bi-info-circle me-2 text-primary"></i>
 
-                            Category Information
+                            Product Information
 
                         </h6>
 
@@ -1755,76 +3048,54 @@ require_once "includes/a-navbar.php";
 
                     <div class="card-body">
 
-
-                        <div
-                            class="d-flex justify-content-between mb-3"
-                        >
+                        <div class="d-flex justify-content-between mb-3">
 
                             <span class="text-muted">
-
-                                Category ID
-
+                                Product ID
                             </span>
 
-
                             <strong>
-
-                                #<?= (int)$categoryId; ?>
-
+                                #<?= (int)$productId; ?>
                             </strong>
 
                         </div>
 
 
-                        <div
-                            class="d-flex justify-content-between mb-3"
-                        >
+                        <div class="d-flex justify-content-between mb-3">
 
                             <span class="text-muted">
-
                                 Created
-
                             </span>
 
-
                             <strong>
-
-                                <?= date(
-                                    'd M Y',
-                                    strtotime(
-                                        $category['created_at']
-                                    )
-                                ); ?>
-
-                            </strong>
-
-                        </div>
-
-
-                        <div
-                            class="d-flex justify-content-between"
-                        >
-
-                            <span class="text-muted">
-
-                                Last Updated
-
-                            </span>
-
-
-                            <strong>
-
-                                <?= !empty(
-                                    $category['updated_at']
-                                )
+                                <?= !empty($product['created_at'])
                                     ? date(
                                         'd M Y',
                                         strtotime(
-                                            $category['updated_at']
+                                            $product['created_at']
                                         )
                                     )
                                     : '—'; ?>
+                            </strong>
 
+                        </div>
+
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="text-muted">
+                                Updated
+                            </span>
+
+                            <strong>
+                                <?= !empty($product['updated_at'])
+                                    ? date(
+                                        'd M Y',
+                                        strtotime(
+                                            $product['updated_at']
+                                        )
+                                    )
+                                    : '—'; ?>
                             </strong>
 
                         </div>
@@ -1837,36 +3108,30 @@ require_once "includes/a-navbar.php";
 
                 <!-- QUICK LINKS -->
 
-                <div
-                    class="card category-edit-info-card"
-                >
+                <div class="card product-side-card">
 
                     <div class="card-body">
 
                         <a
-                            href="categories.php"
+                            href="products.php"
                             class="btn btn-outline-primary w-100 mb-2"
                         >
 
-                            <i
-                                class="bi bi-grid me-1"
-                            ></i>
+                            <i class="bi bi-grid me-1"></i>
 
-                            All Categories
+                            All Products
 
                         </a>
 
 
                         <a
-                            href="add_category.php"
+                            href="add_product.php"
                             class="btn btn-outline-success w-100"
                         >
 
-                            <i
-                                class="bi bi-plus-circle me-1"
-                            ></i>
+                            <i class="bi bi-plus-circle me-1"></i>
 
-                            Add New Category
+                            Add New Product
 
                         </a>
 
@@ -1887,36 +3152,230 @@ require_once "includes/a-navbar.php";
 
 /*
 |--------------------------------------------------------------------------
-| Category Name Preview
+| Product Name → Slug
 |--------------------------------------------------------------------------
 */
 
-const categoryName =
+const productName =
     document.getElementById(
-        "category_name"
+        "product_name"
     );
 
-const sideCategoryName =
+const slug =
     document.getElementById(
-        "sideCategoryName"
+        "slug"
     );
 
 
-categoryName.addEventListener(
-    "input",
-    function () {
+function createSlug(value)
+{
+    return value
+        .toLowerCase()
+        .trim()
+        .replace(
+            /[^a-z0-9]+/g,
+            "-"
+        )
+        .replace(
+            /^-+|-+$/g,
+            ""
+        );
+}
 
-        const value =
-            this.value.trim();
+
+if (
+    productName &&
+    slug
+) {
+
+    productName.addEventListener(
+        "input",
+        function () {
+
+            slug.value =
+                createSlug(
+                    this.value
+                );
+
+            const sideName =
+                document.getElementById(
+                    "sideProductName"
+                );
+
+            if (sideName) {
+
+                sideName.textContent =
+                    this.value.trim()
+                    || "Product Name";
+            }
+
+        }
+    );
+
+}
 
 
-        sideCategoryName.textContent =
-            value !== ''
-                ? value
-                : 'Category Name';
+/*
+|--------------------------------------------------------------------------
+| Short Description Counter
+|--------------------------------------------------------------------------
+*/
 
+const shortDescription =
+    document.getElementById(
+        "short_description"
+    );
+
+const shortDescriptionCount =
+    document.getElementById(
+        "shortDescriptionCount"
+    );
+
+
+function updateShortDescriptionCount()
+{
+    if (
+        shortDescription &&
+        shortDescriptionCount
+    ) {
+
+        shortDescriptionCount.textContent =
+            shortDescription.value.length
+            + " / 500";
     }
-);
+}
+
+
+if (shortDescription) {
+
+    shortDescription.addEventListener(
+        "input",
+        updateShortDescriptionCount
+    );
+
+    updateShortDescriptionCount();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Category Preview
+|--------------------------------------------------------------------------
+*/
+
+const categorySelect =
+    document.getElementById(
+        "category_id"
+    );
+
+const sideProductCategory =
+    document.getElementById(
+        "sideProductCategory"
+    );
+
+
+function updateCategoryPreview()
+{
+    if (
+        !categorySelect ||
+        !sideProductCategory
+    ) {
+
+        return;
+    }
+
+
+    const selected =
+        categorySelect.options[
+            categorySelect.selectedIndex
+        ];
+
+
+    sideProductCategory.textContent =
+        selected &&
+        selected.value
+            ? selected.text
+            : "Category";
+}
+
+
+if (categorySelect) {
+
+    categorySelect.addEventListener(
+        "change",
+        updateCategoryPreview
+    );
+
+    updateCategoryPreview();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Food Type Preview
+|--------------------------------------------------------------------------
+*/
+
+const foodType =
+    document.getElementById(
+        "food_type"
+    );
+
+const sideFoodType =
+    document.getElementById(
+        "sideFoodType"
+    );
+
+
+function updateFoodType()
+{
+    if (
+        !foodType ||
+        !sideFoodType
+    ) {
+
+        return;
+    }
+
+
+    sideFoodType.textContent =
+        foodType.value
+        || "Food Type";
+
+
+    let className =
+        "badge bg-success";
+
+
+    if (
+        foodType.value === "Non-Veg"
+    ) {
+
+        className =
+            "badge bg-danger";
+
+    } else if (
+        foodType.value === "Egg"
+    ) {
+
+        className =
+            "badge bg-warning text-dark";
+    }
+
+
+    sideFoodType.className =
+        className;
+}
+
+
+if (foodType) {
+
+    foodType.addEventListener(
+        "change",
+        updateFoodType
+    );
+
+}
 
 
 /*
@@ -1930,64 +3389,42 @@ const status =
         "status"
     );
 
-const sideCategoryStatus =
+const sideStatus =
     document.getElementById(
-        "sideCategoryStatus"
+        "sideStatus"
     );
 
 
-function updateStatus() {
+function updateStatus()
+{
+    if (
+        !status ||
+        !sideStatus
+    ) {
 
-    sideCategoryStatus.textContent =
+        return;
+    }
+
+
+    sideStatus.textContent =
         status.value;
 
 
-    sideCategoryStatus.className =
-        status.value === 'Active'
-            ? 'badge bg-success'
-            : 'badge bg-danger';
-
+    sideStatus.className =
+        status.value === "Active"
+            ? "badge bg-success"
+            : "badge bg-danger";
 }
 
 
-status.addEventListener(
-    "change",
-    updateStatus
-);
+if (status) {
 
-
-/*
-|--------------------------------------------------------------------------
-| Description Counter
-|--------------------------------------------------------------------------
-*/
-
-const description =
-    document.getElementById(
-        "description"
+    status.addEventListener(
+        "change",
+        updateStatus
     );
-
-const descriptionCount =
-    document.getElementById(
-        "descriptionCount"
-    );
-
-
-function updateDescriptionCount() {
-
-    descriptionCount.textContent =
-        description.value.length +
-        " / 500";
 
 }
-
-
-description.addEventListener(
-    "input",
-    updateDescriptionCount
-);
-
-updateDescriptionCount();
 
 
 /*
@@ -1998,7 +3435,7 @@ updateDescriptionCount();
 
 const imageInput =
     document.getElementById(
-        "category_image"
+        "product_images"
     );
 
 const newImagePreview =
@@ -2006,235 +3443,95 @@ const newImagePreview =
         "newImagePreview"
     );
 
-const selectedFile =
+const selectedFiles =
     document.getElementById(
-        "selectedFile"
-    );
-
-
-imageInput.addEventListener(
-    "change",
-    function () {
-
-        const file =
-            this.files[0];
-
-
-        if (!file) {
-
-            newImagePreview.style.display =
-                "none";
-
-            selectedFile.textContent =
-                "";
-
-            return;
-        }
-
-
-        selectedFile.textContent =
-            file.name;
-
-
-        if (
-            !file.type.startsWith(
-                "image/"
-            )
-        ) {
-
-            newImagePreview.style.display =
-                "none";
-
-            return;
-        }
-
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            function (event) {
-
-                newImagePreview.src =
-                    event.target.result;
-
-                newImagePreview.style.display =
-                    "block";
-
-
-                const sidePreviewImage =
-                    document.getElementById(
-                        "sidePreviewImage"
-                    );
-
-
-                const sidePlaceholder =
-                    document.getElementById(
-                        "sidePreviewPlaceholder"
-                    );
-
-
-                if (
-                    sidePreviewImage
-                ) {
-
-                    sidePreviewImage.src =
-                        event.target.result;
-
-                } else if (
-                    sidePlaceholder
-                ) {
-
-                    sidePlaceholder.outerHTML = `
-
-                        <img
-                            src="${event.target.result}"
-                            id="sidePreviewImage"
-                            class="category-current-image"
-                            alt="Category"
-                        >
-
-                    `;
-
-                }
-
-            };
-
-
-        reader.readAsDataURL(
-            file
-        );
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| Drag & Drop
-|--------------------------------------------------------------------------
-*/
-
-const uploadBox =
-    document.getElementById(
-        "uploadBox"
-    );
-
-
-[
-    "dragenter",
-    "dragover"
-].forEach(
-    function (eventName) {
-
-        uploadBox.addEventListener(
-            eventName,
-            function (event) {
-
-                event.preventDefault();
-
-                uploadBox.style.borderColor =
-                    "#0d6efd";
-
-                uploadBox.style.background =
-                    "rgba(13,110,253,0.04)";
-
-            }
-        );
-
-    }
-);
-
-
-[
-    "dragleave",
-    "drop"
-].forEach(
-    function (eventName) {
-
-        uploadBox.addEventListener(
-            eventName,
-            function (event) {
-
-                event.preventDefault();
-
-                uploadBox.style.borderColor =
-                    "#dee2e6";
-
-                uploadBox.style.background =
-                    "";
-
-            }
-        );
-
-    }
-);
-
-
-uploadBox.addEventListener(
-    "drop",
-    function (event) {
-
-        const files =
-            event.dataTransfer.files;
-
-
-        if (
-            files.length > 0
-        ) {
-
-            imageInput.files =
-                files;
-
-
-            imageInput.dispatchEvent(
-                new Event(
-                    "change"
-                )
-            );
-
-        }
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| Remove Image Confirmation
-|--------------------------------------------------------------------------
-*/
-
-const removeImage =
-    document.getElementById(
-        "remove_image"
+        "selectedFiles"
     );
 
 
 if (
-    removeImage
+    imageInput &&
+    newImagePreview
 ) {
 
-    removeImage.addEventListener(
+    imageInput.addEventListener(
         "change",
         function () {
 
-            if (
-                this.checked
-            ) {
+            newImagePreview.innerHTML = "";
 
-                if (
-                    !confirm(
-                        "Are you sure you want to remove the current category image?"
-                    )
-                ) {
 
-                    this.checked =
-                        false;
-                }
+            if (selectedFiles) {
 
+                selectedFiles.textContent =
+                    this.files.length > 0
+                        ? this.files.length
+                          + " image(s) selected"
+                        : "";
             }
+
+
+            Array.from(this.files)
+                .forEach(
+                    function (file) {
+
+                        if (
+                            !file.type.startsWith(
+                                "image/"
+                            )
+                        ) {
+
+                            return;
+                        }
+
+
+                        const reader =
+                            new FileReader();
+
+
+                        reader.onload =
+                            function (event) {
+
+                                const wrapper =
+                                    document.createElement(
+                                        "div"
+                                    );
+
+
+                                const img =
+                                    document.createElement(
+                                        "img"
+                                    );
+
+
+                                img.src =
+                                    event.target.result;
+
+                                img.alt =
+                                    "New product image";
+
+                                img.className =
+                                    "new-image-preview";
+
+
+                                wrapper.appendChild(
+                                    img
+                                );
+
+
+                                newImagePreview.appendChild(
+                                    wrapper
+                                );
+
+                            };
+
+
+                        reader.readAsDataURL(
+                            file
+                        );
+
+                    }
+                );
 
         }
     );
@@ -2244,57 +3541,135 @@ if (
 
 /*
 |--------------------------------------------------------------------------
-| Submit Protection
+| Delete Image Warning
 |--------------------------------------------------------------------------
 */
 
-const editCategoryForm =
-    document.getElementById(
-        "editCategoryForm"
-    );
-
-const updateButton =
-    document.getElementById(
-        "updateCategoryBtn"
+const deleteCheckboxes =
+    document.querySelectorAll(
+        ".delete-image-checkbox"
     );
 
 
-editCategoryForm.addEventListener(
-    "submit",
-    function (event) {
+deleteCheckboxes.forEach(
+    function (checkbox) {
 
-        if (
-            categoryName.value.trim().length < 2
-        ) {
+        checkbox.addEventListener(
+            "change",
+            function () {
 
-            event.preventDefault();
-
-            alert(
-                "Category name must contain at least 2 characters."
-            );
-
-            categoryName.focus();
-
-            return;
-        }
+                const card =
+                    this.closest(
+                        ".product-image-card"
+                    );
 
 
-        updateButton.disabled =
-            true;
+                if (!card) {
+                    return;
+                }
 
 
-        updateButton.innerHTML = `
+                if (this.checked) {
 
-            <span
-                class="spinner-border spinner-border-sm me-1"
-            ></span>
+                    card.style.opacity =
+                        "0.55";
 
-            Saving...
+                } else {
 
-        `;
+                    card.style.opacity =
+                        "1";
+                }
+
+            }
+        );
 
     }
 );
+
+
+/*
+|--------------------------------------------------------------------------
+| Form Submit
+|--------------------------------------------------------------------------
+*/
+
+const editProductForm =
+    document.getElementById(
+        "editProductForm"
+    );
+
+
+if (editProductForm) {
+
+    editProductForm.addEventListener(
+        "submit",
+        function (event) {
+
+            const price =
+                parseFloat(
+                    document.getElementById(
+                        "price"
+                    ).value
+                );
+
+
+            const discount =
+                parseFloat(
+                    document.getElementById(
+                        "discount_price"
+                    ).value
+                );
+
+
+            if (
+                !Number.isNaN(discount) &&
+                discount >= price
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Discount price must be lower than the original price."
+                );
+
+                document
+                    .getElementById(
+                        "discount_price"
+                    )
+                    .focus();
+
+                return;
+            }
+
+
+            const selectedDeleteImages =
+                document.querySelectorAll(
+                    ".delete-image-checkbox:checked"
+                );
+
+
+            if (
+                selectedDeleteImages.length > 0
+            ) {
+
+                const confirmed =
+                    confirm(
+                        "Are you sure you want to delete the selected product image(s)?"
+                    );
+
+
+                if (!confirmed) {
+
+                    event.preventDefault();
+
+                }
+
+            }
+
+        }
+    );
+
+}
 
 </script>
 
