@@ -1,1243 +1,2306 @@
 <?php
+
+declare(strict_types=1);
+
 session_start();
 
 require_once "../config/db.php";
 require_once "includes/a-auth.php";
 
-$pageTitle = "Edit Product";
-
-/* ==========================================
-   Validate Product ID
-========================================== */
-
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-
-    $_SESSION['error'] = "Invalid Product ID.";
-
-    header("Location: products.php");
-    exit();
-
-}
-
-$product_id = (int) $_GET['id'];
-
-/* ==========================================
-   Fetch Product Details
-========================================== */
-
-$productStmt = $pdo->prepare("
-SELECT *
-FROM products
-WHERE product_id = ?
-LIMIT 1
-");
-
-$productStmt->execute([$product_id]);
-
-$product = $productStmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$product) {
-
-    $_SESSION['error'] = "Product not found.";
-
-    header("Location: products.php");
-    exit();
-
-}
-
-/* ==========================================
-   Fetch Categories
-========================================== */
-
-$categoryStmt = $pdo->query("
-SELECT
-category_id,
-category_name
-FROM categories
-WHERE status='Active'
-ORDER BY category_name ASC
-");
-
-$categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);
-
-/* ==========================================
-   Fetch Product Images
-========================================== */
-
-$imageStmt = $pdo->prepare("
-SELECT *
-FROM product_images
-WHERE product_id=?
-ORDER BY
-is_primary DESC,
-display_order ASC
-");
-
-$imageStmt->execute([$product_id]);
-
-$productImages = $imageStmt->fetchAll(PDO::FETCH_ASSOC);
-
-/* ==========================================
-   Initialize Variables
-========================================== */
-
-$product_name = $product['product_name'];
-$category_id = $product['category_id'];
-$slug = $product['slug'];
-$short_description = $product['short_description'];
-$description = $product['description'];
-$price = $product['price'];
-$discount_percent = $product['discount_percent'];
-$food_type = $product['food_type'];
-$spice_level = $product['spice_level'];
-$preparation_time = $product['preparation_time'];
-$stock = $product['stock'];
-$featured = $product['featured'];
-$availability = $product['availability'];
-$status = $product['status'];
+$pageTitle = "Edit Category";
 
 $errors = [];
 
-/* ==========================================
-   Generate Slug
-========================================== */
 
-function generateSlug($text)
+/*
+|--------------------------------------------------------------------------
+| Helper
+|--------------------------------------------------------------------------
+*/
+
+function e(?string $value): string
 {
-
-    $text = strtolower(trim($text));
-
-    $text = preg_replace('/[^a-z0-9]+/', '-', $text);
-
-    return trim($text, '-');
-
+    return htmlspecialchars(
+        (string)$value,
+        ENT_QUOTES,
+        'UTF-8'
+    );
 }
 
-/* ==========================================
-   Update Product
-========================================== */
 
-if ($_SERVER['REQUEST_METHOD'] == "POST") {
+/*
+|--------------------------------------------------------------------------
+| Get Category ID
+|--------------------------------------------------------------------------
+*/
 
-    $product_name = trim($_POST['product_name']);
-    $category_id = trim($_POST['category_id']);
-    $short_description = trim($_POST['short_description']);
-    $description = trim($_POST['description']);
-    $price = trim($_POST['price']);
-    $discount_percent= trim($_POST['discount_percent']);
-    $food_type = trim($_POST['food_type']);
-    $spice_level = trim($_POST['spice_level']);
-    $preparation_time = trim($_POST['preparation_time']);
-    $stock = trim($_POST['stock']);
+$categoryId = filter_input(
+    INPUT_GET,
+    'id',
+    FILTER_VALIDATE_INT
+);
 
-    $featured = isset($_POST['featured']) ? 1 : 0;
+if (
+    !$categoryId
+    || $categoryId < 1
+) {
 
-    $availability = trim($_POST['availability']);
+    $_SESSION['error'] =
+        "Invalid category selected.";
 
-    $status = trim($_POST['status']);
+    header(
+        "Location: categories.php"
+    );
 
-    $slug = generateSlug($product_name);
+    exit;
+}
 
-    /* ==========================================
-       Validation
-    ========================================== */
 
-    if ($product_name == "") {
+/*
+|--------------------------------------------------------------------------
+| Fetch Category
+|--------------------------------------------------------------------------
+*/
 
-        $errors[] = "Product Name is required.";
+$stmt = $pdo->prepare("
+    SELECT
+        category_id,
+        category_name,
+        category_image,
+        description,
+        status,
+        created_at,
+        updated_at
+    FROM categories
+    WHERE category_id = ?
+    LIMIT 1
+");
 
+$stmt->execute([
+    $categoryId
+]);
+
+$category =
+    $stmt->fetch(
+        PDO::FETCH_ASSOC
+    );
+
+
+if (!$category) {
+
+    $_SESSION['error'] =
+        "Category not found.";
+
+    header(
+        "Location: categories.php"
+    );
+
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Form Values
+|--------------------------------------------------------------------------
+*/
+
+$categoryName =
+    trim(
+        (string)(
+            $_POST['category_name']
+            ?? $category['category_name']
+        )
+    );
+
+$description =
+    trim(
+        (string)(
+            $_POST['description']
+            ?? ($category['description'] ?? '')
+        )
+    );
+
+$status =
+    trim(
+        (string)(
+            $_POST['status']
+            ?? $category['status']
+        )
+    );
+
+
+/*
+|--------------------------------------------------------------------------
+| Update Category
+|--------------------------------------------------------------------------
+*/
+
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    &&
+    isset($_POST['update_category'])
+) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Name
+    |--------------------------------------------------------------------------
+    */
+
+    if ($categoryName === '') {
+
+        $errors[] =
+            "Category name is required.";
+
+    } elseif (
+        mb_strlen($categoryName) < 2
+    ) {
+
+        $errors[] =
+            "Category name must contain at least 2 characters.";
+
+    } elseif (
+        mb_strlen($categoryName) > 100
+    ) {
+
+        $errors[] =
+            "Category name cannot exceed 100 characters.";
     }
 
-    if ($category_id == "") {
 
-        $errors[] = "Category is required.";
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Status
+    |--------------------------------------------------------------------------
+    */
 
+    if (
+        !in_array(
+            $status,
+            [
+                'Active',
+                'Inactive'
+            ],
+            true
+        )
+    ) {
+
+        $errors[] =
+            "Invalid category status.";
     }
 
-    if ($price == "") {
 
-        $errors[] = "Price is required.";
+    /*
+    |--------------------------------------------------------------------------
+    | Duplicate Name
+    |--------------------------------------------------------------------------
+    */
 
-    }
+    if (
+        empty($errors)
+    ) {
 
-    if (!is_numeric($price)) {
+        $duplicateStmt =
+            $pdo->prepare("
+                SELECT category_id
+                FROM categories
+                WHERE LOWER(category_name) = LOWER(?)
+                AND category_id != ?
+                LIMIT 1
+            ");
 
-        $errors[] = "Price must be numeric.";
-
-    }
-
-    if ($discount_percent != "" && !is_numeric($discount_percent)) {
-
-        $errors[] = "Discount Price must be numeric.";
-
-    }
-
-    if ($stock == "") {
-
-        $errors[] = "Stock is required.";
-
-    }
-
-    if (!is_numeric($stock)) {
-
-        $errors[] = "Stock must be numeric.";
-
-    }
-
-    if ($food_type == "") {
-
-        $errors[] = "Food Type is required.";
-
-    }
-
-    /* ==========================================
-       Duplicate Slug Check
-    ========================================== */
-
-    if (empty($errors)) {
-
-        $checkSlug = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM products
-        WHERE slug=?
-        AND product_id!=?
-        ");
-
-        $checkSlug->execute([
-            $slug,
-            $product_id
+        $duplicateStmt->execute([
+            $categoryName,
+            $categoryId
         ]);
 
-        if ($checkSlug->fetchColumn() > 0) {
 
-            $slug .= "-" . time();
+        if (
+            $duplicateStmt->fetch()
+        ) {
 
+            $errors[] =
+                "Another category with this name already exists.";
         }
-
     }
 
-    /* ==========================================
-       Update Database
-    ========================================== */
 
-    if (empty($errors)) {
+    /*
+    |--------------------------------------------------------------------------
+    | Image Upload
+    |--------------------------------------------------------------------------
+    */
+
+    $newImage = null;
+
+    if (
+        isset($_FILES['category_image'])
+        &&
+        $_FILES['category_image']['error']
+        !== UPLOAD_ERR_NO_FILE
+    ) {
+
+        if (
+            $_FILES['category_image']['error']
+            !== UPLOAD_ERR_OK
+        ) {
+
+            $errors[] =
+                "Unable to upload the category image.";
+
+        } else {
+
+            $tmpName =
+                $_FILES['category_image']['tmp_name'];
+
+            $originalName =
+                $_FILES['category_image']['name'];
+
+            $fileSize =
+                (int)(
+                    $_FILES['category_image']['size']
+                    ?? 0
+                );
+
+            $extension =
+                strtolower(
+                    pathinfo(
+                        $originalName,
+                        PATHINFO_EXTENSION
+                    )
+                );
+
+
+            $allowedExtensions = [
+                'jpg',
+                'jpeg',
+                'png',
+                'webp'
+            ];
+
+
+            if (
+                !in_array(
+                    $extension,
+                    $allowedExtensions,
+                    true
+                )
+            ) {
+
+                $errors[] =
+                    "Only JPG, JPEG, PNG and WEBP images are allowed.";
+
+            } elseif (
+                $fileSize > 5 * 1024 * 1024
+            ) {
+
+                $errors[] =
+                    "Category image must be smaller than 5 MB.";
+
+            } elseif (
+                !is_uploaded_file($tmpName)
+            ) {
+
+                $errors[] =
+                    "Invalid image upload.";
+
+            } elseif (
+                @getimagesize($tmpName) === false
+            ) {
+
+                $errors[] =
+                    "The uploaded file is not a valid image.";
+
+            } else {
+
+                $newImage = [
+                    'tmp_name' =>
+                        $tmpName,
+
+                    'extension' =>
+                        $extension
+                ];
+            }
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete Existing Image
+    |--------------------------------------------------------------------------
+    */
+
+    $removeImage =
+        isset(
+            $_POST['remove_image']
+        )
+        &&
+        $_POST['remove_image'] === '1';
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save Changes
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        empty($errors)
+    ) {
+
+        $newImagePath = null;
 
         try {
 
             $pdo->beginTransaction();
 
-            $stmt = $pdo->prepare("
-            UPDATE products
-            SET
-                category_id=?,
-                product_name=?,
-                slug=?,
-                description=?,
-                short_description=?,
-                price=?,
-                discount_percent=?,
-                food_type=?,
-                spice_level=?,
-                preparation_time=?,
-                stock=?,
-                featured=?,
-                availability=?,
-                status=?
-            WHERE
-                product_id=?
-            ");
-
-            $stmt->execute([
-                $category_id,
-                $product_name,
-                $slug,
-                $description,
-                $short_description,
-                $price,
-                $discount_percent  == "" ? null : $discount_percent,
-                $food_type,
-                $spice_level,
-                $preparation_time,
-                $stock,
-                $featured,
-                $availability,
-                $status,
-                $product_id
-            ]);
 
             /*
-             * Image upload, image deletion,
-             * and primary image update
-             * will be added in Part 2.
-             */
-                        /* ==========================================
-               Upload New Images
-            ========================================== */
+            |--------------------------------------------------------------------------
+            | Lock Category
+            |--------------------------------------------------------------------------
+            */
+
+            $lockStmt =
+                $pdo->prepare("
+                    SELECT
+                        category_id,
+                        category_image
+                    FROM categories
+                    WHERE category_id = ?
+                    FOR UPDATE
+                ");
+
+            $lockStmt->execute([
+                $categoryId
+            ]);
+
+            $lockedCategory =
+                $lockStmt->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
 
             if (
-                isset($_FILES['product_images']) &&
-                !empty($_FILES['product_images']['name'][0])
+                !$lockedCategory
             ) {
 
-                $uploadDir = "../assets/images/products/";
+                throw new RuntimeException(
+                    "Category no longer exists."
+                );
+            }
 
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
 
-                $allowed = [
-                    "jpg",
-                    "jpeg",
-                    "png",
-                    "webp"
-                ];
+            $oldImage =
+                $lockedCategory['category_image']
+                ?? null;
 
-                $displayStmt = $pdo->prepare("
-                    SELECT COALESCE(MAX(display_order),0)
-                    FROM product_images
-                    WHERE product_id=?
-                ");
 
-                $displayStmt->execute([$product_id]);
+            /*
+            |--------------------------------------------------------------------------
+            | Upload Directory
+            |--------------------------------------------------------------------------
+            */
 
-                $displayOrder = (int)$displayStmt->fetchColumn();
+            $uploadDir =
+                "../assets/images/categories/";
 
-                foreach ($_FILES['product_images']['name'] as $key => $imageName) {
 
-                    if ($_FILES['product_images']['error'][$key] != 0) {
-                        continue;
-                    }
+            if (
+                (
+                    $newImage !== null
+                    ||
+                    $removeImage
+                )
+                &&
+                !is_dir($uploadDir)
+            ) {
 
-                    $tmpName = $_FILES['product_images']['tmp_name'][$key];
+                if (
+                    !mkdir(
+                        $uploadDir,
+                        0755,
+                        true
+                    )
+                ) {
 
-                    $extension = strtolower(
-                        pathinfo($imageName, PATHINFO_EXTENSION)
+                    throw new RuntimeException(
+                        "Unable to create image directory."
                     );
+                }
+            }
 
-                    if (!in_array($extension, $allowed)) {
-                        continue;
-                    }
 
-                    $newImageName =
-                        time() .
-                        "_" .
-                        uniqid() .
-                        "." .
-                        $extension;
+            /*
+            |--------------------------------------------------------------------------
+            | Determine Image
+            |--------------------------------------------------------------------------
+            */
 
-                    if (
-                        move_uploaded_file(
-                            $tmpName,
-                            $uploadDir . $newImageName
-                        )
-                    ) {
+            $imageName =
+                $oldImage;
 
-                        $displayOrder++;
 
-                        $primaryCheck = $pdo->prepare("
-                            SELECT COUNT(*)
-                            FROM product_images
-                            WHERE product_id=?
-                            AND is_primary=1
-                        ");
+            /*
+            |--------------------------------------------------------------------------
+            | New Image
+            |--------------------------------------------------------------------------
+            */
 
-                        $primaryCheck->execute([$product_id]);
+            if (
+                $newImage !== null
+            ) {
 
-                        $isPrimary =
-                            ($primaryCheck->fetchColumn() == 0)
-                            ? 1
-                            : 0;
+                $imageName =
+                    'category_' .
+                    $categoryId .
+                    '_' .
+                    bin2hex(
+                        random_bytes(8)
+                    ) .
+                    '.' .
+                    $newImage['extension'];
 
-                        $insertImage = $pdo->prepare("
-                            INSERT INTO product_images
-                            (
-                                product_id,
-                                image_name,
-                                is_primary,
-                                display_order
-                            )
-                            VALUES
-                            (
-                                ?,
-                                ?,
-                                ?,
-                                ?
-                            )
-                        ");
 
-                        $insertImage->execute([
-                            $product_id,
-                            $newImageName,
-                            $isPrimary,
-                            $displayOrder
-                        ]);
+                $newImagePath =
+                    $uploadDir .
+                    $imageName;
 
-                    }
 
+                if (
+                    !move_uploaded_file(
+                        $newImage['tmp_name'],
+                        $newImagePath
+                    )
+                ) {
+
+                    throw new RuntimeException(
+                        "Unable to save the new category image."
+                    );
                 }
 
+            } elseif (
+                $removeImage
+            ) {
+
+                $imageName = null;
             }
 
-            /* ==========================================
-               Delete Selected Images
-            ========================================== */
 
-            if (!empty($_POST['delete_images'])) {
+            /*
+            |--------------------------------------------------------------------------
+            | Update Category
+            |--------------------------------------------------------------------------
+            */
 
-                foreach ($_POST['delete_images'] as $image_id) {
-
-                    $imageStmt = $pdo->prepare("
-                        SELECT *
-                        FROM product_images
-                        WHERE image_id=?
-                        AND product_id=?
-                    ");
-
-                    $imageStmt->execute([
-                        $image_id,
-                        $product_id
-                    ]);
-
-                    $image = $imageStmt->fetch(PDO::FETCH_ASSOC);
-
-                    if ($image) {
-
-                        $file =
-                            "../assets/images/products/" .
-                            $image['image_name'];
-
-                        if (file_exists($file)) {
-                            unlink($file);
-                        }
-
-                        $deleteStmt = $pdo->prepare("
-                            DELETE
-                            FROM product_images
-                            WHERE image_id=?
-                        ");
-
-                        $deleteStmt->execute([
-                            $image_id
-                        ]);
-
-                    }
-
-                }
-
-            }
-
-            /* ==========================================
-               Change Primary Image
-            ========================================== */
-
-            if (!empty($_POST['primary_image'])) {
-
-                $primaryImage =
-                    (int)$_POST['primary_image'];
-
+            $updateStmt =
                 $pdo->prepare("
-                    UPDATE product_images
-                    SET is_primary=0
-                    WHERE product_id=?
-                ")->execute([$product_id]);
-
-                $pdo->prepare("
-                    UPDATE product_images
-                    SET is_primary=1
-                    WHERE image_id=?
-                    AND product_id=?
-                ")->execute([
-                    $primaryImage,
-                    $product_id
-                ]);
-
-            }
-
-            /* ==========================================
-               Ensure One Primary Image Exists
-            ========================================== */
-
-            $primaryCount = $pdo->prepare("
-                SELECT COUNT(*)
-                FROM product_images
-                WHERE product_id=?
-                AND is_primary=1
-            ");
-
-            $primaryCount->execute([$product_id]);
-
-            if ($primaryCount->fetchColumn() == 0) {
-
-                $firstImage = $pdo->prepare("
-                    SELECT image_id
-                    FROM product_images
-                    WHERE product_id=?
-                    ORDER BY display_order ASC
-                    LIMIT 1
+                    UPDATE categories
+                    SET
+                        category_name = :category_name,
+                        category_image = :category_image,
+                        description = :description,
+                        status = :status
+                    WHERE category_id = :category_id
                 ");
 
-                $firstImage->execute([$product_id]);
 
-                $first = $firstImage->fetch(PDO::FETCH_ASSOC);
+            $updateStmt->execute([
 
-                if ($first) {
+                ':category_name' =>
+                    $categoryName,
 
-                    $pdo->prepare("
-                        UPDATE product_images
-                        SET is_primary=1
-                        WHERE image_id=?
-                    ")->execute([
-                        $first['image_id']
-                    ]);
+                ':category_image' =>
+                    $imageName,
 
-                }
+                ':description' =>
+                    $description !== ''
+                        ? $description
+                        : null,
 
-            }
+                ':status' =>
+                    $status,
 
-            /* ==========================================
-               Commit Transaction
-            ========================================== */
+                ':category_id' =>
+                    $categoryId
+
+            ]);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Commit
+            |--------------------------------------------------------------------------
+            */
 
             $pdo->commit();
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove Old Image
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                (
+                    $newImage !== null
+                    ||
+                    $removeImage
+                )
+                &&
+                !empty($oldImage)
+            ) {
+
+                $oldImagePath =
+                    $uploadDir .
+                    basename(
+                        $oldImage
+                    );
+
+
+                if (
+                    is_file($oldImagePath)
+                ) {
+
+                    @unlink(
+                        $oldImagePath
+                    );
+                }
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Success
+            |--------------------------------------------------------------------------
+            */
+
             $_SESSION['success'] =
-                "Product updated successfully.";
+                "Category updated successfully.";
 
-            header("Location: products.php");
 
-            exit();
+            header(
+                "Location: categories.php"
+            );
 
-        } catch (Exception $e) {
+            exit;
 
-            $pdo->rollBack();
+        } catch (
+            Throwable $e
+        ) {
 
-            $_SESSION['error'] =
-                "Update failed : " .
-                $e->getMessage();
+            if (
+                $pdo->inTransaction()
+            ) {
 
+                $pdo->rollBack();
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove New Image If Database Failed
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $newImagePath !== null
+                &&
+                is_file($newImagePath)
+            ) {
+
+                @unlink(
+                    $newImagePath
+                );
+            }
+
+
+            $errors[] =
+                "Unable to update category. Please try again.";
         }
+    }
+}
 
+
+/*
+|--------------------------------------------------------------------------
+| Header
+|--------------------------------------------------------------------------
+*/
+
+require_once "includes/a-header.php";
+
+require_once "includes/a-sidebar.php";
+
+require_once "includes/a-navbar.php";
+
+?>
+
+<style>
+
+/*
+|--------------------------------------------------------------------------
+| EDIT CATEGORY PAGE
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-page {
+    padding: 24px 28px 40px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| HEADER
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 24px;
+}
+
+
+.category-edit-title {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+}
+
+
+.category-edit-icon {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 12px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(
+        13,
+        110,
+        253,
+        0.10
+    );
+
+    color: #0d6efd;
+
+    font-size: 23px;
+}
+
+
+.category-edit-title h2 {
+    margin: 0;
+
+    font-size: 28px;
+
+    font-weight: 700;
+}
+
+
+.category-edit-title p {
+    margin: 3px 0 0;
+
+    color: #6c757d;
+
+    font-size: 14px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FORM CARD
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-card {
+    border: 0;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 2px 12px
+        rgba(
+            0,
+            0,
+            0,
+            0.06
+        );
+}
+
+
+.category-edit-card-header {
+    padding: 17px 22px;
+
+    background: #0d6efd;
+
+    color: #fff;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+}
+
+
+.category-edit-card-header h5 {
+    margin: 0;
+
+    font-size: 17px;
+
+    font-weight: 600;
+}
+
+
+.category-id-badge {
+    background: rgba(
+        255,
+        255,
+        255,
+        0.18
+    );
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+}
+
+
+.category-edit-body {
+    padding: 28px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FORM
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-body .form-label {
+    margin-bottom: 7px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+.category-edit-body .form-control,
+.category-edit-body .form-select {
+    min-height: 45px;
+
+    border-radius: 8px;
+}
+
+
+.category-edit-body textarea {
+    min-height: 130px;
+
+    resize: vertical;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CURRENT IMAGE
+|--------------------------------------------------------------------------
+*/
+
+.category-current-image-box {
+    border: 1px solid #dee2e6;
+
+    border-radius: 12px;
+
+    padding: 18px;
+
+    text-align: center;
+
+    background: #f8f9fa;
+}
+
+
+.category-current-image {
+    width: 100%;
+
+    max-width: 240px;
+
+    height: 160px;
+
+    object-fit: cover;
+
+    border-radius: 10px;
+
+    border: 1px solid #dee2e6;
+}
+
+
+.category-no-image {
+    width: 100%;
+
+    max-width: 240px;
+
+    height: 160px;
+
+    margin: auto;
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    border: 1px dashed #ced4da;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+
+    color: #adb5bd;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| IMAGE UPLOAD
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-upload {
+    border: 2px dashed #dee2e6;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    text-align: center;
+
+    transition:
+        border-color .2s ease,
+        background .2s ease;
+}
+
+
+.category-edit-upload:hover {
+    border-color: #0d6efd;
+
+    background:
+        rgba(
+            13,
+            110,
+            253,
+            0.02
+        );
+}
+
+
+.category-new-preview {
+    display: none;
+
+    width: 100%;
+
+    max-width: 240px;
+
+    height: 150px;
+
+    object-fit: cover;
+
+    border-radius: 10px;
+
+    margin: 15px auto 0;
+
+    border: 1px solid #dee2e6;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| INFO CARDS
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-info-card {
+    border: 0;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 2px 12px
+        rgba(
+            0,
+            0,
+            0,
+            0.06
+        );
+
+    margin-bottom: 20px;
+}
+
+
+.category-edit-info-card .card-header {
+    background: #fff;
+
+    padding: 16px 20px;
+
+    border-bottom: 1px solid #eee;
+}
+
+
+.category-edit-info-card .card-body {
+    padding: 20px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ACTIONS
+|--------------------------------------------------------------------------
+*/
+
+.category-edit-actions {
+    display: flex;
+
+    gap: 10px;
+
+    padding-top: 10px;
+}
+
+
+.category-edit-actions .btn {
+    min-height: 44px;
+
+    border-radius: 8px;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| MOBILE
+|--------------------------------------------------------------------------
+*/
+
+@media (max-width: 991.98px) {
+
+    .category-edit-page {
+        padding: 20px 15px 30px;
+    }
+
+
+    .category-edit-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .category-edit-header > a {
+        width: 100%;
+    }
+
+
+    .category-edit-body {
+        padding: 20px;
     }
 
 }
 
-/* ==========================================
-   Includes
-========================================== */
 
-include "includes/a-header.php";
-include "includes/a-sidebar.php";
-include "includes/a-navbar.php";
-?>
+@media (max-width: 575.98px) {
 
-<div class="container-fluid mt-4">
-    <!-- ==========================================
-     Validation Errors
-========================================== -->
+    .category-edit-title h2 {
+        font-size: 23px;
+    }
 
-<?php if(!empty($errors)): ?>
 
-<div class="alert alert-danger">
+    .category-edit-title p {
+        font-size: 13px;
+    }
 
-    <ul class="mb-0">
 
-        <?php foreach($errors as $error): ?>
+    .category-edit-body {
+        padding: 16px;
+    }
 
-            <li><?= htmlspecialchars($error); ?></li>
 
-        <?php endforeach; ?>
+    .category-edit-actions {
+        flex-direction: column;
+    }
 
-    </ul>
 
-</div>
+    .category-edit-actions .btn {
+        width: 100%;
+    }
 
-<?php endif; ?>
+}
 
+</style>
 
-<div class="card shadow border-0">
 
-    <div class="card-header bg-primary text-white">
+<div class="category-edit-page">
 
-        <h4 class="mb-0">
 
-            <i class="bi bi-pencil-square"></i>
+    <!-- =========================================================
+         PAGE HEADER
+    ========================================================== -->
 
-            Edit Product
+    <div class="category-edit-header">
 
-        </h4>
 
-    </div>
+        <div class="category-edit-title">
 
-    <div class="card-body">
+            <div class="category-edit-icon">
 
-<form method="POST"
-      enctype="multipart/form-data">
+                <i class="bi bi-pencil-square"></i>
 
-<div class="row">
+            </div>
 
-<!-- Product Name -->
 
-<div class="col-md-6 mb-3">
+            <div>
 
-<label class="form-label">
+                <h2>
 
-Product Name
+                    Edit Category
 
-<span class="text-danger">*</span>
+                </h2>
 
-</label>
 
-<input
-type="text"
-id="product_name"
-name="product_name"
-class="form-control"
-required
-value="<?= htmlspecialchars($product_name); ?>">
+                <p>
 
-</div>
+                    Update category information and settings.
 
-<!-- Slug -->
+                </p>
 
-<div class="col-md-6 mb-3">
+            </div>
 
-<label class="form-label">
+        </div>
 
-Slug
-
-</label>
-
-<input
-type="text"
-id="slug"
-class="form-control"
-readonly
-value="<?= htmlspecialchars($slug); ?>">
-
-</div>
-
-<!-- Category -->
-
-<div class="col-md-6 mb-3">
-
-<label class="form-label">
-
-Category
-
-</label>
-
-<select
-name="category_id"
-class="form-select"
-required>
-
-<option value="">
-
-Select Category
-
-</option>
-
-<?php foreach($categories as $cat): ?>
-
-<option
-value="<?= $cat['category_id']; ?>"
-<?= ($category_id==$cat['category_id'])?'selected':''; ?>>
-
-<?= htmlspecialchars($cat['category_name']); ?>
-
-</option>
-
-<?php endforeach; ?>
-
-</select>
-
-</div>
-
-<!-- Food Type -->
-
-<div class="col-md-6 mb-3">
-
-<label class="form-label">
-
-Food Type
-
-</label>
-
-<select
-name="food_type"
-class="form-select">
-
-<option value="Veg"
-<?= ($food_type=="Veg")?"selected":""; ?>>
-
-Veg
-
-</option>
-
-<option value="Non-Veg"
-<?= ($food_type=="Non-Veg")?"selected":""; ?>>
-
-Non-Veg
-
-</option>
-
-<option value="Egg"
-<?= ($food_type=="Egg")?"selected":""; ?>>
-
-Egg
-
-</option>
-
-</select>
-
-</div>
-
-<!-- Short Description -->
-
-<div class="col-12 mb-3">
-
-<label class="form-label">
-
-Short Description
-
-</label>
-
-<textarea
-name="short_description"
-class="form-control"
-rows="2"><?= htmlspecialchars($short_description); ?></textarea>
-
-</div>
-
-<!-- Description -->
-
-<div class="col-12 mb-3">
-
-<label class="form-label">
-
-Description
-
-</label>
-
-<textarea
-name="description"
-class="form-control"
-rows="5"><?= htmlspecialchars($description); ?></textarea>
-
-</div>
-
-<!-- Price -->
-
-<div class="col-md-3 mb-3">
-
-<label class="form-label">
-
-Price
-
-</label>
-
-<input
-type="number"
-step="0.01"
-name="price"
-class="form-control"
-required
-value="<?= htmlspecialchars($price); ?>">
-
-</div>
-
-<!-- Discount Price -->
-
-<div class="col-md-3 mb-3">
-
-<label class="form-label">
-
-Discount Percentage(%)
-
-</label>
-
-<input
-type="number"
-step="0.01"
-name="discount_percent"
-class="form-control"
-value="<?= htmlspecialchars($discount_percent); ?>">
-
-</div>
-
-<!-- Stock -->
-
-<div class="col-md-3 mb-3">
-
-<label class="form-label">
-
-Stock
-
-</label>
-
-<input
-type="number"
-name="stock"
-class="form-control"
-value="<?= htmlspecialchars($stock); ?>">
-
-</div>
-
-<!-- Preparation Time -->
-
-<div class="col-md-3 mb-3">
-
-<label class="form-label">
-
-Preparation Time (Min)
-
-</label>
-
-<input
-type="number"
-name="preparation_time"
-class="form-control"
-value="<?= htmlspecialchars($preparation_time); ?>">
-
-</div>
-
-<!-- Spice Level -->
-
-<div class="col-md-4 mb-3">
-
-<label class="form-label">
-
-Spice Level
-
-</label>
-
-<select
-name="spice_level"
-class="form-select">
-
-<option value="">Select</option>
-
-<option value="Mild"
-<?= ($spice_level=="Mild")?"selected":""; ?>>
-
-Mild
-
-</option>
-
-<option value="Medium"
-<?= ($spice_level=="Medium")?"selected":""; ?>>
-
-Medium
-
-</option>
-
-<option value="Hot"
-<?= ($spice_level=="Hot")?"selected":""; ?>>
-
-Hot
-
-</option>
-
-</select>
-
-</div>
-
-<!-- Availability -->
-
-<div class="col-md-4 mb-3">
-
-<label class="form-label">
-
-Availability
-
-</label>
-
-<select
-name="availability"
-class="form-select">
-
-<option value="Available"
-<?= ($availability=="Available")?"selected":""; ?>>
-
-Available
-
-</option>
-
-<option value="Unavailable"
-<?= ($availability=="Unavailable")?"selected":""; ?>>
-
-Unavailable
-
-</option>
-
-</select>
-
-</div>
-
-<!-- Status -->
-
-<div class="col-md-4 mb-3">
-
-<label class="form-label">
-
-Status
-
-</label>
-
-<select
-name="status"
-class="form-select">
-
-<option value="Active"
-<?= ($status=="Active")?"selected":""; ?>>
-
-Active
-
-</option>
-
-<option value="Inactive"
-<?= ($status=="Inactive")?"selected":""; ?>>
-
-Inactive
-
-</option>
-
-</select>
-
-</div>
-
-<!-- Featured -->
-
-<div class="col-12 mb-4">
-
-<div class="form-check">
-
-<input
-type="checkbox"
-name="featured"
-id="featured"
-class="form-check-input"
-value="1"
-<?= ($featured==1)?'checked':''; ?>>
-
-<label
-class="form-check-label"
-for="featured">
-
-Featured Product
-
-</label>
-
-</div>
-
-</div>
-
-<hr>
-
-<h5 class="mb-3">
-
-Existing Images
-
-</h5>
-
-<div class="row">
-
-<?php if(count($productImages)>0): ?>
-
-<?php foreach($productImages as $img): ?>
-
-<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-
-<div class="card">
-
-<img
-src="../assets/images/products/<?= htmlspecialchars($img['image_name']); ?>"
-class="card-img-top"
-style="height:180px;object-fit:cover;">
-
-<div class="card-body">
-
-<div class="form-check mb-2">
-
-<input
-class="form-check-input"
-type="radio"
-name="primary_image"
-value="<?= $img['image_id']; ?>"
-<?= ($img['is_primary']==1)?'checked':''; ?>>
-
-<label class="form-check-label">
-
-Primary Image
-
-</label>
-
-</div>
-
-<div class="form-check">
-
-<input
-class="form-check-input"
-type="checkbox"
-name="delete_images[]"
-value="<?= $img['image_id']; ?>">
-
-<label class="form-check-label text-danger">
-
-Delete Image
-
-</label>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<?php endforeach; ?>
-
-<?php else: ?>
-
-<div class="col-12">
-
-<div class="alert alert-warning">
-
-No images uploaded.
-
-</div>
-
-</div>
-
-<?php endif; ?>
-
-</div>
-
-<hr>
-
-<div class="mb-4">
-
-<label class="form-label">
-
-Upload New Images
-
-</label>
-
-<input
-type="file"
-id="product_images"
-name="product_images[]"
-class="form-control"
-multiple
-accept=".jpg,.jpeg,.png,.webp">
-
-<small class="text-muted">
-
-Select one or more new images to add.
-
-</small>
-
-</div>
-
-<div id="preview"
-class="row mb-4">
-
-</div>
-<!-- ==========================================
-     Action Buttons
-========================================== -->
-
-<div class="row">
-
-    <div class="col-12">
-
-        <button
-            type="submit"
-            class="btn btn-success">
-
-            <i class="bi bi-check-circle"></i>
-
-            Update Product
-
-        </button>
-
-        <button
-            type="reset"
-            class="btn btn-warning">
-
-            <i class="bi bi-arrow-clockwise"></i>
-
-            Reset
-
-        </button>
 
         <a
-            href="products.php"
-            class="btn btn-secondary">
+            href="categories.php"
+            class="btn btn-outline-secondary"
+        >
 
-            <i class="bi bi-arrow-left"></i>
+            <i
+                class="bi bi-arrow-left me-1"
+            ></i>
 
-            Back
+            Back to Categories
 
         </a>
 
     </div>
 
-</div>
 
-</form>
 
-    </div>
+    <!-- =========================================================
+         ERRORS
+    ========================================================== -->
 
-</div>
+    <?php if (
+        !empty($errors)
+    ): ?>
 
-</div>
+        <div
+            class="alert alert-danger alert-dismissible fade show"
+        >
 
-<!-- ==========================================
-     JavaScript
-========================================== -->
+            <div class="fw-semibold mb-2">
 
-<script>
+                <i
+                    class="bi bi-exclamation-triangle-fill me-1"
+                ></i>
 
-// ======================================
-// Auto Slug Generator
-// ======================================
+                Please fix the following:
 
-const productName =
-document.getElementById("product_name");
+            </div>
 
-const slug =
-document.getElementById("slug");
 
-productName.addEventListener("keyup", function () {
+            <ul class="mb-0">
 
-    slug.value = this.value
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
+                <?php foreach (
+                    $errors
+                    as $error
+                ): ?>
 
-});
+                    <li>
 
-// ======================================
-// Image Preview
-// ======================================
+                        <?= e($error); ?>
 
-const imageInput =
-document.getElementById("product_images");
+                    </li>
 
-const preview =
-document.getElementById("preview");
+                <?php endforeach; ?>
 
-imageInput.addEventListener("change", function () {
+            </ul>
 
-    preview.innerHTML = "";
 
-    Array.from(this.files).forEach(function (file) {
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+            ></button>
 
-        if (!file.type.startsWith("image/")) {
+        </div>
 
-            return;
+    <?php endif; ?>
 
-        }
 
-        const reader = new FileReader();
 
-        reader.onload = function (e) {
+    <!-- =========================================================
+         FORM
+    ========================================================== -->
 
-            const col = document.createElement("div");
+    <form
+        method="POST"
+        enctype="multipart/form-data"
+        id="editCategoryForm"
+    >
 
-            col.className = "col-md-3 mb-3";
+        <div class="row g-4">
 
-            col.innerHTML = `
-                <div class="card">
 
-                    <img
-                        src="${e.target.result}"
-                        class="card-img-top"
-                        style="
-                            height:180px;
-                            object-fit:cover;
-                        ">
+            <!-- =====================================================
+                 MAIN COLUMN
+            ====================================================== -->
 
-                    <div class="card-body text-center">
+            <div class="col-xl-8">
 
-                        <small>${file.name}</small>
+
+                <div class="card category-edit-card">
+
+
+                    <div
+                        class="category-edit-card-header"
+                    >
+
+                        <div
+                            class="d-flex align-items-center gap-2"
+                        >
+
+                            <i
+                                class="bi bi-folder2-open"
+                            ></i>
+
+
+                            <h5>
+
+                                Category Information
+
+                            </h5>
+
+                        </div>
+
+
+                        <span
+                            class="category-id-badge"
+                        >
+
+                            ID #<?= (int)$categoryId; ?>
+
+                        </span>
+
+                    </div>
+
+
+
+                    <div class="category-edit-body">
+
+
+                        <div class="row g-4">
+
+
+                            <!-- CATEGORY NAME -->
+
+                            <div class="col-12">
+
+                                <label
+                                    for="category_name"
+                                    class="form-label"
+                                >
+
+                                    Category Name
+
+                                    <span class="text-danger">*</span>
+
+                                </label>
+
+
+                                <input
+                                    type="text"
+                                    name="category_name"
+                                    id="category_name"
+                                    class="form-control form-control-lg"
+                                    maxlength="100"
+                                    value="<?= e($categoryName); ?>"
+                                    required
+                                    autofocus
+                                >
+
+
+                                <div class="form-text">
+
+                                    Maximum 100 characters.
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- DESCRIPTION -->
+
+                            <div class="col-12">
+
+                                <label
+                                    for="description"
+                                    class="form-label"
+                                >
+
+                                    Description
+
+                                </label>
+
+
+                                <textarea
+                                    name="description"
+                                    id="description"
+                                    class="form-control"
+                                    maxlength="500"
+                                    placeholder="Write a short description..."
+                                ><?= e($description); ?></textarea>
+
+
+                                <div
+                                    class="d-flex justify-content-between mt-1"
+                                >
+
+                                    <small class="text-muted">
+
+                                        Optional
+
+                                    </small>
+
+
+                                    <small
+                                        class="text-muted"
+                                        id="descriptionCount"
+                                    >
+
+                                        0 / 500
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- STATUS -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="status"
+                                    class="form-label"
+                                >
+
+                                    Status
+
+                                </label>
+
+
+                                <select
+                                    name="status"
+                                    id="status"
+                                    class="form-select"
+                                >
+
+                                    <option
+                                        value="Active"
+                                        <?= $status === 'Active'
+                                            ? 'selected'
+                                            : ''; ?>
+                                    >
+
+                                        Active
+
+                                    </option>
+
+
+                                    <option
+                                        value="Inactive"
+                                        <?= $status === 'Inactive'
+                                            ? 'selected'
+                                            : ''; ?>
+                                    >
+
+                                        Inactive
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+
+                            <!-- CREATED DATE -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label"
+                                >
+
+                                    Created
+
+                                </label>
+
+
+                                <div
+                                    class="form-control bg-light"
+                                >
+
+                                    <i
+                                        class="bi bi-calendar3 me-1 text-muted"
+                                    ></i>
+
+                                    <?= date(
+                                        'd M Y, h:i A',
+                                        strtotime(
+                                            $category['created_at']
+                                        )
+                                    ); ?>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- CURRENT IMAGE -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label"
+                                >
+
+                                    Current Image
+
+                                </label>
+
+
+                                <div
+                                    class="category-current-image-box"
+                                >
+
+                                    <?php
+
+                                    $currentImagePath =
+                                        "../assets/images/categories/" .
+                                        basename(
+                                            (string)(
+                                                $category['category_image']
+                                                ?? ''
+                                            )
+                                        );
+
+                                    $hasCurrentImage =
+                                        !empty(
+                                            $category['category_image']
+                                        )
+                                        &&
+                                        is_file(
+                                            $currentImagePath
+                                        );
+
+                                    ?>
+
+
+                                    <?php if (
+                                        $hasCurrentImage
+                                    ): ?>
+
+                                        <img
+                                            src="<?= e($currentImagePath); ?>"
+                                            alt="<?= e($categoryName); ?>"
+                                            class="category-current-image"
+                                            id="currentImage"
+                                        >
+
+
+                                        <div class="mt-3">
+
+                                            <div
+                                                class="form-check d-inline-flex"
+                                            >
+
+                                                <input
+                                                    type="checkbox"
+                                                    name="remove_image"
+                                                    value="1"
+                                                    id="remove_image"
+                                                    class="form-check-input"
+                                                >
+
+
+                                                <label
+                                                    for="remove_image"
+                                                    class="form-check-label text-danger small"
+                                                >
+
+                                                    Remove current image
+
+                                                </label>
+
+                                            </div>
+
+                                        </div>
+
+                                    <?php else: ?>
+
+                                        <div
+                                            class="category-no-image"
+                                        >
+
+                                            <i
+                                                class="bi bi-image fs-2 mb-2"
+                                            ></i>
+
+
+                                            <span class="small">
+
+                                                No image uploaded
+
+                                            </span>
+
+                                        </div>
+
+                                    <?php endif; ?>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- NEW IMAGE -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    class="form-label"
+                                >
+
+                                    Replace Image
+
+                                </label>
+
+
+                                <div
+                                    class="category-edit-upload"
+                                    id="uploadBox"
+                                >
+
+                                    <i
+                                        class="bi bi-cloud-arrow-up fs-2 text-muted"
+                                    ></i>
+
+
+                                    <div
+                                        class="small text-muted mt-2 mb-3"
+                                    >
+
+                                        JPG, JPEG, PNG or WEBP
+                                        <br>
+                                        Maximum 5 MB
+
+                                    </div>
+
+
+                                    <label
+                                        for="category_image"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+
+                                        <i
+                                            class="bi bi-image me-1"
+                                        ></i>
+
+                                        Choose New Image
+
+                                    </label>
+
+
+                                    <input
+                                        type="file"
+                                        name="category_image"
+                                        id="category_image"
+                                        class="d-none"
+                                        accept=".jpg,.jpeg,.png,.webp"
+                                    >
+
+
+                                    <div
+                                        id="selectedFile"
+                                        class="small text-muted mt-2"
+                                    ></div>
+
+
+                                    <img
+                                        id="newImagePreview"
+                                        class="category-new-preview"
+                                        alt="New image preview"
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- ACTIONS -->
+
+                        <div
+                            class="category-edit-actions mt-4"
+                        >
+
+                            <button
+                                type="submit"
+                                name="update_category"
+                                value="1"
+                                class="btn btn-primary px-4"
+                                id="updateCategoryBtn"
+                            >
+
+                                <i
+                                    class="bi bi-check-circle me-1"
+                                ></i>
+
+                                Save Changes
+
+                            </button>
+
+
+                            <a
+                                href="categories.php"
+                                class="btn btn-outline-secondary px-4"
+                            >
+
+                                <i
+                                    class="bi bi-x-circle me-1"
+                                ></i>
+
+                                Cancel
+
+                            </a>
+
+                        </div>
+
 
                     </div>
 
                 </div>
-            `;
 
-            preview.appendChild(col);
+            </div>
 
-        };
 
-        reader.readAsDataURL(file);
 
-    });
+            <!-- =====================================================
+                 SIDE COLUMN
+            ====================================================== -->
 
-});
+            <div class="col-xl-4">
 
-// ======================================
-// Form Validation
-// ======================================
 
-document.querySelector("form")
-.addEventListener("submit", function(e){
+                <!-- CATEGORY PREVIEW -->
 
-    if(productName.value.trim() == ""){
+                <div
+                    class="card category-edit-info-card"
+                >
 
-        alert("Please enter Product Name.");
+                    <div class="card-header">
 
-        productName.focus();
+                        <h6
+                            class="mb-0 fw-bold"
+                        >
 
-        e.preventDefault();
+                            <i
+                                class="bi bi-eye me-2 text-primary"
+                            ></i>
 
-        return;
+                            Category Preview
 
-    }
+                        </h6>
 
-    const price =
-    document.querySelector("[name='price']");
+                    </div>
 
-    if(price.value == ""){
 
-        alert("Please enter Product Price.");
+                    <div class="card-body">
 
-        price.focus();
+                        <div
+                            class="text-center mb-3"
+                        >
 
-        e.preventDefault();
+                            <?php if (
+                                $hasCurrentImage
+                            ): ?>
 
-        return;
+                                <img
+                                    src="<?= e($currentImagePath); ?>"
+                                    id="sidePreviewImage"
+                                    class="category-current-image"
+                                    alt="Category"
+                                >
 
-    }
+                            <?php else: ?>
 
-});
+                                <div
+                                    class="category-no-image"
+                                    id="sidePreviewPlaceholder"
+                                >
 
-// ======================================
-// Delete Confirmation
-// ======================================
+                                    <i
+                                        class="bi bi-folder fs-2"
+                                    ></i>
 
-document.querySelector("form")
-.addEventListener("submit", function(){
+                                </div>
 
-    const checked =
-    document.querySelectorAll(
-        "input[name='delete_images[]']:checked"
+                            <?php endif; ?>
+
+                        </div>
+
+
+                        <h5
+                            class="text-center mb-1"
+                            id="sideCategoryName"
+                        >
+
+                            <?= e($categoryName); ?>
+
+                        </h5>
+
+
+                        <div
+                            class="text-center"
+                        >
+
+                            <span
+                                id="sideCategoryStatus"
+                                class="badge <?= $status === 'Active'
+                                    ? 'bg-success'
+                                    : 'bg-danger'; ?>"
+                            >
+
+                                <?= e($status); ?>
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- INFORMATION -->
+
+                <div
+                    class="card category-edit-info-card"
+                >
+
+                    <div class="card-header">
+
+                        <h6
+                            class="mb-0 fw-bold"
+                        >
+
+                            <i
+                                class="bi bi-info-circle me-2 text-primary"
+                            ></i>
+
+                            Category Information
+
+                        </h6>
+
+                    </div>
+
+
+                    <div class="card-body">
+
+
+                        <div
+                            class="d-flex justify-content-between mb-3"
+                        >
+
+                            <span class="text-muted">
+
+                                Category ID
+
+                            </span>
+
+
+                            <strong>
+
+                                #<?= (int)$categoryId; ?>
+
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            class="d-flex justify-content-between mb-3"
+                        >
+
+                            <span class="text-muted">
+
+                                Created
+
+                            </span>
+
+
+                            <strong>
+
+                                <?= date(
+                                    'd M Y',
+                                    strtotime(
+                                        $category['created_at']
+                                    )
+                                ); ?>
+
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            class="d-flex justify-content-between"
+                        >
+
+                            <span class="text-muted">
+
+                                Last Updated
+
+                            </span>
+
+
+                            <strong>
+
+                                <?= !empty(
+                                    $category['updated_at']
+                                )
+                                    ? date(
+                                        'd M Y',
+                                        strtotime(
+                                            $category['updated_at']
+                                        )
+                                    )
+                                    : '—'; ?>
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- QUICK LINKS -->
+
+                <div
+                    class="card category-edit-info-card"
+                >
+
+                    <div class="card-body">
+
+                        <a
+                            href="categories.php"
+                            class="btn btn-outline-primary w-100 mb-2"
+                        >
+
+                            <i
+                                class="bi bi-grid me-1"
+                            ></i>
+
+                            All Categories
+
+                        </a>
+
+
+                        <a
+                            href="add_category.php"
+                            class="btn btn-outline-success w-100"
+                        >
+
+                            <i
+                                class="bi bi-plus-circle me-1"
+                            ></i>
+
+                            Add New Category
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+/*
+|--------------------------------------------------------------------------
+| Category Name Preview
+|--------------------------------------------------------------------------
+*/
+
+const categoryName =
+    document.getElementById(
+        "category_name"
     );
 
-    if(checked.length > 0){
+const sideCategoryName =
+    document.getElementById(
+        "sideCategoryName"
+    );
 
-        return confirm(
-            "Selected images will be permanently deleted. Continue?"
+
+categoryName.addEventListener(
+    "input",
+    function () {
+
+        const value =
+            this.value.trim();
+
+
+        sideCategoryName.textContent =
+            value !== ''
+                ? value
+                : 'Category Name';
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Status Preview
+|--------------------------------------------------------------------------
+*/
+
+const status =
+    document.getElementById(
+        "status"
+    );
+
+const sideCategoryStatus =
+    document.getElementById(
+        "sideCategoryStatus"
+    );
+
+
+function updateStatus() {
+
+    sideCategoryStatus.textContent =
+        status.value;
+
+
+    sideCategoryStatus.className =
+        status.value === 'Active'
+            ? 'badge bg-success'
+            : 'badge bg-danger';
+
+}
+
+
+status.addEventListener(
+    "change",
+    updateStatus
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Description Counter
+|--------------------------------------------------------------------------
+*/
+
+const description =
+    document.getElementById(
+        "description"
+    );
+
+const descriptionCount =
+    document.getElementById(
+        "descriptionCount"
+    );
+
+
+function updateDescriptionCount() {
+
+    descriptionCount.textContent =
+        description.value.length +
+        " / 500";
+
+}
+
+
+description.addEventListener(
+    "input",
+    updateDescriptionCount
+);
+
+updateDescriptionCount();
+
+
+/*
+|--------------------------------------------------------------------------
+| New Image Preview
+|--------------------------------------------------------------------------
+*/
+
+const imageInput =
+    document.getElementById(
+        "category_image"
+    );
+
+const newImagePreview =
+    document.getElementById(
+        "newImagePreview"
+    );
+
+const selectedFile =
+    document.getElementById(
+        "selectedFile"
+    );
+
+
+imageInput.addEventListener(
+    "change",
+    function () {
+
+        const file =
+            this.files[0];
+
+
+        if (!file) {
+
+            newImagePreview.style.display =
+                "none";
+
+            selectedFile.textContent =
+                "";
+
+            return;
+        }
+
+
+        selectedFile.textContent =
+            file.name;
+
+
+        if (
+            !file.type.startsWith(
+                "image/"
+            )
+        ) {
+
+            newImagePreview.style.display =
+                "none";
+
+            return;
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            function (event) {
+
+                newImagePreview.src =
+                    event.target.result;
+
+                newImagePreview.style.display =
+                    "block";
+
+
+                const sidePreviewImage =
+                    document.getElementById(
+                        "sidePreviewImage"
+                    );
+
+
+                const sidePlaceholder =
+                    document.getElementById(
+                        "sidePreviewPlaceholder"
+                    );
+
+
+                if (
+                    sidePreviewImage
+                ) {
+
+                    sidePreviewImage.src =
+                        event.target.result;
+
+                } else if (
+                    sidePlaceholder
+                ) {
+
+                    sidePlaceholder.outerHTML = `
+
+                        <img
+                            src="${event.target.result}"
+                            id="sidePreviewImage"
+                            class="category-current-image"
+                            alt="Category"
+                        >
+
+                    `;
+
+                }
+
+            };
+
+
+        reader.readAsDataURL(
+            file
         );
 
     }
+);
 
-});
+
+/*
+|--------------------------------------------------------------------------
+| Drag & Drop
+|--------------------------------------------------------------------------
+*/
+
+const uploadBox =
+    document.getElementById(
+        "uploadBox"
+    );
+
+
+[
+    "dragenter",
+    "dragover"
+].forEach(
+    function (eventName) {
+
+        uploadBox.addEventListener(
+            eventName,
+            function (event) {
+
+                event.preventDefault();
+
+                uploadBox.style.borderColor =
+                    "#0d6efd";
+
+                uploadBox.style.background =
+                    "rgba(13,110,253,0.04)";
+
+            }
+        );
+
+    }
+);
+
+
+[
+    "dragleave",
+    "drop"
+].forEach(
+    function (eventName) {
+
+        uploadBox.addEventListener(
+            eventName,
+            function (event) {
+
+                event.preventDefault();
+
+                uploadBox.style.borderColor =
+                    "#dee2e6";
+
+                uploadBox.style.background =
+                    "";
+
+            }
+        );
+
+    }
+);
+
+
+uploadBox.addEventListener(
+    "drop",
+    function (event) {
+
+        const files =
+            event.dataTransfer.files;
+
+
+        if (
+            files.length > 0
+        ) {
+
+            imageInput.files =
+                files;
+
+
+            imageInput.dispatchEvent(
+                new Event(
+                    "change"
+                )
+            );
+
+        }
+
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Remove Image Confirmation
+|--------------------------------------------------------------------------
+*/
+
+const removeImage =
+    document.getElementById(
+        "remove_image"
+    );
+
+
+if (
+    removeImage
+) {
+
+    removeImage.addEventListener(
+        "change",
+        function () {
+
+            if (
+                this.checked
+            ) {
+
+                if (
+                    !confirm(
+                        "Are you sure you want to remove the current category image?"
+                    )
+                ) {
+
+                    this.checked =
+                        false;
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Submit Protection
+|--------------------------------------------------------------------------
+*/
+
+const editCategoryForm =
+    document.getElementById(
+        "editCategoryForm"
+    );
+
+const updateButton =
+    document.getElementById(
+        "updateCategoryBtn"
+    );
+
+
+editCategoryForm.addEventListener(
+    "submit",
+    function (event) {
+
+        if (
+            categoryName.value.trim().length < 2
+        ) {
+
+            event.preventDefault();
+
+            alert(
+                "Category name must contain at least 2 characters."
+            );
+
+            categoryName.focus();
+
+            return;
+        }
+
+
+        updateButton.disabled =
+            true;
+
+
+        updateButton.innerHTML = `
+
+            <span
+                class="spinner-border spinner-border-sm me-1"
+            ></span>
+
+            Saving...
+
+        `;
+
+    }
+);
 
 </script>
 
-<?php include "includes/a-footer.php"; ?>
+
+<?php
+
+require_once "includes/a-footer.php";
+
+?>

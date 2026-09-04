@@ -4,14 +4,7 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| Admin Authentication
-|--------------------------------------------------------------------------
-| This file protects all admin pages.
-|
-| Session variables created by a-login.php:
-| - admin_id
-| - admin_name
-| - admin_email
+| ADMIN AUTHENTICATION
 |--------------------------------------------------------------------------
 */
 
@@ -19,20 +12,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+
 /*
 |--------------------------------------------------------------------------
-| Check Admin Login Session
+| CHECK LOGIN SESSION
 |--------------------------------------------------------------------------
 */
 
 if (!isset($_SESSION['admin_id'])) {
+
     header("Location: a-login.php");
     exit();
+
 }
+
 
 /*
 |--------------------------------------------------------------------------
-| Validate Admin ID
+| VALIDATE ADMIN ID
 |--------------------------------------------------------------------------
 */
 
@@ -48,117 +45,174 @@ if (!$adminId || $adminId < 1) {
 
     header("Location: a-login.php");
     exit();
+
 }
+
 
 /*
 |--------------------------------------------------------------------------
-| Database Connection
-|--------------------------------------------------------------------------
-| Most admin pages already load db.php before a-auth.php.
-| If $pdo is not available, load it here as a fallback.
+| DATABASE CONNECTION
 |--------------------------------------------------------------------------
 */
 
 if (!isset($pdo)) {
 
-    $dbFile = dirname(__DIR__, 2) . '/config/db.php';
+    $dbFile = dirname(__DIR__, 2) . "/config/db.php";
 
-    if (file_exists($dbFile)) {
-        require_once $dbFile;
+    if (!file_exists($dbFile)) {
+
+        die("Database configuration file not found.");
+
     }
+
+    require_once $dbFile;
 }
+
 
 /*
 |--------------------------------------------------------------------------
-| Verify Admin Account
-|--------------------------------------------------------------------------
-| This prevents access if:
-| - Admin was deleted
-| - Admin account was deactivated
+| VERIFY ADMIN ACCOUNT
 |--------------------------------------------------------------------------
 */
 
-if (isset($pdo)) {
+try {
 
-    try {
+    /*
+    |--------------------------------------------------------------------------
+    | IMPORTANT
+    |--------------------------------------------------------------------------
+    | SELECT * is intentionally used here because your existing admins
+    | table uses the original project structure.
+    |--------------------------------------------------------------------------
+    */
 
-        $stmt = $pdo->prepare("
-            SELECT
-                admin_id,
-                admin_name,
-                email,
-                status
-            FROM admins
-            WHERE admin_id = ?
-            LIMIT 1
-        ");
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM admins
+        WHERE admin_id = ?
+        LIMIT 1
+    ");
 
-        $stmt->execute([$adminId]);
+    $stmt->execute([$adminId]);
 
-        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin Not Found
-        |--------------------------------------------------------------------------
-        */
 
-        if (!$admin) {
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN DOES NOT EXIST
+    |--------------------------------------------------------------------------
+    */
 
-            session_unset();
-            session_destroy();
+    if (!$admin) {
 
-            header("Location: a-login.php");
-            exit();
-        }
+        session_unset();
+        session_destroy();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Admin Account Not Active
-        |--------------------------------------------------------------------------
-        */
+        header("Location: a-login.php");
+        exit();
 
-        if (isset($admin['status']) && $admin['status'] !== 'Active') {
-
-            session_unset();
-            session_destroy();
-
-            header("Location: a-login.php");
-            exit();
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Refresh Admin Session Information
-        |--------------------------------------------------------------------------
-        */
-
-        $_SESSION['admin_id'] = (int) $admin['admin_id'];
-        $_SESSION['admin_name'] = $admin['admin_name'];
-        $_SESSION['admin_email'] = $admin['email'];
-
-        /*
-        |--------------------------------------------------------------------------
-        | Variables Available To Admin Pages
-        |--------------------------------------------------------------------------
-        */
-
-        $adminId = (int) $admin['admin_id'];
-        $adminName = $admin['admin_name'];
-        $adminEmail = $admin['email'];
-
-    } catch (PDOException $e) {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Database Error
-        |--------------------------------------------------------------------------
-        | Do not expose database details to the user.
-        |--------------------------------------------------------------------------
-        */
-
-        http_response_code(500);
-
-        die("Unable to verify administrator account.");
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHECK ADMIN STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        isset($admin['status']) &&
+        strtolower((string)$admin['status']) !== 'active'
+    ) {
+
+        session_unset();
+        session_destroy();
+
+        header("Location: a-login.php");
+        exit();
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN NAME
+    |--------------------------------------------------------------------------
+    |
+    | Your original project uses full_name.
+    | admin_name is kept as a fallback.
+    |--------------------------------------------------------------------------
+    */
+
+    if (isset($admin['full_name'])) {
+
+        $adminName = $admin['full_name'];
+
+    } elseif (isset($admin['admin_name'])) {
+
+        $adminName = $admin['admin_name'];
+
+    } else {
+
+        $adminName = "Administrator";
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN EMAIL
+    |--------------------------------------------------------------------------
+    */
+
+    $adminEmail = $admin['email'] ?? "";
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | REFRESH SESSION
+    |--------------------------------------------------------------------------
+    */
+
+    $_SESSION['admin_id'] = (int)$admin['admin_id'];
+
+    $_SESSION['admin_name'] = $adminName;
+
+    $_SESSION['admin_email'] = $adminEmail;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | OPTIONAL ROLE
+    |--------------------------------------------------------------------------
+    | Keep compatibility with your original project.
+    |--------------------------------------------------------------------------
+    */
+
+    if (isset($admin['role'])) {
+
+        $_SESSION['admin_role'] = $admin['role'];
+
+    }
+
+} catch (PDOException $e) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEVELOPMENT ERROR
+    |--------------------------------------------------------------------------
+    | Show the actual error temporarily so we can identify DB problems.
+    |--------------------------------------------------------------------------
+    */
+
+    die(
+        "Admin authentication database error: "
+        . htmlspecialchars(
+            $e->getMessage(),
+            ENT_QUOTES,
+            'UTF-8'
+        )
+    );
+
 }

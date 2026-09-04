@@ -1,92 +1,107 @@
 <?php
+
 declare(strict_types=1);
 
 session_start();
 
+/*
+|--------------------------------------------------------------------------
+| DATABASE
+|--------------------------------------------------------------------------
+*/
+
 require_once "../config/db.php";
 
+
 /*
 |--------------------------------------------------------------------------
-| Already Logged In
+| IF ALREADY LOGGED IN
 |--------------------------------------------------------------------------
 */
+
 if (isset($_SESSION['admin_id'])) {
+
     header("Location: a-dashboard.php");
-    exit;
+    exit();
+
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| CSRF Token
+| VARIABLES
 |--------------------------------------------------------------------------
 */
-if (empty($_SESSION['admin_login_csrf'])) {
-    $_SESSION['admin_login_csrf'] = bin2hex(
-        random_bytes(32)
-    );
-}
 
-$csrfToken = $_SESSION['admin_login_csrf'];
-
-
-/*
-|--------------------------------------------------------------------------
-| Variables
-|--------------------------------------------------------------------------
-*/
 $error = "";
-$emailValue = "";
 
 
 /*
 |--------------------------------------------------------------------------
-| Login Processing
+| CSRF TOKEN
 |--------------------------------------------------------------------------
 */
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+if (empty($_SESSION['admin_login_csrf'])) {
+
+    $_SESSION['admin_login_csrf'] =
+        bin2hex(random_bytes(32));
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGIN PROCESS
+|--------------------------------------------------------------------------
+*/
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     /*
     |--------------------------------------------------------------------------
-    | CSRF Validation
+    | CSRF
     |--------------------------------------------------------------------------
     */
+
+    $csrfToken = $_POST["csrf_token"] ?? "";
+
     if (
-        !isset($_POST['csrf_token']) ||
         !hash_equals(
-            $csrfToken,
-            (string) $_POST['csrf_token']
+            $_SESSION['admin_login_csrf'],
+            $csrfToken
         )
     ) {
 
-        $error = "Invalid security token. Please refresh the page and try again.";
+        $error =
+            "Invalid security token. Please refresh the page.";
 
     } else {
 
         /*
         |--------------------------------------------------------------------------
-        | Input
+        | INPUT
         |--------------------------------------------------------------------------
         */
+
         $email = trim(
-            (string) ($_POST['email'] ?? '')
+            (string)($_POST["email"] ?? "")
         );
 
-        $password = (string) (
-            $_POST['password'] ?? ''
-        );
-
-        $emailValue = $email;
+        $password =
+            (string)($_POST["password"] ?? "");
 
 
         /*
         |--------------------------------------------------------------------------
-        | Validation
+        | VALIDATION
         |--------------------------------------------------------------------------
         */
-        if ($email === '') {
 
-            $error = "Please enter your email address.";
+        if ($email === "" || $password === "") {
+
+            $error =
+                "Please enter email address and password.";
 
         } elseif (
             !filter_var(
@@ -95,11 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )
         ) {
 
-            $error = "Please enter a valid email address.";
-
-        } elseif ($password === '') {
-
-            $error = "Please enter your password.";
+            $error =
+                "Please enter a valid email address.";
 
         } else {
 
@@ -107,19 +119,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 /*
                 |--------------------------------------------------------------------------
-                | Find Active Admin
+                | GET ADMIN
                 |--------------------------------------------------------------------------
                 */
+
                 $sql = "
-                    SELECT
-                        admin_id,
-                        admin_name,
-                        email,
-                        password,
-                        status
+                    SELECT *
                     FROM admins
                     WHERE email = :email
-                      AND status = 'Active'
+                    AND status = 'Active'
                     LIMIT 1
                 ";
 
@@ -129,79 +137,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':email' => $email
                 ]);
 
-                $admin = $stmt->fetch(
-                    PDO::FETCH_ASSOC
-                );
+                $admin =
+                    $stmt->fetch(PDO::FETCH_ASSOC);
 
 
                 /*
                 |--------------------------------------------------------------------------
-                | Verify Password
+                | VERIFY PASSWORD
                 |--------------------------------------------------------------------------
                 */
+
                 if (
-                    $admin &&
-                    password_verify(
+                    !$admin ||
+                    empty($admin['password']) ||
+                    !password_verify(
                         $password,
-                        (string) $admin['password']
+                        $admin['password']
                     )
                 ) {
 
+                    $error =
+                        "Invalid email or password.";
+
+                } else {
+
                     /*
                     |--------------------------------------------------------------------------
-                    | Regenerate Session ID
+                    | REGENERATE SESSION
                     |--------------------------------------------------------------------------
                     */
+
                     session_regenerate_id(true);
 
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Admin Session
+                    | ADMIN ID
                     |--------------------------------------------------------------------------
                     */
-                    $_SESSION['admin_id'] =
-                        (int) $admin['admin_id'];
 
-                    $_SESSION['admin_name'] =
-                        (string) $admin['admin_name'];
+                    $_SESSION['admin_id'] =
+                        (int)$admin['admin_id'];
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ADMIN NAME
+                    |--------------------------------------------------------------------------
+                    |
+                    | Your existing database uses full_name.
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (isset($admin['full_name'])) {
+
+                        $_SESSION['admin_name'] =
+                            $admin['full_name'];
+
+                    } elseif (
+                        isset($admin['admin_name'])
+                    ) {
+
+                        $_SESSION['admin_name'] =
+                            $admin['admin_name'];
+
+                    } else {
+
+                        $_SESSION['admin_name'] =
+                            "Administrator";
+
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ADMIN EMAIL
+                    |--------------------------------------------------------------------------
+                    */
 
                     $_SESSION['admin_email'] =
-                        (string) $admin['email'];
+                        $admin['email'] ?? $email;
 
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Remove Login CSRF Token
+                    | ADMIN ROLE
                     |--------------------------------------------------------------------------
                     */
-                    unset(
-                        $_SESSION['admin_login_csrf']
-                    );
+
+                    if (isset($admin['role'])) {
+
+                        $_SESSION['admin_role'] =
+                            $admin['role'];
+
+                    }
 
 
                     /*
                     |--------------------------------------------------------------------------
-                    | Redirect
+                    | LOGIN TIME
                     |--------------------------------------------------------------------------
                     */
+
+                    $_SESSION['admin_login_time'] =
+                        time();
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | NEW CSRF TOKEN
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $_SESSION['admin_login_csrf'] =
+                        bin2hex(random_bytes(32));
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | DASHBOARD
+                    |--------------------------------------------------------------------------
+                    */
+
                     header(
                         "Location: a-dashboard.php"
                     );
 
-                    exit;
-
-                } else {
-
-                    $error =
-                        "Invalid email or password.";
+                    exit();
 
                 }
 
             } catch (PDOException $e) {
 
+                /*
+                |--------------------------------------------------------------------------
+                | DEVELOPMENT ERROR
+                |--------------------------------------------------------------------------
+                */
+
                 $error =
                     "Unable to process login. Please try again.";
+
+                /*
+                | For debugging, temporarily use:
+                |
+                | $error = $e->getMessage();
+                |
+                */
 
             }
 
@@ -210,10 +292,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 }
+
 ?>
-
-
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -230,621 +312,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </title>
 
 
-    <!-- Bootstrap -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <!-- =========================================================
+         BOOTSTRAP ICONS
+    ========================================================== -->
 
-    <!-- Bootstrap Icons -->
     <link
         rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
-    >
-
-    <!-- Google Font -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     >
 
 
-    <style>
-
-        :root {
-            --coffee-dark: #4b2e2b;
-            --coffee: #6f4e37;
-            --coffee-light: #8b5e3c;
-            --cream: #f8f1e5;
-            --caramel: #c68e4b;
-            --text-dark: #2e2e2e;
-            --text-muted: #6b7280;
-        }
-
-
-        * {
-            box-sizing: border-box;
-        }
-
-
-        body {
-
-            min-height: 100vh;
-
-            margin: 0;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            padding: 25px;
-
-            font-family: "Poppins", sans-serif;
-
-            background:
-                radial-gradient(
-                    circle at top left,
-                    rgba(198, 142, 75, .18),
-                    transparent 35%
-                ),
-                linear-gradient(
-                    135deg,
-                    #f8f1e5,
-                    #efe5d5
-                );
-
-            color: var(--text-dark);
-
-        }
-
-
-        .login-wrapper {
-
-            width: 100%;
-
-            max-width: 1050px;
-
-        }
-
-
-        .login-card {
-
-            overflow: hidden;
-
-            background: #ffffff;
-
-            border: 0;
-
-            border-radius: 24px;
-
-            box-shadow:
-                0 25px 70px rgba(75, 46, 43, .16);
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Brand Section
-        |--------------------------------------------------------------------------
-        */
-
-        .login-brand {
-
-            min-height: 590px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            justify-content: center;
-
-            padding: 55px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    #4b2e2b,
-                    #6f4e37
-                );
-
-            color: #ffffff;
-
-            position: relative;
-
-            overflow: hidden;
-
-        }
-
-
-        .login-brand::before {
-
-            content: "";
-
-            position: absolute;
-
-            width: 260px;
-
-            height: 260px;
-
-            border-radius: 50%;
-
-            top: -90px;
-
-            right: -80px;
-
-            background: rgba(255,255,255,.07);
-
-        }
-
-
-        .login-brand::after {
-
-            content: "";
-
-            position: absolute;
-
-            width: 190px;
-
-            height: 190px;
-
-            border-radius: 50%;
-
-            bottom: -70px;
-
-            left: -60px;
-
-            background: rgba(198,142,75,.14);
-
-        }
-
-
-        .brand-content {
-
-            position: relative;
-
-            z-index: 2;
-
-        }
-
-
-        .brand-icon {
-
-            width: 76px;
-
-            height: 76px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            margin-bottom: 25px;
-
-            border-radius: 22px;
-
-            background: rgba(255,255,255,.12);
-
-            border: 1px solid rgba(255,255,255,.16);
-
-            font-size: 34px;
-
-            color: #ffffff;
-
-        }
-
-
-        .brand-title {
-
-            margin: 0;
-
-            font-size: 32px;
-
-            line-height: 1.2;
-
-            font-weight: 700;
-
-        }
-
-
-        .brand-title span {
-
-            color: #e8b66d;
-
-        }
-
-
-        .brand-subtitle {
-
-            margin-top: 15px;
-
-            max-width: 430px;
-
-            color: rgba(255,255,255,.75);
-
-            line-height: 1.7;
-
-            font-size: 14px;
-
-        }
-
-
-        .brand-features {
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 14px;
-
-            margin-top: 30px;
-
-        }
-
-
-        .brand-feature {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 11px;
-
-            color: rgba(255,255,255,.88);
-
-            font-size: 13px;
-
-        }
-
-
-        .brand-feature i {
-
-            color: #e8b66d;
-
-            font-size: 17px;
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Login Section
-        |--------------------------------------------------------------------------
-        */
-
-        .login-form-section {
-
-            min-height: 590px;
-
-            display: flex;
-
-            align-items: center;
-
-            padding: 50px;
-
-            background: #ffffff;
-
-        }
-
-
-        .login-form-wrapper {
-
-            width: 100%;
-
-            max-width: 420px;
-
-            margin: 0 auto;
-
-        }
-
-
-        .login-heading {
-
-            margin-bottom: 7px;
-
-            color: var(--coffee-dark);
-
-            font-size: 27px;
-
-            font-weight: 700;
-
-        }
-
-
-        .login-description {
-
-            margin-bottom: 30px;
-
-            color: var(--text-muted);
-
-            font-size: 13px;
-
-        }
-
-
-        .form-label {
-
-            margin-bottom: 8px;
-
-            color: #374151;
-
-            font-size: 13px;
-
-            font-weight: 600;
-
-        }
-
-
-        .input-wrapper {
-
-            position: relative;
-
-        }
-
-
-        .input-icon {
-
-            position: absolute;
-
-            top: 50%;
-
-            left: 15px;
-
-            transform: translateY(-50%);
-
-            color: var(--coffee);
-
-            pointer-events: none;
-
-            z-index: 2;
-
-        }
-
-
-        .form-control {
-
-            height: 52px;
-
-            padding-left: 45px;
-
-            padding-right: 45px;
-
-            border: 1px solid #e1e5ea;
-
-            border-radius: 11px;
-
-            font-size: 13px;
-
-            box-shadow: none;
-
-        }
-
-
-        .form-control:focus {
-
-            border-color: var(--coffee-light);
-
-            box-shadow:
-                0 0 0 3px rgba(139,94,60,.10);
-
-        }
-
-
-        .password-toggle {
-
-            position: absolute;
-
-            top: 50%;
-
-            right: 10px;
-
-            transform: translateY(-50%);
-
-            width: 34px;
-
-            height: 34px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            border: 0;
-
-            border-radius: 7px;
-
-            background: transparent;
-
-            color: #6b7280;
-
-            cursor: pointer;
-
-        }
-
-
-        .password-toggle:hover {
-
-            background: #f3f4f6;
-
-            color: var(--coffee);
-
-        }
-
-
-        .login-button {
-
-            width: 100%;
-
-            height: 52px;
-
-            border: 0;
-
-            border-radius: 11px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8b5e3c,
-                    #6f4e37
-                );
-
-            color: #ffffff;
-
-            font-size: 14px;
-
-            font-weight: 600;
-
-            box-shadow:
-                0 8px 20px rgba(111,78,55,.20);
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
-
-        }
-
-
-        .login-button:hover {
-
-            transform: translateY(-1px);
-
-            box-shadow:
-                0 12px 25px rgba(111,78,55,.27);
-
-            color: #ffffff;
-
-        }
-
-
-        .login-button:disabled {
-
-            opacity: .75;
-
-            cursor: not-allowed;
-
-            transform: none;
-
-        }
-
-
-        .login-footer {
-
-            margin-top: 28px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid #eef0f2;
-
-            text-align: center;
-
-            color: #9ca3af;
-
-            font-size: 11px;
-
-        }
-
-
-        .login-footer strong {
-
-            color: var(--coffee);
-
-        }
-
-
-        .alert {
-
-            border-radius: 11px;
-
-            font-size: 13px;
-
-        }
-
-
-        @media (max-width: 991px) {
-
-            .login-brand {
-
-                min-height: auto;
-
-                padding: 40px;
-
-            }
-
-
-            .login-form-section {
-
-                min-height: auto;
-
-                padding: 40px;
-
-            }
-
-        }
-
-
-        @media (max-width: 575px) {
-
-            body {
-
-                padding: 15px;
-
-            }
-
-
-            .login-card {
-
-                border-radius: 18px;
-
-            }
-
-
-            .login-brand {
-
-                padding: 30px 25px;
-
-            }
-
-
-            .login-form-section {
-
-                padding: 30px 25px;
-
-            }
-
-
-            .brand-title {
-
-                font-size: 25px;
-
-            }
-
-
-            .brand-icon {
-
-                width: 60px;
-
-                height: 60px;
-
-                border-radius: 17px;
-
-                font-size: 27px;
-
-            }
-
-
-            .login-heading {
-
-                font-size: 23px;
-
-            }
-
-        }
-
-    </style>
+    <!-- =========================================================
+         LOGIN CSS
+    ========================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="../assets/css/login.css"
+    >
 
 </head>
 
@@ -852,290 +337,287 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 
-<div class="login-wrapper">
+<!-- =============================================================
+     LOGIN PAGE
+============================================================== -->
 
-    <div class="card login-card">
-
-        <div class="row g-0">
+<div class="login-page">
 
 
-            <!-- =====================================================
+    <!-- =========================================================
+         LOGIN CONTAINER
+    ========================================================== -->
+
+    <div class="login-container">
+
+
+        <!-- =====================================================
+             LOGIN CARD
+        ====================================================== -->
+
+        <div class="login-card">
+
+
+            <!-- =================================================
                  BRAND
-                 ===================================================== -->
+            ================================================== -->
 
-            <div class="col-lg-6">
-
-                <div class="login-brand">
-
-                    <div class="brand-content">
-
-                        <div class="brand-icon">
-
-                            <i class="bi bi-cup-hot-fill"></i>
-
-                        </div>
+            <div class="login-brand">
 
 
-                        <h1 class="brand-title">
+                <!-- LOGO -->
 
-                            Three O' Clock
-                            <span>Cafe</span>
+                <div class="login-brand-logo">
 
-                        </h1>
-
-
-                        <p class="brand-subtitle">
-
-                            Welcome to the Three O' Clock Cafe
-                            administration panel. Manage orders,
-                            tables, bookings, products and cafe
-                            operations from one place.
-
-                        </p>
-
-
-                        <div class="brand-features">
-
-                            <div class="brand-feature">
-
-                                <i class="bi bi-check-circle-fill"></i>
-
-                                <span>
-                                    Manage cafe orders
-                                </span>
-
-                            </div>
-
-
-                            <div class="brand-feature">
-
-                                <i class="bi bi-check-circle-fill"></i>
-
-                                <span>
-                                    Manage tables and reservations
-                                </span>
-
-                            </div>
-
-
-                            <div class="brand-feature">
-
-                                <i class="bi bi-check-circle-fill"></i>
-
-                                <span>
-                                    Track payments and reports
-                                </span>
-
-                            </div>
-
-
-                            <div class="brand-feature">
-
-                                <i class="bi bi-check-circle-fill"></i>
-
-                                <span>
-                                    Manage products and reviews
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
+                    <i class="bi bi-cup-hot-fill"></i>
 
                 </div>
+
+
+                <!-- BRAND NAME -->
+
+                <h1>
+                    Three O' Clock Cafe
+                </h1>
+
+
+                <!-- DESCRIPTION -->
+
+                <p>
+                    Welcome to the Three O' Clock Cafe
+                    administration panel.
+                </p>
 
             </div>
 
 
-            <!-- =====================================================
+
+            <!-- =================================================
+                 LOGIN TITLE
+            ================================================== -->
+
+            <div class="login-title">
+
+                <h2>
+                    Admin Login
+                </h2>
+
+                <p>
+                    Sign in to access your administration dashboard.
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ERROR MESSAGE
+            ================================================== -->
+
+            <?php if ($error !== ""): ?>
+
+                <div class="login-alert">
+
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                    <span>
+
+                        <?= htmlspecialchars(
+                            $error,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ); ?>
+
+                    </span>
+
+                </div>
+
+            <?php endif; ?>
+
+
+
+            <!-- =================================================
                  LOGIN FORM
-                 ===================================================== -->
+            ================================================== -->
 
-            <div class="col-lg-6">
-
-                <div class="login-form-section">
-
-                    <div class="login-form-wrapper">
-
-
-                        <h2 class="login-heading">
-
-                            Admin Login
-
-                        </h2>
+            <form
+                method="POST"
+                class="login-form"
+                id="adminLoginForm"
+                autocomplete="on"
+            >
 
 
-                        <p class="login-description">
+                <!-- CSRF -->
 
-                            Sign in to access your administration dashboard.
-
-                        </p>
-
-
-                        <?php if ($error !== ''): ?>
-
-                            <div
-                                class="alert alert-danger d-flex align-items-start gap-2"
-                                role="alert"
-                            >
-
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-
-                                <span>
-                                    <?php echo htmlspecialchars(
-                                        $error,
-                                        ENT_QUOTES,
-                                        'UTF-8'
-                                    ); ?>
-                                </span>
-
-                            </div>
-
-                        <?php endif; ?>
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars(
+                        $_SESSION['admin_login_csrf'],
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ); ?>"
+                >
 
 
-                        <form
-                            method="POST"
-                            action="a-login.php"
-                            id="adminLoginForm"
-                            autocomplete="on"
+
+                <!-- =================================================
+                     EMAIL
+                ================================================== -->
+
+                <div class="login-form-group">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+
+                    <div class="login-input-wrapper">
+
+
+                        <!-- ICON -->
+
+                        <i
+                            class="bi bi-envelope login-input-icon"
+                        ></i>
+
+
+                        <!-- INPUT -->
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="login-input"
+                            value="<?= htmlspecialchars(
+                                $_POST['email'] ?? '',
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ); ?>"
+                            placeholder="admin@threeoclock.com"
+                            autocomplete="username"
+                            required
                         >
 
-                            <input
-                                type="hidden"
-                                name="csrf_token"
-                                value="<?php echo htmlspecialchars(
-                                    $csrfToken,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ); ?>"
-                            >
+                    </div>
+
+                </div>
 
 
-                            <!-- Email -->
 
-                            <div class="mb-3">
+                <!-- =================================================
+                     PASSWORD
+                ================================================== -->
 
-                                <label
-                                    for="email"
-                                    class="form-label"
-                                >
-                                    Email Address
-                                </label>
+                <div class="login-form-group">
 
-                                <div class="input-wrapper">
-
-                                    <i class="bi bi-envelope input-icon"></i>
-
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        class="form-control"
-                                        placeholder="Enter your email"
-                                        value="<?php echo htmlspecialchars(
-                                            $emailValue,
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ); ?>"
-                                        autocomplete="username"
-                                        required
-                                        autofocus
-                                    >
-
-                                </div>
-
-                            </div>
+                    <label for="password">
+                        Password
+                    </label>
 
 
-                            <!-- Password -->
-
-                            <div class="mb-4">
-
-                                <label
-                                    for="password"
-                                    class="form-label"
-                                >
-                                    Password
-                                </label>
-
-                                <div class="input-wrapper">
-
-                                    <i class="bi bi-lock input-icon"></i>
-
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        name="password"
-                                        class="form-control"
-                                        placeholder="Enter your password"
-                                        autocomplete="current-password"
-                                        required
-                                    >
+                    <div class="login-input-wrapper password-wrapper">
 
 
-                                    <button
-                                        type="button"
-                                        class="password-toggle"
-                                        id="passwordToggle"
-                                        aria-label="Show password"
-                                    >
+                        <!-- ICON -->
 
-                                        <i class="bi bi-eye"></i>
-
-                                    </button>
-
-                                </div>
-
-                            </div>
+                        <i
+                            class="bi bi-lock login-input-icon"
+                        ></i>
 
 
-                            <!-- Login Button -->
+                        <!-- PASSWORD -->
 
-                            <button
-                                type="submit"
-                                class="login-button"
-                                id="loginButton"
-                            >
-
-                                <i class="bi bi-box-arrow-in-right me-1"></i>
-
-                                Login
-
-                            </button>
-
-                        </form>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="login-input"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
 
 
-                        <div class="login-footer">
+                        <!-- TOGGLE -->
 
-                            <div>
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="togglePassword"
+                            aria-label="Show password"
+                        >
 
-                                <strong>
-                                    Three O' Clock Cafe
-                                </strong>
+                            <i class="bi bi-eye"></i>
 
-                                &nbsp;•&nbsp;
-
-                                Admin Panel
-
-                            </div>
-
-                            <div class="mt-1">
-
-                                Secure administrator access
-
-                            </div>
-
-                        </div>
-
+                        </button>
 
                     </div>
 
                 </div>
 
+
+
+                <!-- =================================================
+                     LOGIN BUTTON
+                ================================================== -->
+
+                <button
+                    type="submit"
+                    class="login-button"
+                    id="loginButton"
+                >
+
+                    <i class="bi bi-box-arrow-in-right"></i>
+
+                    <span>
+                        Login
+                    </span>
+
+                </button>
+
+
+            </form>
+
+
+
+            <!-- =================================================
+                 SECURITY
+            ================================================== -->
+
+            <div class="login-security">
+
+                <i class="bi bi-shield-check"></i>
+
+                <span>
+                    Secure administrator access
+                </span>
+
             </div>
+
+
+
+            <!-- =================================================
+                 FOOTER
+            ================================================== -->
+
+            <div class="login-footer">
+
+                <p>
+
+                    <strong>
+                        Three O' Clock Cafe
+                    </strong>
+
+                    &nbsp;•&nbsp;
+
+                    Admin Panel
+
+                </p>
+
+            </div>
+
 
         </div>
 
@@ -1144,81 +626,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 
+
+<!-- =============================================================
+     LOGIN JAVASCRIPT
+============================================================== -->
+
 <script>
 
 document.addEventListener(
-    'DOMContentLoaded',
+    "DOMContentLoaded",
     function () {
+
 
         /*
         |--------------------------------------------------------------------------
-        | Password Toggle
+        | PASSWORD TOGGLE
         |--------------------------------------------------------------------------
         */
 
         const password =
-            document.getElementById('password');
+            document.getElementById("password");
 
-        const passwordToggle =
-            document.getElementById('passwordToggle');
+        const toggle =
+            document.getElementById("togglePassword");
 
 
-        if (
-            password &&
-            passwordToggle
-        ) {
+        if (password && toggle) {
 
-            passwordToggle.addEventListener(
-                'click',
+            toggle.addEventListener(
+                "click",
                 function () {
 
-                    const icon =
-                        passwordToggle.querySelector('i');
-
-
                     if (
-                        password.type === 'password'
+                        password.type === "password"
                     ) {
 
-                        password.type = 'text';
+                        password.type = "text";
 
-                        passwordToggle.setAttribute(
-                            'aria-label',
-                            'Hide password'
+                        toggle.innerHTML =
+                            '<i class="bi bi-eye-slash"></i>';
+
+                        toggle.setAttribute(
+                            "aria-label",
+                            "Hide password"
                         );
-
-                        if (icon) {
-
-                            icon.classList.remove(
-                                'bi-eye'
-                            );
-
-                            icon.classList.add(
-                                'bi-eye-slash'
-                            );
-
-                        }
 
                     } else {
 
-                        password.type = 'password';
+                        password.type = "password";
 
-                        passwordToggle.setAttribute(
-                            'aria-label',
-                            'Show password'
+                        toggle.innerHTML =
+                            '<i class="bi bi-eye"></i>';
+
+                        toggle.setAttribute(
+                            "aria-label",
+                            "Show password"
                         );
-
-                        if (icon) {
-
-                            icon.classList.remove(
-                                'bi-eye-slash'
-                            );
-
-                            icon.classList.add(
-                                'bi-eye'
-                            );
-
-                        }
 
                     }
 
@@ -1230,42 +693,35 @@ document.addEventListener(
 
         /*
         |--------------------------------------------------------------------------
-        | Prevent Double Login Submission
+        | PREVENT DOUBLE SUBMIT
         |--------------------------------------------------------------------------
         */
 
         const form =
-            document.getElementById('adminLoginForm');
+            document.getElementById(
+                "adminLoginForm"
+            );
 
         const button =
-            document.getElementById('loginButton');
+            document.getElementById(
+                "loginButton"
+            );
 
 
-        if (
-            form &&
-            button
-        ) {
+        if (form && button) {
 
             form.addEventListener(
-                'submit',
+                "submit",
                 function () {
-
-                    if (
-                        form.dataset.submitted === 'true'
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    form.dataset.submitted = 'true';
 
                     button.disabled = true;
 
+                    button.classList.add(
+                        "loading"
+                    );
+
                     button.innerHTML =
-                        '<span class="spinner-border spinner-border-sm me-2"></span>' +
-                        'Signing in...';
+                        "Logging in...";
 
                 }
             );
@@ -1273,6 +729,7 @@ document.addEventListener(
         }
 
     }
+
 );
 
 </script>
